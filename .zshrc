@@ -1,4 +1,5 @@
 path+=("$HOME/.local/bin")
+
 alias bat=batcat
 
 source .zshrc_fzf
@@ -9,6 +10,8 @@ function ssh-agent-start(){
   eval "$(ssh-agent -s)"
   ssh-add /home/xerxes/.ssh/id_ed25519
 }
+
+eval "$(zoxide init zsh)"
 
 # If you come from bash you might have to change your $PATH.
 # export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH

@@ -26,6 +26,14 @@ install:
 
 > git clone https://github.com/tarjoilija/zgen.git "${HOME}/.zgen"
 
+## zoxide
+better cd
+
+[zoxide github page](https://github.com/ajeetdsouza/zoxide)
+
+install
+> sudo apt install zoxide
+
 ## fzf
 command-line fuzzy finder
 [fzf github page](https://github.com/junegunn/fzf)

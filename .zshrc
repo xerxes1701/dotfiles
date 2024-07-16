@@ -1,14 +1,8 @@
 path+=("$HOME/.local/bin")
 alias bat=batcat
 
-source <(fzf --zsh)
-
-alias ld='eza -lD'
-alias lf='eza -lf --color=always | grep -v /'
-alias lh='eza -dl .* --group-directories-first'
-alias ll='eza -al --group-directories-first'
-alias ls='eza -alf --color=always --sort=size | grep -v /'
-alias lt='eza -al --sort=modified'
+source .zshrc_fzf
+source .zshrc_ls
 
 # If you come from bash you might have to change your $PATH.
 # export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH

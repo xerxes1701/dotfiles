@@ -16,6 +16,16 @@ create sym links
 install
 > sudo apt install stow
 
+## zgen
+
+zsh plugin manager
+
+[zgen github page](https://github.com/tarjoilija/zgen)
+
+install:
+
+> git clone https://github.com/tarjoilija/zgen.git "${HOME}/.zgen"
+
 ## fzf
 command-line fuzzy finder
 [fzf github page](https://github.com/junegunn/fzf)

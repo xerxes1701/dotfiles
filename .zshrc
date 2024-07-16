@@ -5,6 +5,11 @@ source .zshrc_fzf
 source .zshrc_ls
 source .zshrc_zgen
 
+function ssh-agent-start(){
+  eval "$(ssh-agent -s)"
+  ssh-add /home/xerxes/.ssh/id_ed25519
+}
+
 # If you come from bash you might have to change your $PATH.
 # export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH
 

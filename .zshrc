@@ -2,6 +2,8 @@ path+=("$HOME/.local/bin")
 
 alias bat=batcat
 
+bindkey -s '\e' '^U'
+
 source .zshrc_fzf
 source .zshrc_ls
 source .zshrc_zgen

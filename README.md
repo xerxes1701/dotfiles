@@ -71,3 +71,17 @@ install
 
 install
 > sudo apt install eza
+
+## lua + luarocks
+
+scripting language + package manager
+
+install
+> sudo apt install lua luarocks
+
+## neovim
+
+eidtor
+
+install
+> sudo apt install neovim

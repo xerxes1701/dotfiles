@@ -85,3 +85,10 @@ eidtor
 
 install
 > sudo apt install neovim
+
+## ripgrep
+
+regex search, faster alternative to grep
+
+install
+> sudo apt install ripgrep

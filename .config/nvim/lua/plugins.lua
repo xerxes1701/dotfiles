@@ -1,3 +1,5 @@
+print(vim.g.mapleader)
+
 return {
   -- the colorscheme should be available when starting Neovim
   {
@@ -15,4 +17,19 @@ return {
         require('alpha').setup(require('alpha.themes.dashboard').config)
     end
   },
+  {
+    'nvim-lua/plenary.nvim'
+  },
+   { 
+    'nvim-telescope/telescope.nvim', 
+    tag = '0.1.1',
+    dependencies = { 'nvim-lua/plenary.nvim' },
+    keys =
+    {
+      {'<leader>fg', "<cmd>Telescope live_grep<cr>", desc = "Live grep"},
+      {'<leader>ff', "<cmd>Telescope find_files<cr>", desc = "Find file"},
+      {'<leader>fb', "<cmd>Telescope buffers<cr>", desc = "Find buffer"},
+      {'<leader>fh', "<cmd>Telescope help_tags<cr>", desc = "Find tag"},
+    },
+  }
 }

@@ -92,3 +92,10 @@ regex search, faster alternative to grep
 
 install
 > sudo apt install ripgrep
+
+## git delta
+
+a syntax-highlighting pager for git
+
+install
+> sudo apt install git-delta

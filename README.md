@@ -42,7 +42,7 @@ command-line fuzzy finder
 use latetest binary release. replace existing.
 
 ### configuration
-see `.zshrc_fzf
+see `.zshrc_fzf`
 
 ### dependencies
 - [bat](#bat)
@@ -67,7 +67,7 @@ install
 
 `ls` alternative
 
-(eza github page)[https://github.com/eza-community/eza]
+[eza github page](https://github.com/eza-community/eza)
 
 install
 > sudo apt install eza
@@ -75,6 +75,9 @@ install
 ## lua + luarocks
 
 scripting language + package manager
+[lua home page](https://www.lua.org/)
+[LuaRocks home page](https://luarocks.org/)
+
 
 install
 > sudo apt install lua luarocks
@@ -82,6 +85,7 @@ install
 ## neovim
 
 eidtor
+[neovim home page](https://neovim.io/)
 
 install
 > sudo apt install neovim
@@ -89,6 +93,7 @@ install
 ## ripgrep
 
 regex search, faster alternative to grep
+[riggrep github page](https://github.com/BurntSushi/ripgrep)
 
 install
 > sudo apt install ripgrep
@@ -96,6 +101,7 @@ install
 ## git delta
 
 a syntax-highlighting pager for git
+[git delta github page](https://github.com/dandavison/delta)
 
 install
 > sudo apt install git-delta

@@ -12,9 +12,16 @@ return {
     end,
   },
   {
+    'nvim-tree/nvim-web-devicons'
+  },
+  {
     'goolord/alpha-nvim',
+    dependencies = {
+	    'nvim-tree/nvim-web-devicons',
+	    'nvim-lua/plenary.nvim',
+    },
     config = function ()
-        require('alpha').setup(require('alpha.themes.dashboard').config)
+        require('alpha').setup(require('alpha.themes.theta').config)
     end
   },
   {
@@ -22,7 +29,7 @@ return {
   },
    { 
     'nvim-telescope/telescope.nvim', 
-    tag = '0.1.1',
+    tag = '0.1.8',
     dependencies = { 'nvim-lua/plenary.nvim' },
     keys =
     {

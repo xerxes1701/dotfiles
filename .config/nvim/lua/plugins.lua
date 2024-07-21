@@ -27,7 +27,7 @@ return {
   {
     'nvim-lua/plenary.nvim'
   },
-   { 
+  { 
     'nvim-telescope/telescope.nvim', 
     tag = '0.1.8',
     dependencies = { 'nvim-lua/plenary.nvim' },
@@ -38,5 +38,18 @@ return {
       {'<leader>fb', "<cmd>Telescope buffers<cr>", desc = "Find buffer"},
       {'<leader>fh', "<cmd>Telescope help_tags<cr>", desc = "Find tag"},
     },
-  }
+  },
+  {
+	  'sindrets/diffview.nvim'
+  },
+  {
+	  'NeogitOrg/neogit',
+	  tag = 'v0.0.1', -- neovim 0.9.x compatible
+	  dependencies = {
+		  'nvim-lua/plenary.nvim',
+		  'sindrets/diffview.nvim',
+		  'nvim-telescope/telescope.nvim',
+	  },
+	  config = true
+  },
 }

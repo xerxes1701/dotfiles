@@ -1,7 +1,9 @@
 {
   "alpha-nvim": { "branch": "main", "commit": "41283fb402713fc8b327e60907f74e46166f4cfd" },
+  "diffview.nvim": { "branch": "main", "commit": "4516612fe98ff56ae0415a259ff6361a89419b0a" },
   "everforest": { "branch": "master", "commit": "b49ba81e79b20d2b47bb71e98fa984bae90731be" },
   "lazy.nvim": { "branch": "main", "commit": "a09c876f6ef642c8feaea45932df73b058d9a083" },
+  "neogit": { "branch": "master", "commit": "bc0c609e3568a171e0549b449aa1b2b4b5b20e8c" },
   "nvim-web-devicons": { "branch": "master", "commit": "e612de3d3a41a6b7be47f51e956dddabcbf419d9" },
   "plenary.nvim": { "branch": "master", "commit": "a3e3bc82a3f95c5ed0d7201546d5d2c19b20d683" },
   "telescope.nvim": { "branch": "master", "commit": "a0bbec21143c7bc5f8bb02e0005fa0b982edc026" }

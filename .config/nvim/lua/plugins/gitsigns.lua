@@ -4,7 +4,15 @@
 return {
   'lewis6991/gitsigns.nvim',
   config = function()
-    require('gitsigns').setup({
+    local gitsigns = require('gitsigns')
+
+    gitsigns.setup({ 
     })
+
+    vim.keymap.set('n', '<leader>hs', '<cmd>Gitsigns stage_hunk<cr>')
+    vim.keymap.set('n', '<leader>hu', '<cmd>Gitsigns undo_stage_hunk<cr>') 
+    vim.keymap.set('n', '<leader>hp', '<cmd>Gitsigns preview_hunk<cr>') 
+    vim.keymap.set('n', '<leader>hd', '<cmd>Gitsigns diffthis<cr>') 
+    -- vim.keymap.set('n', '<leader>hD', function() gitsigns.diffthis('~') end) 
   end,
 }

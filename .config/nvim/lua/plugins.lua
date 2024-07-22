@@ -40,7 +40,10 @@ return {
     },
   },
   {
-	  'sindrets/diffview.nvim'
+	  'sindrets/diffview.nvim',
+    keys = {
+      { '<leader>gd', ':DiffviewOpen<cr>' },
+    },
   },
   {
 	  'NeogitOrg/neogit',
@@ -51,7 +54,23 @@ return {
 		  'nvim-telescope/telescope.nvim',
 	  },
 	  config = function()
-		require("config.neogit").setup()
-          end,
+		  require("config.neogit").setup()
+    end,
+  },
+  {
+    'nvim-treesitter/nvim-treesitter',
+    build = ':TSUpdate',
+    config = function()
+      require('nvim-treesitter.configs').setup({
+        ensure_installed = { "lua", "vim", "vimdoc", "javascript", "html" },
+        sync_install = false,
+        highlight = {
+          enable = true,
+        },
+        indent = {
+          enable = true,
+        },
+      })
+    end,
   },
 }

@@ -4,10 +4,6 @@ alias bat=batcat
 
 bindkey -s '\e' '^U'
 
-source .zshrc_fzf
-source .zshrc_ls
-source .zshrc_zgen
-
 function ssh-agent-start(){
   eval "$(ssh-agent -s)"
   ssh-add /home/xerxes/.ssh/id_ed25519
@@ -119,4 +115,9 @@ source $ZSH/oh-my-zsh.sh
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
+
+source .zshrc_fzf
+source .zshrc_ls
+source .zshrc_zgen
+
 

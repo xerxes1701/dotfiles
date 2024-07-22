@@ -120,4 +120,4 @@ source .zshrc_fzf
 source .zshrc_ls
 source .zshrc_zgen
 
-
+alias neogit='nvim -c :Neogit'

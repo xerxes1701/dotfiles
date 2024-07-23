@@ -6,3 +6,5 @@ alias ls='eza --color=always --icons=always'
 alias lt='eza -al --sort=modified --icons=always'
 alias ld='eza -lD --icons=always'
 
+alias tree='eza --tree --color=always --icons=always'
+

@@ -6,6 +6,7 @@ return {
   dependencies = { 'nvim-web-devicons' },
   event = 'VeryLazy',
   opts = {
+    delay = 1000,
   },
   keys = {
     {

@@ -105,3 +105,20 @@ a syntax-highlighting pager for git
 
 install
 > sudo apt install git-delta
+
+## fished
+
+a fish shell plugin managet
+[fisher github page](https://github.com/jorgebucaran/fisher)
+
+install
+> curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher
+
+## catppuccin fish
+
+a fish shell color scheme
+[catppuccin fish github page](https://github.com/catppuccin/fish)
+
+install
+> fisher install catppuccin/fish
+> fish_config theme save "Catppuccin Mocha"

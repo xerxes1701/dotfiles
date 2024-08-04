@@ -130,3 +130,28 @@ a terminal multiplexer
 
 install
 > sudo apt install tmux
+
+## tmux plugin manager
+plugin manager for tmux
+[tpm github page](https://github.com/tmux-plugins/tpm)
+
+install
+> git clone https://github.com/tmux-plugins/tpm 
+
+## build essentials
+
+copilers, make, etc.
+
+install
+> sudo apt install build-essentials
+
+## entr
+event notify test runner
+[entr github page](https://github.com/eradman/entr)
+
+install
+> git clone https://github.com/eradman/entr
+> cd entr
+> ./configure
+> make test
+> make install

@@ -8,10 +8,10 @@ keymap("x", "J", ":move '>+1<CR>gv-gv", { noremap = true, silent = true })
 keymap("n", "<ESC>", ":nohlsearch<Bar>:echo<CR>", { noremap = true, silent = true })
 
 -- Navigation between panes
-keymap("n", "<C-h>", ":wincmd h<CR>", { noremap = true, silent = true, desc = "goto left pane" })
-keymap("n", "<C-j>", ":wincmd k<CR>", { noremap = true, silent = true, desc = "goto upper pane" })
-keymap("n", "<C-k>", ":wincmd j<CR>", { noremap = true, silent = true, desc = "goto lower pane" })
-keymap("n", "<C-l>", ":wincmd l<CR>", { noremap = true, silent = true, desc = "goto right pane" })
+-- keymap("n", "<C-h>", ":wincmd h<CR>", { noremap = true, silent = true, desc = "goto left pane" })
+-- keymap("n", "<C-j>", ":wincmd k<CR>", { noremap = true, silent = true, desc = "goto upper pane" })
+-- keymap("n", "<C-k>", ":wincmd j<CR>", { noremap = true, silent = true, desc = "goto lower pane" })
+-- keymap("n", "<C-l>", ":wincmd l<CR>", { noremap = true, silent = true, desc = "goto right pane" })
 
 -- Resizing panes
 keymap("n", "<C-Left>", ":vertical resize +1<CR>", { noremap = true, silent = true })

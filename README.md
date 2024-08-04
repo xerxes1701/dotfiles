@@ -122,3 +122,11 @@ a fish shell color scheme
 install
 > fisher install catppuccin/fish
 > fish_config theme save "Catppuccin Mocha"
+
+## tmux
+
+a terminal multiplexer
+[tmux github page](https://github.com/tmux)
+
+install
+> sudo apt install tmux

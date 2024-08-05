@@ -15,4 +15,6 @@ if status is-interactive
 
   alias tree='eza --tree --color=always --icons=always'
 
+  export EDITOR=nvim
+
 end

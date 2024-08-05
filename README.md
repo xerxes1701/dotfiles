@@ -155,3 +155,17 @@ install
 > ./configure
 > make test
 > make install
+
+## rust
+rust language compiler and tool chain
+[rust home page](https://www.rust-lang.org/)
+
+install
+> curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+## yazi
+commandline file manager
+[yazi github homepage](https://github.com/sxyazi/yazi)
+
+install
+> cargo install --locked yazi-fm yazi-cli

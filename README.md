@@ -122,3 +122,50 @@ a fish shell color scheme
 install
 > fisher install catppuccin/fish
 > fish_config theme save "Catppuccin Mocha"
+
+## tmux
+
+a terminal multiplexer
+[tmux github page](https://github.com/tmux)
+
+install
+> sudo apt install tmux
+
+## tmux plugin manager
+plugin manager for tmux
+[tpm github page](https://github.com/tmux-plugins/tpm)
+
+install
+> git clone https://github.com/tmux-plugins/tpm 
+
+## build essentials
+
+copilers, make, etc.
+
+install
+> sudo apt install build-essentials
+
+## entr
+event notify test runner
+[entr github page](https://github.com/eradman/entr)
+
+install
+> git clone https://github.com/eradman/entr
+> cd entr
+> ./configure
+> make test
+> make install
+
+## rust
+rust language compiler and tool chain
+[rust home page](https://www.rust-lang.org/)
+
+install
+> curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+## yazi
+commandline file manager
+[yazi github homepage](https://github.com/sxyazi/yazi)
+
+install
+> cargo install --locked yazi-fm yazi-cli

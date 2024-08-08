@@ -43,6 +43,7 @@ alt + subtract          : komorebic resize-axis horizontal decrease
 alt + multiply          : komorebic resize-axis vertical increase
 alt + divide            : komorebic resize-axis vertical decrease
 
+
 alt + oem_plus          : komorebic resize-axis horizontal increase
 alt + oem_minus         : komorebic resize-axis horizontal decrease
 alt + shift + oem_plus  : komorebic resize-axis vertical increase

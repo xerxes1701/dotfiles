@@ -90,6 +90,15 @@ eidtor
 install
 > sudo apt install neovim
 
+## zig
+
+programming language, C compatible, easy to install on Windows
+some neovim plugins, like TreeSitter need a C compiler
+[zig home page](https://ziglang.org)
+
+install
+> winget install --exact --id zig.zig
+
 ## ripgrep
 
 regex search, faster alternative to grep

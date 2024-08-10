@@ -178,3 +178,12 @@ commandline file manager
 
 install
 > cargo install --locked yazi-fm yazi-cli
+
+## yq
+lightweight YAML, JSON, XML processor
+required for tmux-nerd-font-window-name plugin
+[yq github page](https://github.com/mikefarah/yq)
+
+install
+> sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq
+> sudo chmod +x /usr/bin/yq

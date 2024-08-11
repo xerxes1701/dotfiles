@@ -26,3 +26,6 @@ keymap("v", "p", '"_dP', { noremap = true, silent = true })
 -- Better indent
 keymap("v", "<", "<gv", { noremap = true, silent = true })
 keymap("v", ">", ">gv", { noremap = true, silent = true })
+
+-- open Lazy plugin manager
+keymap("n", "<leader>ll", "<cmd>Lazy<CR>", { noremap = true, silent = true }) 

@@ -3,6 +3,7 @@
 
 return {
   'lewis6991/gitsigns.nvim',
+  tag = 'v0.9.0',
   config = function()
     local gitsigns = require('gitsigns')
 

@@ -3,6 +3,7 @@
 
 return {
   "folke/which-key.nvim",
+  tag = 'v3.13.2',
   dependencies = { 'nvim-web-devicons' },
   event = 'VeryLazy',
   opts = {

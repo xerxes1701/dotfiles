@@ -16,5 +16,8 @@ return {
       }
     })
   end,
+  keys = {
+    { '<leader>gg', '<cmd>Neogit<CR>', 'open Neo Git' },
+  }
 }
 

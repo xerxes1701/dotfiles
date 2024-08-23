@@ -8,6 +8,7 @@ return {
     'nvim-lua/plenary.nvim', 
     { 'nvim-telescope/telescope-fzf-native.nvim', build = 'make' },
     'nvim-tree/nvim-web-devicons',
+    'folke/todo-comments.nvim',
   },
   config = function()
     local telescope = require('telescope')
@@ -37,5 +38,6 @@ return {
     {'<leader>fd', "<cmd>Telescope find_files hidden=true<cr>", desc = "fuzzy find hidden files"},
     {'<leader>fb', "<cmd>Telescope buffers<cr>", desc = "fuzzy find buffers"},
     {'<leader>fh', "<cmd>Telescope help_tags<cr>", desc = "fuzzy find help tags"},
+    {'<leader>ft', "<cmd>TodoTelescope<CR>", desc = "fuzzy find help tags"},
   },
 }

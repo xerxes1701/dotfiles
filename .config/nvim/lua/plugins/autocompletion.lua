@@ -39,6 +39,7 @@ return {
         ['<C-Space>'] = cmp.mapping.complete(), -- show suggestions
         ['<C-e>'] = cmp.mapping.abort(), 
         ['<CR>'] = cmp.mapping.confirm({ select = false }),
+        ['<Tab>'] = cmp.mapping.confirm({ select = false }),
       }),
       sources = cmp.config.sources({
         { name = 'luasnip' }, -- snippest

@@ -10,8 +10,17 @@ return {
     require('catppuccin').setup({
       transparent_background = true,
       term_colors = true,
-      integration = {
+      integrations = {
         bufferline = true,
+        cmp = true,
+        gitsigns = true,
+        mason = true,
+        notify = true,
+        nvimtree = true,
+        symbols_outline = true,
+        telescope = true,
+        treesitter = true,
+        treesitter_context = true,
       },
     })
     vim.cmd.colorscheme('catppuccin')

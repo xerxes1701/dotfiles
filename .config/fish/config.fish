@@ -17,4 +17,7 @@ if status is-interactive
 
   export EDITOR=nvim
 
+  alias conf='tmuxinator start conf'
+  alias y='yazi'
+
 end

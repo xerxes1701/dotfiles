@@ -122,3 +122,5 @@ source .zshrc_ls
 source .zshrc_zgen
 
 alias neogit='nvim -c :Neogit'
+
+export EDITOR='nvim'

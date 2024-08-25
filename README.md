@@ -187,3 +187,16 @@ required for tmux-nerd-font-window-name plugin
 install
 > sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq
 > sudo chmod +x /usr/bin/yq
+
+## ruby
+scripting language, includes the `gem` package manager
+
+install
+> sudo apt install ruby
+
+## tmuxinator
+configure tmux sessions (intial windows, panes, commands)
+[tmuxinator github page](https://github.com/tmuxinator/tmuxinator)
+
+install
+> gem install tmuxinator

@@ -1,8 +1,8 @@
 local keymap = vim.api.nvim_set_keymap
 
 -- Move selected line / block of text in visual mode
-keymap("x", "K", ":move '<-2<CR>gv-gv", { noremap = true, silent = true })
-keymap("x", "J", ":move '>+1<CR>gv-gv", { noremap = true, silent = true })
+keymap("x", "J", ":move '>+1<CR>gv=gv", { noremap = true, silent = true })
+keymap("x", "K", ":move '<-2<CR>gv=gv", { noremap = true, silent = true })
 
 -- Cancel search highlighting with ESC
 keymap("n", "<ESC>", ":nohlsearch<Bar>:echo<CR>", { noremap = true, silent = true })
@@ -19,7 +19,9 @@ keymap("n", "<leader>+", "<C-a>", { desc = "increment number"})
 keymap("n", "<leader>-", "<C-x>", { desc = "decrement number"})
 
 -- Paste over currently selected text without yanking it
-keymap("v", "p", '"_dP', { noremap = true, silent = true })
+keymap("v", "<leader>p", "\"_dP", { noremap = true, silent = true })
+keymap('n', 'x', "\"_x", { noremap = true, silent = true })
+keymap('n', 'Q', '<nop>', { noremap = true, silent = true })
 
 -- Better indent
 keymap("v", "<", "<gv", { noremap = true, silent = true })

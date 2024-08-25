@@ -20,4 +20,8 @@ if status is-interactive
   alias conf='tmuxinator start conf'
   alias y='yazi'
 
+  function ssh-agent-start
+    eval $(ssh-agent -c)
+    ssh-add /home/xerxes/.ssh/id_ed25519
+  end 
 end

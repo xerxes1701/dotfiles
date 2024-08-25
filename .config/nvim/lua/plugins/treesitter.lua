@@ -2,27 +2,41 @@
 -- https://github.com/nvim-treesitter/nvim-treesitter
 
 return {
-  'nvim-treesitter/nvim-treesitter',
-  build = ':TSUpdate',
-  config = function()
-    require('nvim-treesitter.configs').setup({
-      ensure_installed = { "lua", "vim", "vimdoc", "javascript", "html", "json", "xml", "c_sharp" },
-      sync_install = false,
-      highlight = {
-        enable = true,
-      },
-      indent = {
-        enable = true,
-      },
-      incremental_selection = {
-        enable = true,
-        keymaps = {
-          init_selection = '<C-space>',
-          node_incremental = '<C-space>',
-          scope_incremental = false,
-          node_decremental = '<bs>',
-        },
-      },
-    })
-  end,
+	"nvim-treesitter/nvim-treesitter",
+	build = ":TSUpdate",
+	config = function()
+		require("nvim-treesitter.configs").setup({
+			auto_install = true,
+			modules = {},
+			ignore_install = {},
+			ensure_installed = {
+				"lua",
+				"vim",
+				"vimdoc",
+				"javascript",
+				"html",
+				"json",
+				"xml",
+				"c_sharp",
+				"markdown",
+				"markdown_inline",
+			},
+			sync_install = false,
+			highlight = {
+				enable = true,
+			},
+			indent = {
+				enable = true,
+			},
+			incremental_selection = {
+				enable = true,
+				keymaps = {
+					init_selection = "<C-space>",
+					node_incremental = "<C-space>",
+					scope_incremental = false,
+					node_decremental = "<bs>",
+				},
+			},
+		})
+	end,
 }

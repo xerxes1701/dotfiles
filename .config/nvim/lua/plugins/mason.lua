@@ -8,22 +8,33 @@ return {
 		"WhoIsSethDaniel/mason-tool-installer.nvim",
 	},
 	config = function()
-		require("mason").setup({})
+		require("mason").setup({
+			ui = {
+				icons = {
+					package_installed = "",
+					package_pending = "",
+					package_uninstalled = "",
+				},
+			},
+		})
 
 		require("mason-lspconfig").setup({
 			ensure_installed = {
 				"lua_ls", -- lua
 				"tsserver", -- typescript
 				"markdown_oxide", -- markdown
+				"rust_analyzer", -- rust
 			},
 		})
 
 		require("mason-tool-installer").setup({
 			ensure_installed = {
-				"prettier",
-				"stylua", -- lua
-				"vale", -- markdown
-				"eslint_d", -- javascript, typescript, ...
+				"prettier", -- universal formatter
+				"stylua", -- lua formatter
+				"vale", -- markdown linter
+				"eslint_d", -- javascript/typescript linter
+				"codelldb", -- native debugger (c, rust, ...)
+				"cpptools", -- native debugger (c, rust, ...)
 			},
 		})
 	end,

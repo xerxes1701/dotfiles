@@ -19,6 +19,7 @@ if status is-interactive
 
   alias conf='tmuxinator start conf'
   alias y='yazi'
+  alias bat='batcat --theme="Catppuccin Macchiato"'
 
   function ssh-agent-start
     eval $(ssh-agent -c)

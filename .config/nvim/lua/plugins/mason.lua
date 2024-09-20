@@ -24,6 +24,7 @@ return {
 				"tsserver", -- typescript
 				"markdown_oxide", -- markdown
 				"rust_analyzer", -- rust
+				"omnisharp", -- C#
 			},
 		})
 
@@ -34,6 +35,7 @@ return {
 				"vale", -- markdown linter
 				"eslint_d", -- javascript/typescript linter
 				"codelldb", -- native debugger (c, rust, ...)
+				"netcoredbg", -- dotnet debugger (c#, f#, ...)
 				"cpptools", -- native debugger (c, rust, ...)
 			},
 		})

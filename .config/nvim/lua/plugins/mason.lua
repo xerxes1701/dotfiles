@@ -16,15 +16,19 @@ return {
 					package_uninstalled = "",
 				},
 			},
+			registries = {
+				"github:mason-org/mason-registry",
+				"github:Crashdummyy/mason-registry",
+			},
 		})
 
 		require("mason-lspconfig").setup({
 			ensure_installed = {
 				"lua_ls", -- lua
-				"tsserver", -- typescript
+				"ts_ls", -- typescript
 				"markdown_oxide", -- markdown
 				"rust_analyzer", -- rust
-				"omnisharp", -- C#
+				-- "roslyn", -- c# (this like dosn't work but `:MasonInstall` does)
 			},
 		})
 

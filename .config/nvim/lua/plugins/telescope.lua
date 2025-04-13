@@ -6,7 +6,6 @@ return {
 	tag = "0.1.8",
 	dependencies = {
 		"nvim-lua/plenary.nvim",
-		{ "nvim-telescope/telescope-fzf-native.nvim", build = "make" },
 		"nvim-tree/nvim-web-devicons",
 		"folke/todo-comments.nvim",
 		"ThePrimeagen/harpoon",
@@ -29,7 +28,6 @@ return {
 		})
 
 		-- load native fzf extension
-		telescope.load_extension("fzf")
 		telescope.load_extension("harpoon")
 	end,
 	keys = {

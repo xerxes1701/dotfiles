@@ -40,8 +40,10 @@ return {
 
 		dap.adapters.coreclr = {
 			type = "executable",
-			command = mason_bin_path .. "/packages/netcoredbg/netcoredbg",
+			command = mason_bin_path .. "/packages/netcoredbg/netcoredbg/netcoredbg",
 			args = { "--interpreter=vscode" },
 		}
+
+		print(vim.inspect(dap.adapters.coreclr.command))
 	end,
 }

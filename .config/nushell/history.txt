@@ -1,0 +1,27 @@
+pwsh
+cmd
+ls
+lz
+z
+$user
+$path
+$PATH
+cls
+cd /code/PathOfExile.Archnemesis/
+ls
+cd PathOfExile.Archnemesis\
+dotnet
+git status
+cd ..
+ls 
+cd ffxiv\
+ls
+cd XIVComboPlugin-tweaks1\
+ls
+git status
+git init
+git status
+git add -A
+git commit 
+git log
+nvim

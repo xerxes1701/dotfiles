@@ -7,13 +7,12 @@ return {
 	dependencies = {
 		"williamboman/mason.nvim",
 		"williamboman/mason-lspconfig.nvim",
-		"hrsh7th/cmp-nvim-lsp",
 		{ "antosha417/nvim-lsp-file-operations", config = true },
 		{ "folke/neodev.nvim", opts = {} },
+		"saghen/blink.cmp",
 	},
 	config = function()
 		local lspconfig = require("lspconfig")
-		local cmp_nvim_lsp = require("cmp_nvim_lsp")
 		local mason_lspconfig = require("mason-lspconfig")
 
 		-- define keybinding that will be avaiable if a LSP Server is attached to the current buffer
@@ -50,31 +49,6 @@ return {
 				keymap("n", "K", vim.lsp.buf.hover, { desc = "show lsp documentation" })
 
 				keymap("n", "<leader>rSS", "<cmd>LspRestart<CR>", { desc = "restart LSP" })
-			end,
-		})
-
-		local capabilities = cmp_nvim_lsp.default_capabilities()
-
-		mason_lspconfig.setup_handlers({
-			function(server_name)
-				lspconfig[server_name].setup({
-					capabilities = capabilities,
-				})
-			end,
-			["lua_ls"] = function()
-				lspconfig["lua_ls"].setup({
-					capabilities = capabilities,
-					settings = {
-						Lua = {
-							diagnostics = {
-								globals = { "vim" },
-							},
-							completion = {
-								callSnippet = "Replace",
-							},
-						},
-					},
-				})
 			end,
 		})
 	end,

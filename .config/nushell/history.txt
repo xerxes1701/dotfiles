@@ -25,3 +25,15 @@ git add -A
 git commit 
 git log
 nvim
+winget searxh audible
+winget search audible
+z khef
+zoxide init nushell | save -f ~/.zoxide.nu
+$nu.config-path
+neovide $nu.config-path
+z
+exit
+nu
+exit
+nvim
+exit

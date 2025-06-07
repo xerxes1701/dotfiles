@@ -16,3 +16,6 @@
 #
 # You can remove these comments if you want or leave
 # them for future reference.
+
+$env.XDG_CONFIG_HOME = "c:/Users/micha/.config"
+source c:/Users/micha/.config/nushell/.zoxide.nu

@@ -20,9 +20,10 @@ if status is-interactive
   alias conf='tmuxinator start conf'
   alias y='yazi'
   alias bat='batcat --theme="Catppuccin Macchiato"'
+  alias nvim='~/nvim-linux-x86_64.appimage'
 
   function ssh-agent-start
     eval $(ssh-agent -c)
-    ssh-add /home/xerxes/.ssh/id_ed25519
+    ssh-add /home/xerxes/.ssh/id_rsa
   end 
 end

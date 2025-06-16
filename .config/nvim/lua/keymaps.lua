@@ -13,38 +13,40 @@ keymap("n", "<ESC>", ":nohlsearch<Bar>:echo<CR>", { noremap = true, silent = tru
 -- keymap("n", "<C-k>", ":wincmd j<CR>", { noremap = true, silent = true, desc = "goto lower pane" })
 -- keymap("n", "<C-l>", ":wincmd l<CR>", { noremap = true, silent = true, desc = "goto right pane" })
 
-
 -- increment / decrement numbers
-keymap("n", "<leader>+", "<C-a>", { desc = "increment number"})
-keymap("n", "<leader>-", "<C-x>", { desc = "decrement number"})
+keymap("n", "<leader>+", "<C-a>", { desc = "increment number" })
+keymap("n", "<leader>-", "<C-x>", { desc = "decrement number" })
 
 -- Paste over currently selected text without yanking it
-keymap("v", "<leader>p", "\"_dP", { noremap = true, silent = true })
-keymap('n', 'x', "\"_x", { noremap = true, silent = true })
-keymap('n', 'Q', '<nop>', { noremap = true, silent = true })
+keymap("v", "<leader>p", '"_dP', { noremap = true, silent = true })
+keymap("n", "x", '"_x', { noremap = true, silent = true })
+keymap("n", "Q", "<nop>", { noremap = true, silent = true })
 
 -- Better indent
 keymap("v", "<", "<gv", { noremap = true, silent = true })
 keymap("v", ">", ">gv", { noremap = true, silent = true })
 
 -- open Lazy plugin manager
-keymap("n", "<leader>ll", "<cmd>Lazy<CR>", { noremap = true, silent = true }) 
+keymap("n", "<leader>ll", "<cmd>Lazy<CR>", { noremap = true, silent = true })
 
 -- split management
-keymap('n', '<leader>sv', '<cmd>vsplit<CR>', { desc = 'split vertical', noremap = true, silent = true })
-keymap('n', '<leader>sh', '<cmd>split<CR>', { desc = 'split horizontal', noremap = true, silent = true })
-keymap('n', '<leader>se', '<C-w>=<CR>', { desc = 'split equalize size', noremap = true, silent = true })
-keymap('n', '<leader>sq', '<cmd>close<CR>', { desc = 'split equalize size', noremap = true, silent = true })
-keymap("n", "<C-Left>", ":vertical resize +1<CR>", { desc = 'vertical size increase', noremap = true, silent = true })
-keymap("n", "<C-Right>", ":vertical resize -1<CR>", { desc = 'vertical size decrease', noremap = true, silent = true })
-keymap("n", "<C-Up>", ":resize +1<CR>", { desc = 'horizontal size increase', noremap = true, silent = true })
-keymap("n", "<C-Down>", ":resize -1<CR>", { desc = 'horizontal size decrease', noremap = true, silent = true })
+keymap("n", "<leader>sv", "<cmd>vsplit<CR>", { desc = "split vertical", noremap = true, silent = true })
+keymap("n", "<leader>sh", "<cmd>split<CR>", { desc = "split horizontal", noremap = true, silent = true })
+keymap("n", "<leader>se", "<C-w>=<CR>", { desc = "split equalize size", noremap = true, silent = true })
+keymap("n", "<leader>sq", "<cmd>close<CR>", { desc = "split equalize size", noremap = true, silent = true })
+keymap("n", "<C-Left>", ":vertical resize +1<CR>", { desc = "vertical size increase", noremap = true, silent = true })
+keymap("n", "<C-Right>", ":vertical resize -1<CR>", { desc = "vertical size decrease", noremap = true, silent = true })
+keymap("n", "<C-Up>", ":resize +1<CR>", { desc = "horizontal size increase", noremap = true, silent = true })
+keymap("n", "<C-Down>", ":resize -1<CR>", { desc = "horizontal size decrease", noremap = true, silent = true })
 
 -- tab management
-keymap('n', '<leader>to', '<cmd>tabnew<CR>', { desc = 'tab open new'})
-keymap('n', '<leader>tf', '<cmd>tabnew %<CR>', { desc = 'tab open new with current file'})
-keymap('n', '<leader>tq', '<cmd>tabclose<CR>', { desc = 'tab close'})
-keymap('n', '<leader>tn', '<cmd>tabn<CR>', { desc = 'tab move next'})
-keymap('n', '<leader>tp', '<cmd>tabp<CR>', { desc = 'tab move prev'})
-keymap('n', '<leader><Tab>', '<cmd>tabn<CR>', { desc = 'tab move next', noremap = true, silent = true})
-keymap('n', '<leader><S-Tab>', '<cmd>tabp<CR>', { desc = 'tab move next', noremap = true, silent = true})
+keymap("n", "<leader>to", "<cmd>tabnew<CR>", { desc = "tab open new" })
+keymap("n", "<leader>tf", "<cmd>tabnew %<CR>", { desc = "tab open new with current file" })
+keymap("n", "<leader>tq", "<cmd>tabclose<CR>", { desc = "tab close" })
+keymap("n", "<leader>tn", "<cmd>tabn<CR>", { desc = "tab move next" })
+keymap("n", "<leader>tp", "<cmd>tabp<CR>", { desc = "tab move prev" })
+keymap("n", "<leader><Tab>", "<cmd>tabn<CR>", { desc = "tab move next", noremap = true, silent = true })
+keymap("n", "<leader><S-Tab>", "<cmd>tabp<CR>", { desc = "tab move next", noremap = true, silent = true })
+
+-- terminal mode
+keymap("t", "<Esc>", "<C-\\><C-N>", { desc = "exit terminal insert mode", noremap = true })

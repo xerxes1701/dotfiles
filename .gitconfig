@@ -22,3 +22,9 @@
 
 [url "git@github.com:"]
 	insteadOf = https://github.com/
+[alias]
+	root = rev-parse --show-toplevel
+	fadd = "!fish -c \"cd (git root); git status --porcelain | rg '^( |\\?\\?)' | cut -c4- | fzf -m --preview 'git diff --color=always {}' | xargs git add; cd -\""
+	x = !fish -c \"git status --porcelain | rg '^( |\\?\\?)'\"
+	ffiles = "!fish -c \"cd (git root); git status --porcelain | rg '^( |\\?\\?)' | cut -c4- | fzf -m --preview 'git diff --color=always {}'; cd -\""
+	undo = "!fish -c \"cd (git root); git status --porcelain | rg '^( |\\?\\?)' | cut -c4- | fzf -m --preview 'git diff --color=always {}' | xargs git checkout; cd -\""

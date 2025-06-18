@@ -12,7 +12,7 @@ return {
 		local ui = require("harpoon.ui")
 
 		vim.keymap.set("n", "<leader>ha", mark.add_file, { desc = "harpoon add file" })
-		vim.keymap.set("n", "<leader>hq", ui.toggle_quick_menu, { desc = "harpoon show files" })
+		vim.keymap.set("n", "<leader>hh", ui.toggle_quick_menu, { desc = "harpoon show files" })
 
 		for i = 1, 9 do
 			vim.keymap.set("n", "" .. i, function()

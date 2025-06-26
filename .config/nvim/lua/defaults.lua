@@ -2,6 +2,8 @@ local api = vim.api
 local g = vim.g
 local opt = vim.opt
 
+g.is_windows = (vim.fn.has("win32") == 1 or vim.fn.has("win64") == 1)
+
 -- api.nvim_set_keymap("", "<Space>", "<Nop>", { noremap = true, silent = true })
 
 -- Make sure to setup `mapleader` and `maplocalleader` before

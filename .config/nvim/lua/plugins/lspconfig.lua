@@ -42,7 +42,13 @@ return {
 
 				keymap("n", "gpd", vim.diagnostic.goto_prev, { desc = "go to prev diagnostic" })
 
-				keymap({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, { desc = "show avaiable code action" })
+				keymap({ "n", "v" }, "<leader>ca", function()
+					if vim.g.is_windows then
+						vim.lsp.buf.code_action()
+					else
+						require("tiny-code-action").code_action()
+					end
+				end, { desc = "show avaiable code action" })
 
 				keymap("n", "<leader>rr", vim.lsp.buf.rename, { desc = "refactor rename" })
 

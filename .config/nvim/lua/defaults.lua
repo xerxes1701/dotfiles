@@ -48,6 +48,7 @@ opt.splitbelow = true -- focus lower split if splitting horizontally
 
 -- other
 opt.scrolloff = 10 -- keep N lines visible over cursor line when scrolling up, and same below when scrolling down
+opt.winborder = "rounded" -- floating window border
 opt.updatetime = 250 --Decrease update time
 opt.clipboard = "unnamedplus" -- Access system clipboard
 opt.termguicolors = true -- Enable colors in terminal

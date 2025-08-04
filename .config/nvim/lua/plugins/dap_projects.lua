@@ -44,6 +44,6 @@ return {
 			args = { "--interpreter=vscode" },
 		}
 
-		print(vim.inspect(dap.adapters.coreclr.command))
+		-- print(vim.inspect(dap.adapters.coreclr.command))
 	end,
 }

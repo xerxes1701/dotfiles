@@ -17,5 +17,20 @@
 # You can remove these comments if you want or leave
 # them for future reference.
 
+alias ll = ls -l
+alias g = git
+alias c = code
+alias vim = nvim
+alias vid = neovide
+alias cls = clear
+
+alias lf = eza -lf --color=always --icons=always | grep -v
+alias lh = eza -dl .* --group-directories-first --icons=always
+alias lzl = eza -al --group-directories-first --icons=always
+alias lz = eza --color=always --icons=always
+alias lt = eza -al --sort=modified --icons=always
+alias ld = eza -lD --icons=always
+alias tree = eza --tree --color=always --icons=always
+
 $env.XDG_CONFIG_HOME = "c:/Users/micha/.config"
 source c:/Users/micha/.config/nushell/.zoxide.nu

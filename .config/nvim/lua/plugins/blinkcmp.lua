@@ -25,7 +25,13 @@ return {
 		-- C-k: Toggle signature help (if signature.enabled = true)
 		--
 		-- See :h blink-cmp-config-keymap for defining your own keymap
-		keymap = { preset = "default" },
+		keymap = {
+			preset = "default",
+			["C-space"] = { "show", "show_documentation", "hide_documentation" },
+			["C-s"] = { "show", "show_documentation", "hide_documentation" },
+			["<C-b>"] = { "scroll_documentation_up", "fallback" },
+			["<C-f>"] = { "scroll_documentation_down", "fallback" },
+		},
 
 		-- Experimental signature help support
 		signature = { enabled = true },
@@ -51,11 +57,6 @@ return {
 					score_offset = 100,
 				},
 			},
-		},
-		keymap = {
-			preset = "default",
-			["C-space"] = { "show", "show_documentation", "hide_documentation" },
-			["C-s"] = { "show", "show_documentation", "hide_documentation" },
 		},
 
 		-- (Default) Rust fuzzy matcher for typo resistance and significantly better performance

@@ -34,3 +34,8 @@ alias ld = eza -lD --icons=always
 alias tree = eza --tree --color=always --icons=always
 
 source ~/.config/nushell/.zoxide.nu
+
+$env.PATH ++= ['~/.dotnet/tools']
+
+# workaround for https://github.com/nushell/nushell/issues/5585 (nushell scrolls on any key in wezterm wsl)
+$env.config.shell_integration.osc133 = false

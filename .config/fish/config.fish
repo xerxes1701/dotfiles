@@ -20,6 +20,9 @@ if status is-interactive
   alias conf='tmuxinator start conf'
   alias y='yazi'
   alias bat='batcat --theme="Catppuccin Macchiato"'
+  alias cls='clear'
+
+  fish_add_path '~/.dotnet/tools'
 
   function ssh-agent-start
     eval $(ssh-agent -c)

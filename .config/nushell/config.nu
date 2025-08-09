@@ -23,6 +23,7 @@ alias c = code
 alias vim = nvim
 alias vid = neovide
 alias cls = clear
+alias bat = batcat
 
 alias lf = eza -lf --color=always --icons=always | grep -v
 alias lh = eza -dl .* --group-directories-first --icons=always
@@ -32,5 +33,4 @@ alias lt = eza -al --sort=modified --icons=always
 alias ld = eza -lD --icons=always
 alias tree = eza --tree --color=always --icons=always
 
-$env.XDG_CONFIG_HOME = "c:/Users/micha/.config"
-source c:/Users/micha/.config/nushell/.zoxide.nu
+source ~/.config/nushell/.zoxide.nu

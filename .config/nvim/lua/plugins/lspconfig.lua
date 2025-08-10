@@ -38,8 +38,12 @@ return {
 				)
 
 				keymap("n", "gnd", vim.diagnostic.goto_next, { desc = "go to next diagnostic" })
-
 				keymap("n", "gpd", vim.diagnostic.goto_prev, { desc = "go to prev diagnostic" })
+
+				vim.keymap.set("n", "gK", function()
+					local new_config = not vim.diagnostic.config().virtual_lines
+					vim.diagnostic.config({ virtual_lines = new_config })
+				end, { desc = "Toggle diagnostic virtual_lines" })
 
 				keymap({ "n", "v" }, "<leader>ca", function()
 					if vim.g.is_windows then

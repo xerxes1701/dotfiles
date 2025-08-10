@@ -18,6 +18,7 @@ if status is-interactive
   export EDITOR=nvim
 
   alias conf='tmuxinator start conf'
+  alias g='git'
   alias y='yazi'
   alias bat='batcat --theme="Catppuccin Macchiato"'
   alias cls='clear'

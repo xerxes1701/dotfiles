@@ -20,10 +20,12 @@
 alias ll = ls -l
 alias g = git
 alias c = code
+alias f = fzf --preview 'batcat {} --force-colorization --theme="Catppuccin Mocha"'
 alias vim = nvim
 alias vid = neovide
 alias cls = clear
 alias bat = batcat
+alias y = yazi
 
 alias lf = eza -lf --color=always --icons=always | grep -v
 alias lh = eza -dl .* --group-directories-first --icons=always

@@ -54,23 +54,22 @@ local dimmer = { brightness = 0.05 }
 
 cfg.enable_scroll_bar = true
 cfg.min_scroll_bar_height = "2cell"
-cfg.background = {
-	{
-		source = {
-			File = w.home_dir .. "/.config/images/stones.jpg",
-		},
-		hsb = dimmer,
-		attachment = { Parallax = 0.1 },
-	},
-	{
-		source = {
-			File = w.home_dir .. "/.config/images/water.png",
-		},
-		hsb = dimmer,
-		attachment = { Parallax = 0.3 },
-	},
-}
 
-print("test")
+-- cfg.background = {
+-- 	{
+-- 		source = {
+-- 			File = w.home_dir .. "/.config/images/stones.jpg",
+-- 		},
+-- 		hsb = dimmer,
+-- 		attachment = { Parallax = 0.1 },
+-- 	},
+-- 	{
+-- 		source = {
+-- 			File = w.home_dir .. "/.config/images/water.png",
+-- 		},
+-- 		hsb = dimmer,
+-- 		attachment = { Parallax = 0.3 },
+-- 	},
+-- }
 
 return cfg

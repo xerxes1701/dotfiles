@@ -22,6 +22,7 @@ if os_name() == "win" then
 end
 
 cfg.enable_tab_bar = false
+cfg.allow_win32_input_mode = false
 -- cfg.window_background_opacity = 0
 -- cfg.win32_system_backdrop = "Acrylic"
 -- cfg.win32_system_backdrop = "Mica"
@@ -45,15 +46,13 @@ cfg.keys = {
 	},
 	-- paste from the clipboard
 	{ key = "V", mods = "CTRL", action = act.PasteFrom("Clipboard") },
-
-	-- paste from the primary selection
-	{ key = "V", mods = "CTRL", action = act.PasteFrom("PrimarySelection") },
 }
 
 local dimmer = { brightness = 0.05 }
 
 cfg.enable_scroll_bar = true
 cfg.min_scroll_bar_height = "2cell"
+cfg.canonicalize_pasted_newlines = "CarriageReturn"
 
 -- cfg.background = {
 -- 	{

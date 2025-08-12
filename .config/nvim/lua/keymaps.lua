@@ -13,6 +13,16 @@ keymap("n", "<ESC>", ":nohlsearch<Bar>:echo<CR>", { noremap = true, silent = tru
 -- keymap("n", "<C-k>", ":wincmd j<CR>", { noremap = true, silent = true, desc = "goto lower pane" })
 -- keymap("n", "<C-l>", ":wincmd l<CR>", { noremap = true, silent = true, desc = "goto right pane" })
 
+-- clipboard copy/paste
+keymap("n", "<leader>y", '"+y', { desc = "yank to clipboard" })
+keymap("v", "<leader>y", '"+y', { desc = "yank to clipboard" })
+keymap("n", "<leader>p", '"+p', { desc = "yank to clipboard" })
+keymap("v", "<leader>p", '"+p', { desc = "yank to clipboard" })
+keymap("n", "d", '"_d', { noremap = true })
+keymap("n", "c", '"_c', { noremap = true })
+keymap("n", "<leader>d", "d", { noremap = true })
+keymap("n", "<leader>c", "c", { noremap = true })
+
 -- increment / decrement numbers
 keymap("n", "<leader>+", "<C-a>", { desc = "increment number" })
 keymap("n", "<leader>-", "<C-x>", { desc = "decrement number" })
@@ -25,6 +35,8 @@ keymap("n", "Q", "<nop>", { noremap = true, silent = true })
 -- Better indent
 keymap("v", "<", "<gv", { noremap = true, silent = true })
 keymap("v", ">", ">gv", { noremap = true, silent = true })
+keymap("n", "<", "<<", { noremap = true, silent = true })
+keymap("n", ">", ">>", { noremap = true, silent = true })
 
 -- open Lazy plugin manager
 keymap("n", "<leader>ll", "<cmd>Lazy<CR>", { noremap = true, silent = true })

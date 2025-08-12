@@ -15,7 +15,7 @@ return {
 		vim.keymap.set("n", "<leader>hh", ui.toggle_quick_menu, { desc = "harpoon show files" })
 
 		for i = 1, 9 do
-			vim.keymap.set("n", "" .. i, function()
+			vim.keymap.set("n", "<A-" .. i .. ">", function()
 				ui.nav_file(i)
 			end, { desc = "harpoon goto file " .. i })
 		end

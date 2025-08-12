@@ -26,23 +26,23 @@ return {
 			end,
 		}
 
-		dap.configurations.cs = {
-			dap.default_configurations.cs,
-		}
+		-- dap.configurations.cs = {
+		-- 	dap.default_configurations.cs,
+		-- }
 
 		-- this will reset `dap.configurations` and `dap.adapters` to empty tables,
 		-- if a `.nvim-dap.lua` file is found in the current working directory
 		-- assuming that `dap.configurations` and `dap.adapters` will be set in that file
-		require("nvim-dap-projects").search_project_config()
-
-		local mason_settings = require("mason.settings")
-		local mason_bin_path = mason_settings.current.install_root_dir
-
-		dap.adapters.coreclr = {
-			type = "executable",
-			command = mason_bin_path .. "/packages/netcoredbg/netcoredbg/netcoredbg",
-			args = { "--interpreter=vscode" },
-		}
+		-- require("nvim-dap-projects").search_project_config()
+		--
+		-- local mason_settings = require("mason.settings")
+		-- local mason_bin_path = mason_settings.current.install_root_dir
+		--
+		-- dap.adapters.coreclr = {
+		-- 	type = "executable",
+		-- 	command = mason_bin_path .. "/packages/netcoredbg/netcoredbg/netcoredbg",
+		-- 	args = { "--interpreter=vscode" },
+		-- }
 
 		-- print(vim.inspect(dap.adapters.coreclr.command))
 	end,

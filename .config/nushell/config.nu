@@ -41,3 +41,5 @@ $env.PATH ++= ['~/.dotnet/tools']
 
 # workaround for https://github.com/nushell/nushell/issues/5585 (nushell scrolls on any key in wezterm wsl)
 $env.config.shell_integration.osc133 = false
+$env.config.show_banner = false
+$env.config.buffer_editor = "nvim"

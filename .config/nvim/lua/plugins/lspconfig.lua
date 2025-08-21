@@ -37,22 +37,6 @@ return {
 					{ desc = "fuzzy find LSP type definitions" }
 				)
 
-				keymap("n", "gnd", vim.diagnostic.goto_next, { desc = "go to next diagnostic" })
-				keymap("n", "gpd", vim.diagnostic.goto_prev, { desc = "go to prev diagnostic" })
-
-				vim.keymap.set("n", "gK", function()
-					local new_config = not vim.diagnostic.config().virtual_lines
-					vim.diagnostic.config({ virtual_lines = new_config })
-				end, { desc = "Toggle diagnostic virtual_lines" })
-
-				keymap({ "n", "v" }, "<leader>ca", function()
-					if vim.g.is_windows then
-						vim.lsp.buf.code_action()
-					else
-						require("tiny-code-action").code_action()
-					end
-				end, { desc = "show avaiable code action" })
-
 				keymap("n", "<leader>rr", vim.lsp.buf.rename, { desc = "refactor rename" })
 
 				keymap("n", "K", vim.lsp.buf.hover, { desc = "show lsp documentation" })

@@ -52,3 +52,6 @@
 	x = !fish -c \"git status --porcelain | rg '^( |\\?\\?)'\"
 	ffiles = "!fish -c \"cd (git root); git status --porcelain | rg '^( |\\?\\?)' | cut -c4- | fzf -m --preview 'git diff --color=always {}'; cd -\""
 	undo = "!fish -c \"cd (git root); git status --porcelain | rg '^( |\\?\\?)' | cut -c4- | fzf -m --preview 'git diff --color=always {}' | xargs git checkout; cd -\""
+  incoming-first-pretty = !fish -c 'git log -1 --oneline --decorate $(git rev-list --reverse HEAD..@{u} | head -n1)'
+  incoming-first-hash = !fish -c 'git log -1 --format=%h $(git rev-list --reverse HEAD..@{u} | head -n1)'
+  check-ff = merge-base --is-ancestor HEAD 

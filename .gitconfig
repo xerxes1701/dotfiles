@@ -29,29 +29,35 @@
 
 [alias]
   b = branch
-	bn = branch --show-current
-	c = commit
-	cm = commit -m
-	ca = commit --amend -m
-	cl = clone
-	co = checkout
-	d = diff
-	f = fetch
-	l = log
-    lg = log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(auto)%d%C(reset)'
-	lga = lg --all
-	lgm = "!pwsh --command \"git lg origin/master~1..(git bn)"\" 
-	m = merge
-	p = pull
-	r = reset
-	s = status
-	st = stash
+  bn = branch --show-current
+  c = commit
+  cm = commit -m
+  ca = commit --amend -m
+  cl = clone
+  co = checkout
+  d = diff
+  f = fetch
+  l = log
+  lg = log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(auto)%d%C(reset)'
+  lga = lg --all
+  lgm = "!pwsh --command \"git lg origin/master~1..(git bn)"\" 
+  m = merge
+  p = pull
+  r = reset
+  s = status
+  st = stash
   sw = switch
   root = rev-parse --show-toplevel
-	fadd = "!fish -c \"cd (git root); git status --porcelain | rg '^( |\\?\\?)' | cut -c4- | fzf -m --preview 'git diff --color=always {}' | xargs git add; cd -\""
-	x = !fish -c \"git status --porcelain | rg '^( |\\?\\?)'\"
-	ffiles = "!fish -c \"cd (git root); git status --porcelain | rg '^( |\\?\\?)' | cut -c4- | fzf -m --preview 'git diff --color=always {}'; cd -\""
-	undo = "!fish -c \"cd (git root); git status --porcelain | rg '^( |\\?\\?)' | cut -c4- | fzf -m --preview 'git diff --color=always {}' | xargs git checkout; cd -\""
+  fadd = "!fish -c \"cd (git root); git status --porcelain | rg '^( |\\?\\?)' | cut -c4- | fzf -m --preview 'git diff --color=always {}' | xargs git add; cd -\""
+  x = !fish -c \"git status --porcelain | rg '^( |\\?\\?)'\"
+  ffiles = "!fish -c \"cd (git root); git status --porcelain | rg '^( |\\?\\?)' | cut -c4- | fzf -m --preview 'git diff --color=always {}'; cd -\""
+  undo = "!fish -c \"cd (git root); git status --porcelain | rg '^( |\\?\\?)' | cut -c4- | fzf -m --preview 'git diff --color=always {}' | xargs git checkout; cd -\""
   incoming-first-pretty = !fish -c 'git log -1 --oneline --decorate $(git rev-list --reverse HEAD..@{u} | head -n1)'
   incoming-first-hash = !fish -c 'git log -1 --format=%h $(git rev-list --reverse HEAD..@{u} | head -n1)'
   check-ff = merge-base --is-ancestor HEAD 
+  ddiff = -c diff.external=difft diff
+  dshow = -c diff.external=difft show --ext-diff
+  dlog = -c diff.external=difft log --ext-diff
+  dd = ddiff
+  ds = dshow
+  dl = dlog

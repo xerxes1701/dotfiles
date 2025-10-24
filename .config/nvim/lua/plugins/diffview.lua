@@ -2,8 +2,8 @@
 -- https://github.com/sindrets/diffview.nvim
 
 return {
-	  'xerxes1701/diffview.nvim',
-    keys = {
-      { '<leader>gd', ':DiffviewOpen<cr>' },
-    },
-  }
+	"sindrets/diffview.nvim",
+	keys = {
+		{ "<leader>cd", ":DiffviewOpen<cr>" },
+	},
+}

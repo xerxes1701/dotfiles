@@ -56,4 +56,4 @@ opt.mouse = "a" --Enable mouse mode
 opt.undofile = true --Save undo history
 opt.clipboard.cursorline = true -- highlight current line (where the cursor is)
 opt.swapfile = false
-opt.shell = "nu"
+opt.shell = "fish"

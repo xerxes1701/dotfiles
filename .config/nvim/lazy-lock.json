@@ -5,6 +5,7 @@
   "bufferline.nvim": { "branch": "main", "commit": "2e3c8cc5a57ddd32f1edd2ffd2ccb10c09421f6c" },
   "catppuccin": { "branch": "main", "commit": "c9e205fe035d622b3c2d66ee42edf368c0c31fd5" },
   "conform.nvim": { "branch": "master", "commit": "acc7337cfd24ddfa3109bfc8c258c09c88c5c450" },
+  "difft.nvim": { "branch": "main", "commit": "a482270554fdfeb05c49296826d42d4359eecb1f" },
   "diffview.nvim": { "branch": "main", "commit": "4516612fe98ff56ae0415a259ff6361a89419b0a" },
   "easy-dotnet.nvim": { "branch": "main", "commit": "97cf26a039a10f53bb5474ba7bf32fbc67eac592" },
   "flash.nvim": { "branch": "main", "commit": "ec0bf2842189f65f60fd40bf3557cac1029cc932" },

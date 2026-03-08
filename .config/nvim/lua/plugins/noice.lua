@@ -10,6 +10,16 @@ return {
 		popupmenu = { enabled = true },
 		notify = { enabled = false },
 		messages = { enabled = false },
+		presets = {
+			lsp_doc_border = true,
+		},
+		lsp = {
+			signature = {
+				auto_open = {
+					enabled = false,
+				},
+			},
+		},
 		-- add any options here
 	},
 	dependencies = {

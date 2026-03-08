@@ -34,7 +34,7 @@ return {
 		},
 
 		-- Experimental signature help support
-		signature = { enabled = true },
+		signature = { enabled = false },
 
 		appearance = {
 			-- 'mono' (default) for 'Nerd Font Mono' or 'normal' for 'Nerd Font'
@@ -43,7 +43,7 @@ return {
 		},
 
 		-- (Default) Only show the documentation popup when manually triggered
-		completion = { documentation = { auto_show = true } },
+		completion = { documentation = { auto_show = false } },
 
 		-- Default list of enabled providers defined so that you can extend it
 		-- elsewhere in your config, without redefining it, due to `opts_extend`

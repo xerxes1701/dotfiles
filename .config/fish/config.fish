@@ -1,3 +1,7 @@
+if test -e /usr/share/cachyos-fish-config/cachyos-config.fish
+  source /usr/share/cachyos-fish-config/cachyos-config.fish
+end
+
 if status is-interactive
 
   zoxide init fish | source
@@ -20,10 +24,14 @@ if status is-interactive
   alias conf='tmuxinator start conf'
   alias g='git'
   alias y='yazi'
-  alias bat='batcat --theme="Catppuccin Macchiato"'
+  # Check if 'bat' is NOT a command AND 'batcat' IS a command
+  if not type -q bat; and type -q batcat
+    alias bat='batcat'
+  end
   alias cls='clear'
 
   fish_add_path '~/.dotnet/tools'
+  set -gx BAT_THEME "Catppuccin Macchiato"
 
   function ssh-agent-start
     eval $(ssh-agent -c)

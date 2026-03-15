@@ -5,7 +5,9 @@ return {
 	"nvim-treesitter/nvim-treesitter",
 	dependencies = {
 		"nvim-treesitter/nvim-treesitter-textobjects",
+		branch = "master",
 	},
+	branch = "master",
 	build = ":TSUpdate",
 	init = function()
 		local ts_repeat_move = require("nvim-treesitter.textobjects.repeatable_move")

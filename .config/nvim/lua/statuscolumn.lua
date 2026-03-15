@@ -183,7 +183,12 @@ end
 
 function M.signs()
 	local bufnr = vim.api.nvim_get_current_buf()
-	local signs = M.get_signs(bufnr, vim.v.lnum)
+	local success, signs = pcall(function()
+		return M.get_signs(bufnr, vim.v.lnum)
+	end)
+	if not success then
+		signs = {}
+	end
 	local diagnostic_sign, git_sign
 
 	local highest_severity = 5

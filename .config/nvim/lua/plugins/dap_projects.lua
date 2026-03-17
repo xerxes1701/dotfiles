@@ -1,5 +1,6 @@
 return {
 	"ldelossa/nvim-dap-projects",
+	commit = "f319ffd",
 	config = function()
 		local dap = require("dap")
 

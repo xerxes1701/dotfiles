@@ -3,8 +3,9 @@
 
 return {
 	"rcarriga/nvim-dap-ui",
+	commit = "cf91d5e",
 	dependencies = {
-		"nvim-neotest/nvim-nio",
+		{ "nvim-neotest/nvim-nio", commit = "21f5324" },
 		"mfussenegger/nvim-dap",
 	},
 	config = function()

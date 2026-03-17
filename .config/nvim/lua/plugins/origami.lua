@@ -3,6 +3,7 @@
 
 return {
 	"chrisgrieser/nvim-origami",
+	commit = "e5b527f",
 	event = "VeryLazy",
 	opts = {}, -- needed even when using default config
 

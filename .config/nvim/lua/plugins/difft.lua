@@ -1,5 +1,6 @@
 return {
 	"ahkohd/difft.nvim",
+	commit = "cabc1d5",
 	keys = {
 		{
 			"<leader>cD",

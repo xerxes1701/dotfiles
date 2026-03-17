@@ -3,7 +3,7 @@
 
 return {
 	"NeogitOrg/neogit",
-	tag = "v3.0.0", -- neovim 0.9.x compatible
+	commit = "d3890fc",
 	dependencies = {
 		"nvim-lua/plenary.nvim",
 		"sindrets/diffview.nvim",

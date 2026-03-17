@@ -3,6 +3,7 @@
 
 return {
 	"mfussenegger/nvim-dap",
+	commit = "a9d8cb6",
 	dependencies = {
 		"GustavEikaas/easy-dotnet.nvim",
 	},

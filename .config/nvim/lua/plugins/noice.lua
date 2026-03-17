@@ -4,6 +4,7 @@
 ---@type LazyPluginSpec & { opts: NoiceConfig }
 return {
 	"folke/noice.nvim",
+	commit = "7bfd942",
 	event = "VeryLazy",
 	opts = { ----@type NoiceConfig?
 		cmdline = { enabled = true },
@@ -24,10 +25,10 @@ return {
 	},
 	dependencies = {
 		-- if you lazy-load any plugin below, make sure to add proper `module="..."` entries
-		"MunifTanjim/nui.nvim",
+		{ "MunifTanjim/nui.nvim", commit = "de74099" },
 		-- OPTIONAL:
 		--   `nvim-notify` is only needed, if you want to use the notification view.
 		--   If not available, we use `mini` as the fallback
-		"rcarriga/nvim-notify",
+		{ "rcarriga/nvim-notify", commit = "8701bec" },
 	},
 }

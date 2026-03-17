@@ -3,9 +3,10 @@
 
 return {
 	"williamboman/mason.nvim",
+	commit = "44d1e90",
 	dependencies = {
-		"williamboman/mason-lspconfig.nvim",
-		"WhoIsSethDaniel/mason-tool-installer.nvim",
+		{ "williamboman/mason-lspconfig.nvim", commit = "a676ab7" },
+		{ "WhoIsSethDaniel/mason-tool-installer.nvim", commit = "443f1ef" },
 	},
 	config = function()
 		require("mason").setup({

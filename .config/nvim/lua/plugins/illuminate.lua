@@ -3,6 +3,7 @@
 
 return {
 	"RRethy/vim-illuminate",
+	commit = "0d1e936",
 	config = function()
 		require("illuminate").configure({})
 	end,

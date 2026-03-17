@@ -3,6 +3,7 @@
 
 return {
 	"mfussenegger/nvim-lint",
+	commit = "606b823",
 	event = { "BufReadPre", "BufNewFile" },
 	config = function()
 		local lint = require("lint")

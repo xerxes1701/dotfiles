@@ -3,6 +3,7 @@
 
 return {
 	"folke/flash.nvim",
+	commit = "ec0bf28",
 	tag = "v2.1.0",
 	event = "VeryLazy",
 	---@type Flash.Config

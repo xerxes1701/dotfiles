@@ -1,5 +1,6 @@
 return {
 	"nvimdev/lspsaga.nvim",
+	commit = "562d972",
 	dependencies = {
 		"nvim-treesitter/nvim-treesitter",
 		"nvim-tree/nvim-web-devicons",

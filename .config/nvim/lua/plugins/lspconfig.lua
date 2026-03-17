@@ -3,11 +3,12 @@
 
 return {
 	"neovim/nvim-lspconfig",
+	commit = "dc2f86d",
 	event = { "BufReadPre", "BufNewFile" },
 	dependencies = {
 		"williamboman/mason.nvim",
 		"williamboman/mason-lspconfig.nvim",
-		{ "antosha417/nvim-lsp-file-operations", config = true },
+		{ "antosha417/nvim-lsp-file-operations", config = true, commit = "b9c795d" },
 		"saghen/blink.cmp",
 	},
 	config = function()

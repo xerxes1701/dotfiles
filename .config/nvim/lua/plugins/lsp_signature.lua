@@ -1,5 +1,6 @@
 return {
 	"ray-x/lsp_signature.nvim",
+	commit = "af7e407",
 	event = "InsertEnter",
 	opts = {
 		bind = true,

@@ -3,6 +3,7 @@
 
 return {
 	"folke/trouble.nvim",
+	commit = "bd67efe",
 	dependencies = {
 		"nvim-tree/nvim-web-devicons",
 		"folke/todo-comments.nvim",

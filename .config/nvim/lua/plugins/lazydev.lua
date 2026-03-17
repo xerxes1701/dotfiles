@@ -3,6 +3,7 @@
 
 return {
 	"folke/lazydev.nvim",
+	commit = "ff2cbcb",
 	ft = "lua", -- only load on lua files
 	opts = {
 		library = {

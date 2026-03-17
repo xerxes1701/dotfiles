@@ -3,6 +3,7 @@
 
 return {
 	"nvim-lualine/lualine.nvim",
+	commit = "47f91c4",
 	dependencies = "nvim-web-devicons",
 	event = "VimEnter",
 	config = function()

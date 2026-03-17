@@ -30,8 +30,8 @@ if status is-interactive
   end
   alias cls='clear'
 
-  fish_add_path '~/.dotnet/tools'
   set -gx BAT_THEME "Catppuccin Macchiato"
+  set -gx PATH $PATH $HOME/.dotnet/tools
 
   function ssh-agent-start
     eval $(ssh-agent -c)

@@ -66,35 +66,42 @@ return {
 					lookahead = true, -- jump forward automatically
 
 					keymaps = {
-						["af"] = "@function.outer",
-						["if"] = "@function.inner",
-						["ac"] = "@class.outer",
-						["ic"] = "@class.inner",
-					},
-				},
+						["=="] = "@assignment.outer",
+						["=l"] = "@assignment.lhs",
+						["=r"] = "@assignment.rhs",
 
-				-- ]m / [m etc.
-				move = {
-					enable = true,
-					set_jumps = true, -- put jumps in jumplist
+						["in"] = "@number.inner",
+						["an"] = "@number.inner",
 
-					goto_next_start = {
-						["]m"] = "@function.outer",
-						["]M"] = "@function.inner",
-						["]]"] = "@class.outer",
-						["]A"] = "@attribute.outer",
-						["]a"] = "@attribute.inner",
-						["]P"] = "@parameter.outer",
-						["]p"] = "@parameter.inner",
-					},
-					goto_previous_start = {
-						["[m"] = "@function.outer",
-						["[M"] = "@function.inner",
-						["[["] = "@class.outer",
-						["[A"] = "@attribute.outer",
-						["[a"] = "@attribute.inner",
-						["[P"] = "@parameter.outer",
-						["[p"] = "@parameter.inner",
+						["ii"] = "@conditional.inner",
+						["ai"] = "@conditional.outer",
+
+						-- ["ig"] = "@parameter.inner",
+						-- ["ag"] = "@parameter.outer",
+
+						["ia"] = "@parameter.inner",
+						["aa"] = "@parameter.outer",
+
+						["ib"] = "@block.inner",
+						["ab"] = "@block.outer",
+
+						["ic"] = "@comment.outer",
+						["ac"] = "@comment.outer",
+
+						["am"] = "@function.outer",
+						["im"] = "@function.inner",
+
+						["af"] = "@call.outer",
+						["if"] = "@call.inner",
+
+						["at"] = "@class.outer",
+						["it"] = "@class.inner",
+
+						["al"] = "@loop.outer",
+						["il"] = "@loop.inner",
+
+						["ar"] = "@return.outer",
+						["ir"] = "@return.inner",
 					},
 				},
 

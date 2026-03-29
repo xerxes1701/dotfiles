@@ -32,6 +32,7 @@ if status is-interactive
 
   set -gx BAT_THEME "Catppuccin Macchiato"
   set -gx PATH $PATH $HOME/.dotnet/tools
+  set -gx PATH $PATH $HOME/.local/bin
 
   function ssh-agent-start
     eval $(ssh-agent -c)

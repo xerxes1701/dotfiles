@@ -24,6 +24,9 @@ if status is-interactive
   alias conf='tmuxinator start conf'
   alias g='git'
   alias y='yazi'
+  alias code 'code --password-store="gnome-libsecret"'
+  alias c='code'
+
   # Check if 'bat' is NOT a command AND 'batcat' IS a command
   if not type -q bat; and type -q batcat
     alias bat='batcat'

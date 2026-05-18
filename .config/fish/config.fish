@@ -26,6 +26,7 @@ if status is-interactive
   alias y='yazi'
   alias code 'code --password-store="gnome-libsecret"'
   alias c='code'
+  alias v='nvim'
 
   # Check if 'bat' is NOT a command AND 'batcat' IS a command
   if not type -q bat; and type -q batcat
@@ -42,3 +43,11 @@ if status is-interactive
     ssh-add /home/xerxes/.ssh/id_rsa
   end 
 end
+
+# bun
+set --export BUN_INSTALL "$HOME/.bun"
+set --export PATH $BUN_INSTALL/bin $PATH
+
+# bun
+set --export BUN_INSTALL "$HOME/.bun"
+set --export PATH $BUN_INSTALL/bin $PATH

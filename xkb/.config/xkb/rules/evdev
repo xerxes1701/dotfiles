@@ -1,0 +1,7 @@
+// Mandatory: include the system ruleset to *extend* it
+! include %S/evdev
+
+// Map the custom RMLVO option "corne:f13" to the "default" section
+// of symbols/corne, which remaps the F13-F24 keys.
+! option = symbols
+  corne:f13 = +corne(default)

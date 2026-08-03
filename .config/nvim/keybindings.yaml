@@ -1,0 +1,505 @@
+# keybindings.yaml
+#
+# Inventory of Neovim keybindings for this configuration.
+#
+# Two kinds of entries live in `keybindings`:
+#   * source: explicit  -> the mapping is defined somewhere in a *.lua file of
+#                          this config. `file` points at the relative path and
+#                          `plugin` (when set) names the plugin that file
+#                          configures.
+#   * source: default   -> the mapping is set implicitly by the plugin itself
+#                          (its built-in / out-of-the-box default). `file` is
+#                          empty because the user never wrote it down; `plugin`
+#                          names the owning plugin.
+#
+# The companion script `keybindings-to-md.cs` turns this file into
+# `keybindings.md` with four different groupings.
+
+meta:
+  leader: "<Space>"
+  localleader: "\\"
+  config_root: ".config/nvim"
+
+keybindings:
+  # ------------------------------------------------------------------ #
+  # core config - lua/keymaps.lua  (no plugin)                         #
+  # ------------------------------------------------------------------ #
+  - { key: "J",            mode: "x",     action: ":move '>+1<CR>gv=gv",              description: "Move selected block down",                file: "lua/keymaps.lua", plugin: "", group: "Editing",         source: "explicit" }
+  - { key: "K",            mode: "x",     action: ":move '<-2<CR>gv=gv",              description: "Move selected block up",                  file: "lua/keymaps.lua", plugin: "", group: "Editing",         source: "explicit" }
+  - { key: "<ESC>",        mode: "n",     action: ":nohlsearch|:echo<CR>",            description: "Clear search highlight",                  file: "lua/keymaps.lua", plugin: "", group: "Search",          source: "explicit" }
+  - { key: "<leader>y",    mode: "n",     action: '"+y',                              description: "Yank to system clipboard",                file: "lua/keymaps.lua", plugin: "", group: "Clipboard",       source: "explicit" }
+  - { key: "<leader>y",    mode: "v",     action: '"+y',                              description: "Yank selection to system clipboard",      file: "lua/keymaps.lua", plugin: "", group: "Clipboard",       source: "explicit" }
+  - { key: "<leader>p",    mode: "n",     action: '"+p',                              description: "Paste from system clipboard",             file: "lua/keymaps.lua", plugin: "", group: "Clipboard",       source: "explicit" }
+  - { key: "<leader>p",    mode: "v",     action: '"_dP',                             description: "Paste over selection without yanking",    file: "lua/keymaps.lua", plugin: "", group: "Clipboard",       source: "explicit" }
+  - { key: "d",            mode: "n",     action: '"_d',                              description: "Delete into black-hole register",         file: "lua/keymaps.lua", plugin: "", group: "Editing",         source: "explicit" }
+  - { key: "c",            mode: "n",     action: '"_c',                              description: "Change into black-hole register",         file: "lua/keymaps.lua", plugin: "", group: "Editing",         source: "explicit" }
+  - { key: "<leader>d",    mode: "n",     action: "d",                                description: "Delete (yank into default register)",     file: "lua/keymaps.lua", plugin: "", group: "Editing",         source: "explicit" }
+  - { key: "<leader>c",    mode: "n",     action: "c",                                description: "Change (yank into default register)",     file: "lua/keymaps.lua", plugin: "", group: "Editing",         source: "explicit" }
+  - { key: "<leader>+",    mode: "n",     action: "<C-a>",                            description: "Increment number under cursor",           file: "lua/keymaps.lua", plugin: "", group: "Editing",         source: "explicit" }
+  - { key: "<leader>-",    mode: "n",     action: "<C-x>",                            description: "Decrement number under cursor",           file: "lua/keymaps.lua", plugin: "", group: "Editing",         source: "explicit" }
+  - { key: "x",            mode: "n",     action: '"_x',                              description: "Delete char without yanking",             file: "lua/keymaps.lua", plugin: "", group: "Editing",         source: "explicit" }
+  - { key: "Q",            mode: "n",     action: "<nop>",                            description: "Disable Ex mode",                         file: "lua/keymaps.lua", plugin: "", group: "Editing",         source: "explicit" }
+  - { key: "<",            mode: "v",     action: "<gv",                              description: "Indent left, keep selection",             file: "lua/keymaps.lua", plugin: "", group: "Editing",         source: "explicit" }
+  - { key: ">",            mode: "v",     action: ">gv",                              description: "Indent right, keep selection",            file: "lua/keymaps.lua", plugin: "", group: "Editing",         source: "explicit" }
+  - { key: "<",            mode: "n",     action: "<<",                               description: "Indent line left",                        file: "lua/keymaps.lua", plugin: "", group: "Editing",         source: "explicit" }
+  - { key: ">",            mode: "n",     action: ">>",                               description: "Indent line right",                       file: "lua/keymaps.lua", plugin: "", group: "Editing",         source: "explicit" }
+  - { key: "<leader>ll",   mode: "n",     action: "<cmd>Lazy<CR>",                    description: "Open Lazy plugin manager",                file: "lua/keymaps.lua", plugin: "", group: "Misc",            source: "explicit" }
+  - { key: "<leader>sv",   mode: "n",     action: "<cmd>vsplit<CR>",                  description: "Split window vertically",                  file: "lua/keymaps.lua", plugin: "", group: "Windows",         source: "explicit" }
+  - { key: "<leader>sh",   mode: "n",     action: "<cmd>split<CR>",                   description: "Split window horizontally",                file: "lua/keymaps.lua", plugin: "", group: "Windows",         source: "explicit" }
+  - { key: "<leader>se",   mode: "n",     action: "<C-w>=",                           description: "Equalize split sizes",                    file: "lua/keymaps.lua", plugin: "", group: "Windows",         source: "explicit" }
+  - { key: "<leader>sq",   mode: "n",     action: "<cmd>close<CR>",                   description: "Close current split",                     file: "lua/keymaps.lua", plugin: "", group: "Windows",         source: "explicit" }
+  - { key: "<C-Left>",     mode: "n",     action: ":vertical resize +1<CR>",          description: "Increase vertical split width",           file: "lua/keymaps.lua", plugin: "", group: "Windows",         source: "explicit" }
+  - { key: "<C-Right>",    mode: "n",     action: ":vertical resize -1<CR>",          description: "Decrease vertical split width",           file: "lua/keymaps.lua", plugin: "", group: "Windows",         source: "explicit" }
+  - { key: "<C-Up>",       mode: "n",     action: ":resize +1<CR>",                   description: "Increase split height",                   file: "lua/keymaps.lua", plugin: "", group: "Windows",         source: "explicit" }
+  - { key: "<C-Down>",     mode: "n",     action: ":resize -1<CR>",                   description: "Decrease split height",                   file: "lua/keymaps.lua", plugin: "", group: "Windows",         source: "explicit" }
+  - { key: "<leader>to",   mode: "n",     action: "<cmd>tabnew<CR>",                  description: "Open new tab",                            file: "lua/keymaps.lua", plugin: "", group: "Tabs",            source: "explicit" }
+  - { key: "<leader>tf",   mode: "n",     action: "<cmd>tabnew %<CR>",                description: "Open current file in new tab",            file: "lua/keymaps.lua", plugin: "", group: "Tabs",            source: "explicit" }
+  - { key: "<leader>tq",   mode: "n",     action: "<cmd>tabclose<CR>",                description: "Close current tab",                       file: "lua/keymaps.lua", plugin: "", group: "Tabs",            source: "explicit" }
+  - { key: "<leader>tn",   mode: "n",     action: "<cmd>tabn<CR>",                    description: "Go to next tab",                          file: "lua/keymaps.lua", plugin: "", group: "Tabs",            source: "explicit" }
+  - { key: "<leader>tp",   mode: "n",     action: "<cmd>tabp<CR>",                    description: "Go to previous tab",                      file: "lua/keymaps.lua", plugin: "", group: "Tabs",            source: "explicit" }
+  - { key: "<leader><Tab>", mode: "n",    action: "<cmd>tabn<CR>",                    description: "Go to next tab",                          file: "lua/keymaps.lua", plugin: "", group: "Tabs",            source: "explicit" }
+  - { key: "<leader><S-Tab>", mode: "n",  action: "<cmd>tabp<CR>",                    description: "Go to previous tab",                      file: "lua/keymaps.lua", plugin: "", group: "Tabs",            source: "explicit" }
+  - { key: "<Esc>",        mode: "t",     action: "<C-\\><C-N>",                      description: "Exit terminal insert mode",               file: "lua/keymaps.lua", plugin: "", group: "Terminal",        source: "explicit" }
+
+  # ------------------------------------------------------------------ #
+  # telescope.nvim - lua/plugins/telescope.lua                         #
+  # ------------------------------------------------------------------ #
+  - { key: "<leader>fg",   mode: "n",     action: "<cmd>Telescope live_grep<cr>",     description: "Fuzzy find: live grep",                   file: "lua/plugins/telescope.lua", plugin: "telescope.nvim", group: "Fuzzy Find", source: "explicit" }
+  - { key: "<leader>fr",   mode: "n",     action: "<cmd>Telescope oldfiles<cr>",      description: "Fuzzy find: recent files",                file: "lua/plugins/telescope.lua", plugin: "telescope.nvim", group: "Fuzzy Find", source: "explicit" }
+  - { key: "<leader>ff",   mode: "n",     action: "<cmd>Telescope find_files<cr>",    description: "Fuzzy find: files",                       file: "lua/plugins/telescope.lua", plugin: "telescope.nvim", group: "Fuzzy Find", source: "explicit" }
+  - { key: "<leader>fF",   mode: "n",     action: "<cmd>Telescope find_files hidden=true<cr>", description: "Fuzzy find: hidden files",       file: "lua/plugins/telescope.lua", plugin: "telescope.nvim", group: "Fuzzy Find", source: "explicit" }
+  - { key: "<leader>fb",   mode: "n",     action: "<cmd>Telescope buffers<cr>",       description: "Fuzzy find: buffers",                     file: "lua/plugins/telescope.lua", plugin: "telescope.nvim", group: "Fuzzy Find", source: "explicit" }
+  - { key: "<leader>f?",   mode: "n",     action: "<cmd>Telescope help_tags<cr>",     description: "Fuzzy find: help tags",                   file: "lua/plugins/telescope.lua", plugin: "telescope.nvim", group: "Fuzzy Find", source: "explicit" }
+  - { key: "<leader>fk",   mode: "n",     action: "<cmd>Telescope keymaps<cr>",       description: "Fuzzy find: keymaps",                     file: "lua/plugins/telescope.lua", plugin: "telescope.nvim", group: "Fuzzy Find", source: "explicit" }
+  - { key: "<leader>fK",   mode: "n",     action: "<cmd>lua require('keymap_registry').pick()<cr>", description: "Fuzzy find: keymaps by plugin", file: "lua/plugins/telescope.lua", plugin: "telescope.nvim", group: "Fuzzy Find", source: "explicit" }
+  - { key: "<leader>ft",   mode: "n",     action: "<cmd>TodoTelescope<CR>",           description: "Fuzzy find: TODO comments",               file: "lua/plugins/telescope.lua", plugin: "telescope.nvim", group: "Fuzzy Find", source: "explicit" }
+  - { key: "<leader>fh",   mode: "n",     action: "<cmd>Telescope harpoon marks<CR>", description: "Fuzzy find: harpoon marks",               file: "lua/plugins/telescope.lua", plugin: "telescope.nvim", group: "Fuzzy Find", source: "explicit" }
+  - { key: "<leader>fj",   mode: "n",     action: "<cmd>Telescope jumplist<CR>",      description: "Fuzzy find: jumplist entries",            file: "lua/plugins/telescope.lua", plugin: "telescope.nvim", group: "Fuzzy Find", source: "explicit" }
+  - { key: "<C-k>",        mode: "i",     action: "actions.move_selection_previous",  description: "Telescope picker: move to previous item", file: "lua/plugins/telescope.lua", plugin: "telescope.nvim", group: "Fuzzy Find", source: "explicit" }
+  - { key: "<C-j>",        mode: "i",     action: "actions.move_selection_next",      description: "Telescope picker: move to next item",     file: "lua/plugins/telescope.lua", plugin: "telescope.nvim", group: "Fuzzy Find", source: "explicit" }
+  - { key: "<C-q>",        mode: "i",     action: "send_selected_to_qflist + open_qflist", description: "Telescope picker: send selection to quickfix", file: "lua/plugins/telescope.lua", plugin: "telescope.nvim", group: "Fuzzy Find", source: "explicit" }
+
+  # ------------------------------------------------------------------ #
+  # telescope-undo.nvim - lua/plugins/telescope_undo.lua               #
+  # ------------------------------------------------------------------ #
+  - { key: "<leader>u",    mode: "n",     action: "<cmd>Telescope undo<cr>",          description: "Browse undo history",                     file: "lua/plugins/telescope_undo.lua", plugin: "telescope-undo.nvim", group: "Fuzzy Find", source: "explicit" }
+
+  # ------------------------------------------------------------------ #
+  # which-key.nvim - lua/plugins/whichkey.lua                          #
+  # ------------------------------------------------------------------ #
+  - { key: "<leader>?",    mode: "n",     action: "require('which-key').show({ global = true })", description: "Show all keymaps (which-key)", file: "lua/plugins/whichkey.lua", plugin: "which-key.nvim", group: "Help", source: "explicit" }
+
+  # ------------------------------------------------------------------ #
+  # harpoon - lua/plugins/harpoon.lua                                  #
+  # ------------------------------------------------------------------ #
+  - { key: "<leader>ha",   mode: "n",     action: "harpoon.mark.add_file",            description: "Harpoon: add current file",               file: "lua/plugins/harpoon.lua", plugin: "harpoon", group: "Harpoon", source: "explicit" }
+  - { key: "<leader>hh",   mode: "n",     action: "harpoon.ui.toggle_quick_menu",     description: "Harpoon: toggle quick menu",               file: "lua/plugins/harpoon.lua", plugin: "harpoon", group: "Harpoon", source: "explicit" }
+  - { key: "<A-1>",        mode: "n",     action: "harpoon.ui.nav_file(1)",           description: "Harpoon: go to file 1",                   file: "lua/plugins/harpoon.lua", plugin: "harpoon", group: "Harpoon", source: "explicit" }
+  - { key: "<A-2>",        mode: "n",     action: "harpoon.ui.nav_file(2)",           description: "Harpoon: go to file 2",                   file: "lua/plugins/harpoon.lua", plugin: "harpoon", group: "Harpoon", source: "explicit" }
+  - { key: "<A-3>",        mode: "n",     action: "harpoon.ui.nav_file(3)",           description: "Harpoon: go to file 3",                   file: "lua/plugins/harpoon.lua", plugin: "harpoon", group: "Harpoon", source: "explicit" }
+  - { key: "<A-4>",        mode: "n",     action: "harpoon.ui.nav_file(4)",           description: "Harpoon: go to file 4",                   file: "lua/plugins/harpoon.lua", plugin: "harpoon", group: "Harpoon", source: "explicit" }
+  - { key: "<A-5>",        mode: "n",     action: "harpoon.ui.nav_file(5)",           description: "Harpoon: go to file 5",                   file: "lua/plugins/harpoon.lua", plugin: "harpoon", group: "Harpoon", source: "explicit" }
+  - { key: "<A-6>",        mode: "n",     action: "harpoon.ui.nav_file(6)",           description: "Harpoon: go to file 6",                   file: "lua/plugins/harpoon.lua", plugin: "harpoon", group: "Harpoon", source: "explicit" }
+  - { key: "<A-7>",        mode: "n",     action: "harpoon.ui.nav_file(7)",           description: "Harpoon: go to file 7",                   file: "lua/plugins/harpoon.lua", plugin: "harpoon", group: "Harpoon", source: "explicit" }
+  - { key: "<A-8>",        mode: "n",     action: "harpoon.ui.nav_file(8)",           description: "Harpoon: go to file 8",                   file: "lua/plugins/harpoon.lua", plugin: "harpoon", group: "Harpoon", source: "explicit" }
+  - { key: "<A-9>",        mode: "n",     action: "harpoon.ui.nav_file(9)",           description: "Harpoon: go to file 9",                   file: "lua/plugins/harpoon.lua", plugin: "harpoon", group: "Harpoon", source: "explicit" }
+
+  # ------------------------------------------------------------------ #
+  # history-traverse - lua/plugins/history-traverse.lua                #
+  # ------------------------------------------------------------------ #
+  - { key: "gj",           mode: "n",     action: "<cmd>HisTravBack<cr>",             description: "History: go back",                        file: "lua/plugins/history-traverse.lua", plugin: "history-traverse", group: "Navigation", source: "explicit" }
+  - { key: "gk",           mode: "n",     action: "<cmd>HisTravForward<cr>",          description: "History: go forward",                     file: "lua/plugins/history-traverse.lua", plugin: "history-traverse", group: "Navigation", source: "explicit" }
+
+  # ------------------------------------------------------------------ #
+  # nvim-treesitter - lua/plugins/treesitter.lua                       #
+  # ------------------------------------------------------------------ #
+  - { key: "<home>",       mode: "n,x,o", action: "repeat_last_move (backward)",      description: "Repeat last textobject move backward",    file: "lua/plugins/treesitter.lua", plugin: "nvim-treesitter", group: "Text Objects", source: "explicit" }
+  - { key: "<end>",        mode: "n,x,o", action: "repeat_last_move (forward)",       description: "Repeat last textobject move forward",     file: "lua/plugins/treesitter.lua", plugin: "nvim-treesitter", group: "Text Objects", source: "explicit" }
+  - { key: "<A-v>",        mode: "n",     action: "init_selection",                   description: "Incremental selection: start / expand node", file: "lua/plugins/treesitter.lua", plugin: "nvim-treesitter", group: "Text Objects", source: "explicit" }
+  - { key: "<A-v>",        mode: "x",     action: "node_incremental",                 description: "Incremental selection: expand to next node", file: "lua/plugins/treesitter.lua", plugin: "nvim-treesitter", group: "Text Objects", source: "explicit" }
+  - { key: "<A-V>",        mode: "x",     action: "node_decremental",                 description: "Incremental selection: shrink node",      file: "lua/plugins/treesitter.lua", plugin: "nvim-treesitter", group: "Text Objects", source: "explicit" }
+  - { key: "==",           mode: "x,o",   action: "@assignment.outer",                description: "Textobject: assignment (outer)",          file: "lua/plugins/treesitter.lua", plugin: "nvim-treesitter", group: "Text Objects", source: "explicit" }
+  - { key: "=l",           mode: "x,o",   action: "@assignment.lhs",                  description: "Textobject: assignment left-hand side",   file: "lua/plugins/treesitter.lua", plugin: "nvim-treesitter", group: "Text Objects", source: "explicit" }
+  - { key: "=r",           mode: "x,o",   action: "@assignment.rhs",                  description: "Textobject: assignment right-hand side",  file: "lua/plugins/treesitter.lua", plugin: "nvim-treesitter", group: "Text Objects", source: "explicit" }
+  - { key: "in",           mode: "x,o",   action: "@number.inner",                    description: "Textobject: number (inner)",              file: "lua/plugins/treesitter.lua", plugin: "nvim-treesitter", group: "Text Objects", source: "explicit" }
+  - { key: "an",           mode: "x,o",   action: "@number.inner",                    description: "Textobject: number (inner)",              file: "lua/plugins/treesitter.lua", plugin: "nvim-treesitter", group: "Text Objects", source: "explicit" }
+  - { key: "ii",           mode: "x,o",   action: "@conditional.inner",               description: "Textobject: conditional (inner)",         file: "lua/plugins/treesitter.lua", plugin: "nvim-treesitter", group: "Text Objects", source: "explicit" }
+  - { key: "ai",           mode: "x,o",   action: "@conditional.outer",               description: "Textobject: conditional (outer)",         file: "lua/plugins/treesitter.lua", plugin: "nvim-treesitter", group: "Text Objects", source: "explicit" }
+  - { key: "ia",           mode: "x,o",   action: "@parameter.inner",                 description: "Textobject: parameter (inner)",           file: "lua/plugins/treesitter.lua", plugin: "nvim-treesitter", group: "Text Objects", source: "explicit" }
+  - { key: "aa",           mode: "x,o",   action: "@parameter.outer",                 description: "Textobject: parameter (outer)",           file: "lua/plugins/treesitter.lua", plugin: "nvim-treesitter", group: "Text Objects", source: "explicit" }
+  - { key: "ib",           mode: "x,o",   action: "@block.inner",                     description: "Textobject: block (inner)",               file: "lua/plugins/treesitter.lua", plugin: "nvim-treesitter", group: "Text Objects", source: "explicit" }
+  - { key: "ab",           mode: "x,o",   action: "@block.outer",                     description: "Textobject: block (outer)",               file: "lua/plugins/treesitter.lua", plugin: "nvim-treesitter", group: "Text Objects", source: "explicit" }
+  - { key: "ic",           mode: "x,o",   action: "@comment.outer",                   description: "Textobject: comment (outer)",             file: "lua/plugins/treesitter.lua", plugin: "nvim-treesitter", group: "Text Objects", source: "explicit" }
+  - { key: "ac",           mode: "x,o",   action: "@comment.outer",                   description: "Textobject: comment (outer)",             file: "lua/plugins/treesitter.lua", plugin: "nvim-treesitter", group: "Text Objects", source: "explicit" }
+  - { key: "am",           mode: "x,o",   action: "@function.outer",                  description: "Textobject: function (outer)",            file: "lua/plugins/treesitter.lua", plugin: "nvim-treesitter", group: "Text Objects", source: "explicit" }
+  - { key: "im",           mode: "x,o",   action: "@function.inner",                  description: "Textobject: function (inner)",            file: "lua/plugins/treesitter.lua", plugin: "nvim-treesitter", group: "Text Objects", source: "explicit" }
+  - { key: "af",           mode: "x,o",   action: "@call.outer",                      description: "Textobject: call (outer)",                file: "lua/plugins/treesitter.lua", plugin: "nvim-treesitter", group: "Text Objects", source: "explicit" }
+  - { key: "if",           mode: "x,o",   action: "@call.inner",                      description: "Textobject: call (inner)",                file: "lua/plugins/treesitter.lua", plugin: "nvim-treesitter", group: "Text Objects", source: "explicit" }
+  - { key: "at",           mode: "x,o",   action: "@class.outer",                     description: "Textobject: class (outer)",               file: "lua/plugins/treesitter.lua", plugin: "nvim-treesitter", group: "Text Objects", source: "explicit" }
+  - { key: "it",           mode: "x,o",   action: "@class.inner",                     description: "Textobject: class (inner)",               file: "lua/plugins/treesitter.lua", plugin: "nvim-treesitter", group: "Text Objects", source: "explicit" }
+  - { key: "al",           mode: "x,o",   action: "@loop.outer",                      description: "Textobject: loop (outer)",                file: "lua/plugins/treesitter.lua", plugin: "nvim-treesitter", group: "Text Objects", source: "explicit" }
+  - { key: "il",           mode: "x,o",   action: "@loop.inner",                      description: "Textobject: loop (inner)",                file: "lua/plugins/treesitter.lua", plugin: "nvim-treesitter", group: "Text Objects", source: "explicit" }
+  - { key: "ar",           mode: "x,o",   action: "@return.outer",                    description: "Textobject: return (outer)",              file: "lua/plugins/treesitter.lua", plugin: "nvim-treesitter", group: "Text Objects", source: "explicit" }
+  - { key: "ir",           mode: "x,o",   action: "@return.inner",                    description: "Textobject: return (inner)",              file: "lua/plugins/treesitter.lua", plugin: "nvim-treesitter", group: "Text Objects", source: "explicit" }
+  - { key: "<leader>a",    mode: "n",     action: "swap_next @parameter.inner",       description: "Swap parameter with next",                file: "lua/plugins/treesitter.lua", plugin: "nvim-treesitter", group: "Text Objects", source: "explicit" }
+  - { key: "<leader>A",    mode: "n",     action: "swap_previous @parameter.inner",   description: "Swap parameter with previous",            file: "lua/plugins/treesitter.lua", plugin: "nvim-treesitter", group: "Text Objects", source: "explicit" }
+
+  # ------------------------------------------------------------------ #
+  # hydra.nvim (treewalker hydra) - lua/plugins/hydra.lua              #
+  # `s` opens a persistent "pink" hydra; the remaining keys are heads  #
+  # active only while the hydra is open.                               #
+  # ------------------------------------------------------------------ #
+  - { key: "s",            mode: "n",     action: "activate treewalker hydra",        description: "Open treewalker hydra (also disables default s)", file: "lua/plugins/hydra.lua", plugin: "hydra.nvim", group: "Treewalker Hydra", source: "explicit" }
+  - { key: "s k",          mode: "n",     action: "<cmd>Treewalker Up<cr>",           description: "Treewalker: move up",                     file: "lua/plugins/hydra.lua", plugin: "hydra.nvim", group: "Treewalker Hydra", source: "explicit" }
+  - { key: "s l",          mode: "n",     action: "<cmd>Treewalker Right<cr>",        description: "Treewalker: move right",                  file: "lua/plugins/hydra.lua", plugin: "hydra.nvim", group: "Treewalker Hydra", source: "explicit" }
+  - { key: "s j",          mode: "n",     action: "<cmd>Treewalker Down<cr>",         description: "Treewalker: move down",                   file: "lua/plugins/hydra.lua", plugin: "hydra.nvim", group: "Treewalker Hydra", source: "explicit" }
+  - { key: "s h",          mode: "n",     action: "<cmd>Treewalker Left<cr>",         description: "Treewalker: move left",                   file: "lua/plugins/hydra.lua", plugin: "hydra.nvim", group: "Treewalker Hydra", source: "explicit" }
+  - { key: "s ==",         mode: "n",     action: "goto_next_start @assignment.outer", description: "Hydra: next assignment",                 file: "lua/plugins/hydra.lua", plugin: "hydra.nvim", group: "Treewalker Hydra", source: "explicit" }
+  - { key: "s =+ / s ++",  mode: "n",     action: "goto_prev_start @assignment.outer", description: "Hydra: previous assignment",             file: "lua/plugins/hydra.lua", plugin: "hydra.nvim", group: "Treewalker Hydra", source: "explicit" }
+  - { key: "s =l",         mode: "n",     action: "goto_next_start @assignment.lhs",  description: "Hydra: next assignment LHS",              file: "lua/plugins/hydra.lua", plugin: "hydra.nvim", group: "Treewalker Hydra", source: "explicit" }
+  - { key: "s =L / s +L",  mode: "n",     action: "goto_prev_start @assignment.lhs",  description: "Hydra: previous assignment LHS",          file: "lua/plugins/hydra.lua", plugin: "hydra.nvim", group: "Treewalker Hydra", source: "explicit" }
+  - { key: "s =r",         mode: "n",     action: "goto_next_start @assignment.rhs",  description: "Hydra: next assignment RHS",              file: "lua/plugins/hydra.lua", plugin: "hydra.nvim", group: "Treewalker Hydra", source: "explicit" }
+  - { key: "s =R / s +R",  mode: "n",     action: "goto_prev_start @assignment.rhs",  description: "Hydra: previous assignment RHS",          file: "lua/plugins/hydra.lua", plugin: "hydra.nvim", group: "Treewalker Hydra", source: "explicit" }
+  - { key: "s n / s N",    mode: "n",     action: "goto next/prev @number.inner",     description: "Hydra: next/previous number",             file: "lua/plugins/hydra.lua", plugin: "hydra.nvim", group: "Treewalker Hydra", source: "explicit" }
+  - { key: "s c / s C",    mode: "n",     action: "goto next/prev @comment.outer",    description: "Hydra: next/previous comment",            file: "lua/plugins/hydra.lua", plugin: "hydra.nvim", group: "Treewalker Hydra", source: "explicit" }
+  - { key: "s t / s T",    mode: "n",     action: "goto next/prev @class.outer",      description: "Hydra: next/previous class",              file: "lua/plugins/hydra.lua", plugin: "hydra.nvim", group: "Treewalker Hydra", source: "explicit" }
+  - { key: "s m / s M",    mode: "n",     action: "goto next/prev @function.outer",   description: "Hydra: next/previous function",           file: "lua/plugins/hydra.lua", plugin: "hydra.nvim", group: "Treewalker Hydra", source: "explicit" }
+  - { key: "s a / s A",    mode: "n",     action: "goto next/prev @parameter.outer",  description: "Hydra: next/previous parameter (outer)",  file: "lua/plugins/hydra.lua", plugin: "hydra.nvim", group: "Treewalker Hydra", source: "explicit" }
+  - { key: "s p / s P",    mode: "n",     action: "goto next/prev @parameter.inner",  description: "Hydra: next/previous parameter (inner)",  file: "lua/plugins/hydra.lua", plugin: "hydra.nvim", group: "Treewalker Hydra", source: "explicit" }
+  - { key: "s r / s R",    mode: "n",     action: "goto next/prev @return.outer",     description: "Hydra: next/previous return",             file: "lua/plugins/hydra.lua", plugin: "hydra.nvim", group: "Treewalker Hydra", source: "explicit" }
+  - { key: "s b / s B",    mode: "n",     action: "goto next/prev @block.outer",      description: "Hydra: next/previous block",              file: "lua/plugins/hydra.lua", plugin: "hydra.nvim", group: "Treewalker Hydra", source: "explicit" }
+  - { key: "s v / s V",    mode: "n",     action: "goto next @block.outer / @block.inner", description: "Hydra: next block (outer/inner)",    file: "lua/plugins/hydra.lua", plugin: "hydra.nvim", group: "Treewalker Hydra", source: "explicit" }
+  - { key: "s i / s I",    mode: "n",     action: "goto next/prev @conditional.outer", description: "Hydra: next/previous conditional (outer)", file: "lua/plugins/hydra.lua", plugin: "hydra.nvim", group: "Treewalker Hydra", source: "explicit" }
+  - { key: "s o / s O",    mode: "n",     action: "goto next/prev @conditional.inner", description: "Hydra: next/previous conditional (inner)", file: "lua/plugins/hydra.lua", plugin: "hydra.nvim", group: "Treewalker Hydra", source: "explicit" }
+  - { key: "s f / s F",    mode: "n",     action: "goto next/prev @call.outer",       description: "Hydra: next/previous call",               file: "lua/plugins/hydra.lua", plugin: "hydra.nvim", group: "Treewalker Hydra", source: "explicit" }
+  - { key: "s w / s W",    mode: "n",     action: "goto next/prev @loop.outer",       description: "Hydra: next/previous loop",               file: "lua/plugins/hydra.lua", plugin: "hydra.nvim", group: "Treewalker Hydra", source: "explicit" }
+
+  # ------------------------------------------------------------------ #
+  # vim-maximizer - lua/plugins/maximizer.lua                          #
+  # ------------------------------------------------------------------ #
+  - { key: "<leader>sm",   mode: "n",     action: "<cmd>MaximizerToggle<CR>",         description: "Toggle split maximize",                   file: "lua/plugins/maximizer.lua", plugin: "vim-maximizer", group: "Windows", source: "explicit" }
+
+  # ------------------------------------------------------------------ #
+  # trouble.nvim - lua/plugins/trouble.lua                             #
+  # ------------------------------------------------------------------ #
+  - { key: "<F15>d",       mode: "n",     action: "<cmd>Trouble diagnostics toggle<cr>", description: "Trouble: diagnostics",                 file: "lua/plugins/trouble.lua", plugin: "trouble.nvim", group: "Diagnostics", source: "explicit" }
+  - { key: "<F15>D",       mode: "n",     action: "<cmd>Trouble diagnostics toggle filter.buf=0<cr>", description: "Trouble: buffer diagnostics", file: "lua/plugins/trouble.lua", plugin: "trouble.nvim", group: "Diagnostics", source: "explicit" }
+  - { key: "<leader>s",    mode: "n",     action: "<cmd>Trouble symbols toggle focus=false<cr>", description: "Trouble: document symbols",       file: "lua/plugins/trouble.lua", plugin: "trouble.nvim", group: "Diagnostics", source: "explicit" }
+  - { key: "<leader>l",    mode: "n",     action: "<cmd>Trouble lsp toggle focus=false win.position=right<cr>", description: "Trouble: LSP definitions/references", file: "lua/plugins/trouble.lua", plugin: "trouble.nvim", group: "Diagnostics", source: "explicit" }
+  - { key: "<F15>L",       mode: "n",     action: "<cmd>Trouble loclist toggle<cr>",  description: "Trouble: location list",                  file: "lua/plugins/trouble.lua", plugin: "trouble.nvim", group: "Diagnostics", source: "explicit" }
+  - { key: "<F15>q",       mode: "n",     action: "<cmd>Trouble qflist toggle<cr>",   description: "Trouble: quickfix list",                  file: "lua/plugins/trouble.lua", plugin: "trouble.nvim", group: "Diagnostics", source: "explicit" }
+
+  # ------------------------------------------------------------------ #
+  # neogit - lua/plugins/neogit.lua                                    #
+  # ------------------------------------------------------------------ #
+  - { key: "<leader>gg",   mode: "n",     action: "<cmd>Neogit<CR>",                  description: "Open Neogit",                             file: "lua/plugins/neogit.lua", plugin: "neogit", group: "Git", source: "explicit" }
+
+  # ------------------------------------------------------------------ #
+  # vim-tmux-navigator - lua/plugins/tmux-naivation.lua                #
+  # ------------------------------------------------------------------ #
+  - { key: "<c-h>",        mode: "n",     action: "<cmd>TmuxNavigateLeft<cr>",        description: "Navigate to left pane/split",             file: "lua/plugins/tmux-naivation.lua", plugin: "vim-tmux-navigator", group: "Navigation", source: "explicit" }
+  - { key: "<c-j>",        mode: "n",     action: "<cmd>TmuxNavigateDown<cr>",        description: "Navigate to lower pane/split",            file: "lua/plugins/tmux-naivation.lua", plugin: "vim-tmux-navigator", group: "Navigation", source: "explicit" }
+  - { key: "<c-k>",        mode: "n",     action: "<cmd>TmuxNavigateUp<cr>",          description: "Navigate to upper pane/split",            file: "lua/plugins/tmux-naivation.lua", plugin: "vim-tmux-navigator", group: "Navigation", source: "explicit" }
+  - { key: "<c-l>",        mode: "n",     action: "<cmd>TmuxNavigateRight<cr>",       description: "Navigate to right pane/split",            file: "lua/plugins/tmux-naivation.lua", plugin: "vim-tmux-navigator", group: "Navigation", source: "explicit" }
+  - { key: "<c-\\>",       mode: "n",     action: "<cmd>TmuxNavigatePrevious<cr>",    description: "Navigate to previous pane/split",         file: "lua/plugins/tmux-naivation.lua", plugin: "vim-tmux-navigator", group: "Navigation", source: "explicit" }
+
+  # ------------------------------------------------------------------ #
+  # diffview.nvim - lua/plugins/diffview.lua                           #
+  # ------------------------------------------------------------------ #
+  - { key: "<leader>cd",   mode: "n",     action: ":DiffviewOpen<cr>",                description: "Open Diffview",                           file: "lua/plugins/diffview.lua", plugin: "diffview.nvim", group: "Git", source: "explicit" }
+
+  # ------------------------------------------------------------------ #
+  # difft.nvim - lua/plugins/difft.lua                                 #
+  # ------------------------------------------------------------------ #
+  - { key: "<leader>cD",   mode: "n",     action: "toggle Difft diff",                description: "Toggle difftastic diff view",             file: "lua/plugins/difft.lua", plugin: "difft.nvim", group: "Git", source: "explicit" }
+
+  # ------------------------------------------------------------------ #
+  # snacks.nvim - lua/plugins/snacks.nvim.lua                          #
+  # ------------------------------------------------------------------ #
+  - { key: "<leader><leader>sn", mode: "n", action: "Snacks.notifier.show_history()", description: "Show notification history",              file: "lua/plugins/snacks.nvim.lua", plugin: "snacks.nvim", group: "Misc", source: "explicit" }
+
+  # ------------------------------------------------------------------ #
+  # gitsigns.nvim - lua/plugins/gitsigns.lua                           #
+  # ------------------------------------------------------------------ #
+  - { key: "<leader>gs",   mode: "n",     action: "<cmd>Gitsigns stage_hunk<cr>",     description: "Gitsigns: stage hunk",                    file: "lua/plugins/gitsigns.lua", plugin: "gitsigns.nvim", group: "Git", source: "explicit" }
+  - { key: "<leader>gu",   mode: "n",     action: "<cmd>Gitsigns undo_stage_hunk<cr>", description: "Gitsigns: undo stage hunk",              file: "lua/plugins/gitsigns.lua", plugin: "gitsigns.nvim", group: "Git", source: "explicit" }
+  - { key: "<leader>gp",   mode: "n",     action: "<cmd>Gitsigns preview_hunk<cr>",   description: "Gitsigns: preview hunk",                  file: "lua/plugins/gitsigns.lua", plugin: "gitsigns.nvim", group: "Git", source: "explicit" }
+  - { key: "<leader>gd",   mode: "n",     action: "<cmd>Gitsigns diffthis<cr>",       description: "Gitsigns: diff this",                     file: "lua/plugins/gitsigns.lua", plugin: "gitsigns.nvim", group: "Git", source: "explicit" }
+
+  # ------------------------------------------------------------------ #
+  # oil.nvim - lua/plugins/oil.lua  (in-buffer keymaps + globals)      #
+  # ------------------------------------------------------------------ #
+  - { key: "g?",           mode: "n",     action: "actions.show_help",                description: "Oil: show help",                          file: "lua/plugins/oil.lua", plugin: "oil.nvim", group: "File Explorer", source: "explicit" }
+  - { key: "<CR>",         mode: "n",     action: "actions.select",                   description: "Oil: open entry",                         file: "lua/plugins/oil.lua", plugin: "oil.nvim", group: "File Explorer", source: "explicit" }
+  - { key: "gv",           mode: "n",     action: "actions.select vertical",          description: "Oil: open entry in vertical split",       file: "lua/plugins/oil.lua", plugin: "oil.nvim", group: "File Explorer", source: "explicit" }
+  - { key: "gh",           mode: "n",     action: "actions.select horizontal",        description: "Oil: open entry in horizontal split",     file: "lua/plugins/oil.lua", plugin: "oil.nvim", group: "File Explorer", source: "explicit" }
+  - { key: "gt",           mode: "n",     action: "actions.select tab",               description: "Oil: open entry in new tab",              file: "lua/plugins/oil.lua", plugin: "oil.nvim", group: "File Explorer", source: "explicit" }
+  - { key: "gp",           mode: "n",     action: "actions.preview",                  description: "Oil: preview entry",                      file: "lua/plugins/oil.lua", plugin: "oil.nvim", group: "File Explorer", source: "explicit" }
+  - { key: "gq",           mode: "n",     action: "actions.close",                    description: "Oil: close",                              file: "lua/plugins/oil.lua", plugin: "oil.nvim", group: "File Explorer", source: "explicit" }
+  - { key: "gr",           mode: "n",     action: "actions.refresh",                  description: "Oil: refresh",                            file: "lua/plugins/oil.lua", plugin: "oil.nvim", group: "File Explorer", source: "explicit" }
+  - { key: "-",            mode: "n",     action: "actions.parent",                   description: "Oil: go to parent directory",             file: "lua/plugins/oil.lua", plugin: "oil.nvim", group: "File Explorer", source: "explicit" }
+  - { key: "_",            mode: "n",     action: "actions.open_cwd",                 description: "Oil: open current working directory",     file: "lua/plugins/oil.lua", plugin: "oil.nvim", group: "File Explorer", source: "explicit" }
+  - { key: "`",            mode: "n",     action: "actions.cd",                       description: "Oil: :cd to directory",                   file: "lua/plugins/oil.lua", plugin: "oil.nvim", group: "File Explorer", source: "explicit" }
+  - { key: "~",            mode: "n",     action: "actions.cd scope=tab",             description: "Oil: :tcd to directory",                  file: "lua/plugins/oil.lua", plugin: "oil.nvim", group: "File Explorer", source: "explicit" }
+  - { key: "gs",           mode: "n",     action: "actions.change_sort",              description: "Oil: change sort",                        file: "lua/plugins/oil.lua", plugin: "oil.nvim", group: "File Explorer", source: "explicit" }
+  - { key: "gx",           mode: "n",     action: "actions.open_external",            description: "Oil: open externally",                    file: "lua/plugins/oil.lua", plugin: "oil.nvim", group: "File Explorer", source: "explicit" }
+  - { key: "g.",           mode: "n",     action: "actions.toggle_hidden",            description: "Oil: toggle hidden files",                file: "lua/plugins/oil.lua", plugin: "oil.nvim", group: "File Explorer", source: "explicit" }
+  - { key: "g\\",          mode: "n",     action: "actions.toggle_trash",             description: "Oil: toggle trash",                       file: "lua/plugins/oil.lua", plugin: "oil.nvim", group: "File Explorer", source: "explicit" }
+  - { key: "<leader>ed",   mode: "n",     action: "<cmd>edit %:p:h<CR>",              description: "Oil: edit current file's directory",      file: "lua/plugins/oil.lua", plugin: "oil.nvim", group: "File Explorer", source: "explicit" }
+  - { key: "<leader>eD",   mode: "n",     action: "<cmd>edit .<CR>",                  description: "Oil: edit current working directory",     file: "lua/plugins/oil.lua", plugin: "oil.nvim", group: "File Explorer", source: "explicit" }
+
+  # ------------------------------------------------------------------ #
+  # flash.nvim - lua/plugins/flash.lua                                 #
+  # ------------------------------------------------------------------ #
+  - { key: "<k7>",         mode: "n,x,o", action: "require('flash').jump()",          description: "Flash jump",                              file: "lua/plugins/flash.lua", plugin: "flash.nvim", group: "Search", source: "explicit" }
+  - { key: "<F17>",        mode: "n,x,o", action: "require('flash').jump()",          description: "Flash jump",                              file: "lua/plugins/flash.lua", plugin: "flash.nvim", group: "Search", source: "explicit" }
+  - { key: "<F18>",        mode: "n,x,o", action: "require('flash').treesitter()",    description: "Flash treesitter",                        file: "lua/plugins/flash.lua", plugin: "flash.nvim", group: "Search", source: "explicit" }
+  - { key: "r",            mode: "o",     action: "require('flash').remote()",        description: "Remote flash (operator pending)",         file: "lua/plugins/flash.lua", plugin: "flash.nvim", group: "Search", source: "explicit" }
+  - { key: "R",            mode: "o,x",   action: "require('flash').treesitter_search()", description: "Treesitter search",                   file: "lua/plugins/flash.lua", plugin: "flash.nvim", group: "Search", source: "explicit" }
+  - { key: "<c-s>",        mode: "c",     action: "require('flash').toggle()",        description: "Toggle flash while searching",            file: "lua/plugins/flash.lua", plugin: "flash.nvim", group: "Search", source: "explicit" }
+
+  # ------------------------------------------------------------------ #
+  # nvim-lspconfig - lua/plugins/lspconfig.lua  (buffer-local on LspAttach) #
+  # ------------------------------------------------------------------ #
+  - { key: "gR",           mode: "n",     action: "<cmd>Telescope lsp_references<CR>", description: "LSP: references (Telescope)",            file: "lua/plugins/lspconfig.lua", plugin: "nvim-lspconfig", group: "LSP", source: "explicit" }
+  - { key: "gD",           mode: "n",     action: "vim.lsp.buf.declaration",          description: "LSP: go to declaration",                  file: "lua/plugins/lspconfig.lua", plugin: "nvim-lspconfig", group: "LSP", source: "explicit" }
+  - { key: "gd",           mode: "n",     action: "<cmd>Telescope lsp_definitions<CR>", description: "LSP: definitions (Telescope)",          file: "lua/plugins/lspconfig.lua", plugin: "nvim-lspconfig", group: "LSP", source: "explicit" }
+  - { key: "gi",           mode: "n",     action: "<cmd>Telescope lsp_implementations<CR>", description: "LSP: implementations (Telescope)",  file: "lua/plugins/lspconfig.lua", plugin: "nvim-lspconfig", group: "LSP", source: "explicit" }
+  - { key: "gt",           mode: "n",     action: "<cmd>Telescope lsp_type_implementations<CR>", description: "LSP: type definitions (Telescope)", file: "lua/plugins/lspconfig.lua", plugin: "nvim-lspconfig", group: "LSP", source: "explicit" }
+  - { key: "<leader>rr",   mode: "n",     action: "vim.lsp.buf.rename",               description: "LSP: rename symbol",                      file: "lua/plugins/lspconfig.lua", plugin: "nvim-lspconfig", group: "LSP", source: "explicit" }
+  - { key: "K",            mode: "n",     action: "vim.lsp.buf.hover",                description: "LSP: hover documentation",                file: "lua/plugins/lspconfig.lua", plugin: "nvim-lspconfig", group: "LSP", source: "explicit" }
+  - { key: "<leader>rSS",  mode: "n",     action: "<cmd>LspRestart<CR>",              description: "LSP: restart",                            file: "lua/plugins/lspconfig.lua", plugin: "nvim-lspconfig", group: "LSP", source: "explicit" }
+  - { key: "<leader>cl",   mode: "n",     action: "vim.lsp.codelens.run",             description: "LSP: run CodeLens action (conflicts with nvim-lint)", file: "lua/plugins/lspconfig.lua", plugin: "nvim-lspconfig", group: "LSP", source: "explicit" }
+  - { key: "<leader>cL",   mode: "n",     action: "toggle codelens_enabled",          description: "LSP: toggle CodeLenses",                  file: "lua/plugins/lspconfig.lua", plugin: "nvim-lspconfig", group: "LSP", source: "explicit" }
+  - { key: "<leader>ih",   mode: "n",     action: "toggle inlay hints",               description: "LSP: toggle inlay hints",                 file: "lua/plugins/lspconfig.lua", plugin: "nvim-lspconfig", group: "LSP", source: "explicit" }
+
+  # ------------------------------------------------------------------ #
+  # lspsaga.nvim - lua/plugins/lsp-saga.lua                            #
+  # ------------------------------------------------------------------ #
+  - { key: "<leader>ca",   mode: "n",     action: ":Lspsaga code_action<CR>",         description: "LSP: code action (Lspsaga)",              file: "lua/plugins/lsp-saga.lua", plugin: "lspsaga.nvim", group: "LSP", source: "explicit" }
+  - { key: "<F14>",        mode: "n",     action: ":Lspsaga diagnostic_jump_next<CR>", description: "Go to next diagnostic",                  file: "lua/plugins/lsp-saga.lua", plugin: "lspsaga.nvim", group: "Diagnostics", source: "explicit" }
+  - { key: "<C-F14>",      mode: "n",     action: ":Lspsaga diagnostic_jump_prev<CR>", description: "Go to previous diagnostic",              file: "lua/plugins/lsp-saga.lua", plugin: "lspsaga.nvim", group: "Diagnostics", source: "explicit" }
+  - { key: "<F15>t",       mode: "n",     action: "toggle diagnostic virtual_lines",  description: "Toggle diagnostic virtual lines",         file: "lua/plugins/lsp-saga.lua", plugin: "lspsaga.nvim", group: "Diagnostics", source: "explicit" }
+
+  # ------------------------------------------------------------------ #
+  # nvim-lint - lua/plugins/linter.lua                                 #
+  # ------------------------------------------------------------------ #
+  - { key: "<leader>cl",   mode: "n",     action: "lint.try_lint",                    description: "Trigger linting (conflicts with LSP CodeLens)", file: "lua/plugins/linter.lua", plugin: "nvim-lint", group: "Diagnostics", source: "explicit" }
+
+  # ------------------------------------------------------------------ #
+  # conform.nvim - lua/plugins/formatter.lua                           #
+  # ------------------------------------------------------------------ #
+  - { key: "<leader>cf",   mode: "n,v",   action: "conform.format",                   description: "Format file or range",                    file: "lua/plugins/formatter.lua", plugin: "conform.nvim", group: "Editing", source: "explicit" }
+
+  # ------------------------------------------------------------------ #
+  # nvim-dap-ui / nvim-dap - lua/plugins/dap_ui.lua                    #
+  # ------------------------------------------------------------------ #
+  - { key: "<F3>q",        mode: "n",     action: "dap.terminate",                    description: "Debug: stop session",                     file: "lua/plugins/dap_ui.lua", plugin: "nvim-dap-ui", group: "Debug", source: "explicit" }
+  - { key: "<F3>bd",       mode: "n",     action: "dap.clear_breakpoints",            description: "Debug: clear all breakpoints",            file: "lua/plugins/dap_ui.lua", plugin: "nvim-dap-ui", group: "Debug", source: "explicit" }
+  - { key: "<F3>b",        mode: "n",     action: "dap.toggle_breakpoint",            description: "Debug: toggle breakpoint",                file: "lua/plugins/dap_ui.lua", plugin: "nvim-dap-ui", group: "Debug", source: "explicit" }
+  - { key: "<F3>e",        mode: "n",     action: "dapui.eval",                       description: "Debug: evaluate expression",              file: "lua/plugins/dap_ui.lua", plugin: "nvim-dap-ui", group: "Debug", source: "explicit" }
+  - { key: "<F3>uu",       mode: "n",     action: "dapui.toggle",                     description: "Debug: toggle UI",                        file: "lua/plugins/dap_ui.lua", plugin: "nvim-dap-ui", group: "Debug", source: "explicit" }
+  - { key: "<F3>uf",       mode: "n",     action: "dapui.float_element",              description: "Debug: toggle floating UI element",       file: "lua/plugins/dap_ui.lua", plugin: "nvim-dap-ui", group: "Debug", source: "explicit" }
+  - { key: "<F3>C",        mode: "n",     action: "dap.run_to_cursor",                description: "Debug: run to cursor",                    file: "lua/plugins/dap_ui.lua", plugin: "nvim-dap-ui", group: "Debug", source: "explicit" }
+  - { key: "<F3>cc",       mode: "n",     action: "dap.continue",                     description: "Debug: continue",                         file: "lua/plugins/dap_ui.lua", plugin: "nvim-dap-ui", group: "Debug", source: "explicit" }
+  - { key: "<F3>r",        mode: "n",     action: "dap.repl.toggle",                  description: "Debug: toggle REPL",                      file: "lua/plugins/dap_ui.lua", plugin: "nvim-dap-ui", group: "Debug", source: "explicit" }
+  - { key: "<F3>j",        mode: "n",     action: "dap.down",                         description: "Debug: go down a stack frame",            file: "lua/plugins/dap_ui.lua", plugin: "nvim-dap-ui", group: "Debug", source: "explicit" }
+  - { key: "<F3>k",        mode: "n",     action: "dap.up",                           description: "Debug: go up a stack frame",              file: "lua/plugins/dap_ui.lua", plugin: "nvim-dap-ui", group: "Debug", source: "explicit" }
+  - { key: "<F5>",         mode: "n",     action: "dap.continue",                     description: "Debug: continue",                         file: "lua/plugins/dap_ui.lua", plugin: "nvim-dap-ui", group: "Debug", source: "explicit" }
+  - { key: "<F6>",         mode: "n",     action: "dap.step_out",                     description: "Debug: step out",                         file: "lua/plugins/dap_ui.lua", plugin: "nvim-dap-ui", group: "Debug", source: "explicit" }
+  - { key: "<F7>",         mode: "n",     action: "dap.step_over",                    description: "Debug: step over",                        file: "lua/plugins/dap_ui.lua", plugin: "nvim-dap-ui", group: "Debug", source: "explicit" }
+  - { key: "<F8>",         mode: "n",     action: "dap.run_to_cursor",                description: "Debug: run to cursor",                    file: "lua/plugins/dap_ui.lua", plugin: "nvim-dap-ui", group: "Debug", source: "explicit" }
+  - { key: "<F9>",         mode: "n",     action: "dap.step_into",                    description: "Debug: step into",                        file: "lua/plugins/dap_ui.lua", plugin: "nvim-dap-ui", group: "Debug", source: "explicit" }
+
+  # ------------------------------------------------------------------ #
+  # blink.cmp - lua/plugins/blinkcmp.lua  (overrides on top of the      #
+  # 'default' preset; note "C-space"/"C-s" are written without <> in    #
+  # the config, so they are recorded verbatim here)                     #
+  # ------------------------------------------------------------------ #
+  - { key: "C-space",      mode: "i",     action: "show / show_documentation / hide_documentation", description: "Completion: open menu or toggle docs (verbatim config key)", file: "lua/plugins/blinkcmp.lua", plugin: "blink.cmp", group: "Completion", source: "explicit" }
+  - { key: "C-s",          mode: "i",     action: "show / show_documentation / hide_documentation", description: "Completion: open menu or toggle docs (verbatim config key)", file: "lua/plugins/blinkcmp.lua", plugin: "blink.cmp", group: "Completion", source: "explicit" }
+  - { key: "<C-b>",        mode: "i",     action: "scroll_documentation_up / fallback", description: "Completion: scroll documentation up",     file: "lua/plugins/blinkcmp.lua", plugin: "blink.cmp", group: "Completion", source: "explicit" }
+  - { key: "<C-f>",        mode: "i",     action: "scroll_documentation_down / fallback", description: "Completion: scroll documentation down",  file: "lua/plugins/blinkcmp.lua", plugin: "blink.cmp", group: "Completion", source: "explicit" }
+
+# ==================================================================== #
+# default_bindings                                                     #
+#                                                                      #
+# Implicit keymaps that plugins register out-of-the-box (the user      #
+# never wrote these down). They are marked `source: default` and carry #
+# no `file`. Only plugins that actually ship default maps are listed;  #
+# plugins with NO defaults (harpoon, gitsigns, treewalker, which-key,  #
+# bufferline, auto-session, nvim-treesitter-textobjects) are omitted.  #
+# ==================================================================== #
+default_bindings:
+  - { key: "ys{motion}{char}", mode: "n", action: "add surround around motion",          description: "Surround: add pair around a motion",          file: "", plugin: "nvim-surround", group: "Surround", source: "default" }
+  - { key: "yss",   mode: "n",   action: "add surround around line",                     description: "Surround: add pair around current line",      file: "", plugin: "nvim-surround", group: "Surround", source: "default" }
+  - { key: "yS",    mode: "n",   action: "add surround around motion (new lines)",       description: "Surround: add pair around motion, on new lines", file: "", plugin: "nvim-surround", group: "Surround", source: "default" }
+  - { key: "ySS",   mode: "n",   action: "add surround around line (new lines)",         description: "Surround: add pair around line, on new lines", file: "", plugin: "nvim-surround", group: "Surround", source: "default" }
+  - { key: "ds{char}", mode: "n", action: "delete surround",                             description: "Surround: delete a surrounding pair",         file: "", plugin: "nvim-surround", group: "Surround", source: "default" }
+  - { key: "cs{target}{replacement}", mode: "n", action: "change surround",              description: "Surround: change a surrounding pair",         file: "", plugin: "nvim-surround", group: "Surround", source: "default" }
+  - { key: "cS",    mode: "n",   action: "change surround (new lines)",                  description: "Surround: change a pair onto new lines",      file: "", plugin: "nvim-surround", group: "Surround", source: "default" }
+  - { key: "S",     mode: "x",   action: "surround selection",                           description: "Surround: add pair around visual selection",  file: "", plugin: "nvim-surround", group: "Surround", source: "default" }
+  - { key: "gS",    mode: "x",   action: "surround selection (new lines)",               description: "Surround: add pair around selection, on new lines", file: "", plugin: "nvim-surround", group: "Surround", source: "default" }
+  - { key: "<C-g>s", mode: "i",  action: "surround at cursor",                           description: "Surround: add pair around the cursor",        file: "", plugin: "nvim-surround", group: "Surround", source: "default" }
+  - { key: "<C-g>S", mode: "i",  action: "surround at cursor (new lines)",               description: "Surround: add pair around cursor, on new lines", file: "", plugin: "nvim-surround", group: "Surround", source: "default" }
+
+  # ---- Comment.nvim (global; created by setup()) ---- #
+  - { key: "gcc",   mode: "n",   action: "toggle linewise comment (line)",               description: "Comment: toggle current line (linewise)",     file: "", plugin: "Comment.nvim", group: "Comments", source: "default" }
+  - { key: "gbc",   mode: "n",   action: "toggle blockwise comment (line)",              description: "Comment: toggle current line (blockwise)",    file: "", plugin: "Comment.nvim", group: "Comments", source: "default" }
+  - { key: "gc{motion}", mode: "n", action: "toggle linewise comment (operator)",        description: "Comment: linewise comment over a motion",     file: "", plugin: "Comment.nvim", group: "Comments", source: "default" }
+  - { key: "gb{motion}", mode: "n", action: "toggle blockwise comment (operator)",       description: "Comment: blockwise comment over a motion",    file: "", plugin: "Comment.nvim", group: "Comments", source: "default" }
+  - { key: "gco",   mode: "n",   action: "comment line below + insert",                  description: "Comment: add comment on line below",          file: "", plugin: "Comment.nvim", group: "Comments", source: "default" }
+  - { key: "gcO",   mode: "n",   action: "comment line above + insert",                  description: "Comment: add comment on line above",          file: "", plugin: "Comment.nvim", group: "Comments", source: "default" }
+  - { key: "gcA",   mode: "n",   action: "comment end of line + insert",                 description: "Comment: append comment at end of line",      file: "", plugin: "Comment.nvim", group: "Comments", source: "default" }
+  - { key: "gc",    mode: "x",   action: "toggle linewise comment (selection)",          description: "Comment: toggle selection (linewise)",        file: "", plugin: "Comment.nvim", group: "Comments", source: "default" }
+  - { key: "gb",    mode: "x",   action: "toggle blockwise comment (selection)",         description: "Comment: toggle selection (blockwise)",       file: "", plugin: "Comment.nvim", group: "Comments", source: "default" }
+
+  # ---- flash.nvim (auto-enhanced char motions; s/S/r/R are user-set above) ---- #
+  - { key: "f",     mode: "n,x,o", action: "enhanced f (flash char)",                    description: "Flash: enhanced f, jump to char (dot-repeat)", file: "", plugin: "flash.nvim", group: "Search", source: "default" }
+  - { key: "F",     mode: "n,x,o", action: "enhanced F (flash char back)",               description: "Flash: enhanced F, backward jump to char",    file: "", plugin: "flash.nvim", group: "Search", source: "default" }
+  - { key: "t",     mode: "n,x,o", action: "enhanced t (flash till)",                    description: "Flash: enhanced t, jump till char",           file: "", plugin: "flash.nvim", group: "Search", source: "default" }
+  - { key: "T",     mode: "n,x,o", action: "enhanced T (flash till back)",               description: "Flash: enhanced T, backward jump till char",  file: "", plugin: "flash.nvim", group: "Search", source: "default" }
+  - { key: ";",     mode: "n,x,o", action: "repeat f/t/F/T (same dir)",                  description: "Flash: repeat last char motion, same direction", file: "", plugin: "flash.nvim", group: "Search", source: "default" }
+  - { key: ",",     mode: "n,x,o", action: "repeat f/t/F/T (opposite dir)",              description: "Flash: repeat last char motion, opposite direction", file: "", plugin: "flash.nvim", group: "Search", source: "default" }
+
+  # ---- mini.ai (global; textobjects a/i + g[ g] ) ---- #
+  - { key: "a{id}", mode: "x,o", action: "select around textobject",                     description: "mini.ai: select 'around' textobject {id}",    file: "", plugin: "mini.ai", group: "Text Objects", source: "default" }
+  - { key: "i{id}", mode: "x,o", action: "select inside textobject",                     description: "mini.ai: select 'inside' textobject {id}",    file: "", plugin: "mini.ai", group: "Text Objects", source: "default" }
+  - { key: "g[",    mode: "n,x,o", action: "go to left edge of textobject",              description: "mini.ai: move to left edge of nearest textobject", file: "", plugin: "mini.ai", group: "Text Objects", source: "default" }
+  - { key: "g]",    mode: "n,x,o", action: "go to right edge of textobject",             description: "mini.ai: move to right edge of nearest textobject", file: "", plugin: "mini.ai", group: "Text Objects", source: "default" }
+
+  # ---- mini.operators (global) ---- #
+  - { key: "g=",    mode: "n",   action: "evaluate (motion)",                            description: "mini.operators: evaluate text and replace with result", file: "", plugin: "mini.operators", group: "Operators", source: "default" }
+  - { key: "g==",   mode: "n",   action: "evaluate (line)",                              description: "mini.operators: evaluate current line",       file: "", plugin: "mini.operators", group: "Operators", source: "default" }
+  - { key: "g=",    mode: "x",   action: "evaluate (selection)",                         description: "mini.operators: evaluate selection",          file: "", plugin: "mini.operators", group: "Operators", source: "default" }
+  - { key: "gx",    mode: "n",   action: "exchange (motion)",                            description: "mini.operators: exchange region (2-step swap)", file: "", plugin: "mini.operators", group: "Operators", source: "default" }
+  - { key: "gxx",   mode: "n",   action: "exchange (line)",                              description: "mini.operators: exchange current line",       file: "", plugin: "mini.operators", group: "Operators", source: "default" }
+  - { key: "gx",    mode: "x",   action: "exchange (selection)",                         description: "mini.operators: exchange selection",          file: "", plugin: "mini.operators", group: "Operators", source: "default" }
+  - { key: "gm",    mode: "n",   action: "multiply (motion)",                            description: "mini.operators: duplicate text over motion",  file: "", plugin: "mini.operators", group: "Operators", source: "default" }
+  - { key: "gmm",   mode: "n",   action: "multiply (line)",                              description: "mini.operators: duplicate current line",      file: "", plugin: "mini.operators", group: "Operators", source: "default" }
+  - { key: "gm",    mode: "x",   action: "multiply (selection)",                         description: "mini.operators: duplicate selection",         file: "", plugin: "mini.operators", group: "Operators", source: "default" }
+  - { key: "gr",    mode: "n",   action: "replace w/ register (motion)",                 description: "mini.operators: replace text with register",  file: "", plugin: "mini.operators", group: "Operators", source: "default" }
+  - { key: "grr",   mode: "n",   action: "replace w/ register (line)",                   description: "mini.operators: replace line with register",  file: "", plugin: "mini.operators", group: "Operators", source: "default" }
+  - { key: "gr",    mode: "x",   action: "replace w/ register (selection)",              description: "mini.operators: replace selection with register", file: "", plugin: "mini.operators", group: "Operators", source: "default" }
+  - { key: "gs",    mode: "n",   action: "sort (motion)",                                description: "mini.operators: sort text over motion",       file: "", plugin: "mini.operators", group: "Operators", source: "default" }
+  - { key: "gss",   mode: "n",   action: "sort (line)",                                  description: "mini.operators: sort current line",           file: "", plugin: "mini.operators", group: "Operators", source: "default" }
+  - { key: "gs",    mode: "x",   action: "sort (selection)",                             description: "mini.operators: sort selection",              file: "", plugin: "mini.operators", group: "Operators", source: "default" }
+
+  # ---- mini.splitjoin (global) ---- #
+  - { key: "gS",    mode: "n,x", action: "toggle split/join",                            description: "mini.splitjoin: split if single line, join if multiline", file: "", plugin: "mini.splitjoin", group: "Editing", source: "default" }
+
+  # ---- blink.cmp (insert mode, completion context; 'default' preset) ---- #
+  - { key: "<C-space>", mode: "i", action: "show menu / toggle docs",                    description: "Completion: open menu or toggle docs",        file: "", plugin: "blink.cmp", group: "Completion", source: "default" }
+  - { key: "<C-e>",  mode: "i",  action: "hide menu",                                    description: "Completion: cancel / hide menu",              file: "", plugin: "blink.cmp", group: "Completion", source: "default" }
+  - { key: "<C-y>",  mode: "i",  action: "accept item",                                  description: "Completion: accept selected item",            file: "", plugin: "blink.cmp", group: "Completion", source: "default" }
+  - { key: "<C-n>",  mode: "i",  action: "select next",                                  description: "Completion: select next item",                file: "", plugin: "blink.cmp", group: "Completion", source: "default" }
+  - { key: "<C-p>",  mode: "i",  action: "select previous",                              description: "Completion: select previous item",            file: "", plugin: "blink.cmp", group: "Completion", source: "default" }
+  - { key: "<Down>", mode: "i",  action: "select next",                                  description: "Completion: select next item",                file: "", plugin: "blink.cmp", group: "Completion", source: "default" }
+  - { key: "<Up>",   mode: "i",  action: "select previous",                              description: "Completion: select previous item",            file: "", plugin: "blink.cmp", group: "Completion", source: "default" }
+  - { key: "<C-b>",  mode: "i",  action: "scroll docs up",                               description: "Completion: scroll documentation up",         file: "", plugin: "blink.cmp", group: "Completion", source: "default" }
+  - { key: "<C-f>",  mode: "i",  action: "scroll docs down",                             description: "Completion: scroll documentation down",       file: "", plugin: "blink.cmp", group: "Completion", source: "default" }
+  - { key: "<Tab>",  mode: "i",  action: "next snippet placeholder",                     description: "Completion: jump to next snippet placeholder", file: "", plugin: "blink.cmp", group: "Completion", source: "default" }
+  - { key: "<S-Tab>", mode: "i", action: "prev snippet placeholder",                     description: "Completion: jump to previous snippet placeholder", file: "", plugin: "blink.cmp", group: "Completion", source: "default" }
+  - { key: "<C-k>",  mode: "i",  action: "toggle signature help",                        description: "Completion: toggle signature help",           file: "", plugin: "blink.cmp", group: "Completion", source: "default" }
+
+  # ---- copilot.lua (insert-mode suggestions + panel buffer) ---- #
+  - { key: "<M-l>",  mode: "i",  action: "accept suggestion",                            description: "Copilot: accept inline suggestion",           file: "", plugin: "copilot.lua", group: "Copilot", source: "default" }
+  - { key: "<M-]>",  mode: "i",  action: "next suggestion",                              description: "Copilot: show next suggestion",               file: "", plugin: "copilot.lua", group: "Copilot", source: "default" }
+  - { key: "<M-[>",  mode: "i",  action: "prev suggestion",                              description: "Copilot: show previous suggestion",           file: "", plugin: "copilot.lua", group: "Copilot", source: "default" }
+  - { key: "<C-]>",  mode: "i",  action: "dismiss suggestion",                           description: "Copilot: dismiss current suggestion",         file: "", plugin: "copilot.lua", group: "Copilot", source: "default" }
+  - { key: "<M-CR>", mode: "n",  action: "open panel",                                   description: "Copilot: open suggestion panel",              file: "", plugin: "copilot.lua", group: "Copilot", source: "default" }
+  - { key: "[[",     mode: "n",  action: "panel: prev suggestion",                       description: "Copilot panel: jump to previous suggestion",  file: "", plugin: "copilot.lua", group: "Copilot", source: "default" }
+  - { key: "]]",     mode: "n",  action: "panel: next suggestion",                       description: "Copilot panel: jump to next suggestion",      file: "", plugin: "copilot.lua", group: "Copilot", source: "default" }
+  - { key: "<CR>",   mode: "n",  action: "panel: accept",                                description: "Copilot panel: accept suggestion under cursor", file: "", plugin: "copilot.lua", group: "Copilot", source: "default" }
+  - { key: "gr",     mode: "n",  action: "panel: refresh",                               description: "Copilot panel: refresh suggestions",          file: "", plugin: "copilot.lua", group: "Copilot", source: "default" }
+
+  # ---- oil.nvim (built-in default_keymaps; note: overridden by config above) ---- #
+  - { key: "g?",     mode: "n",  action: "actions.show_help",                            description: "Oil (default): show help",                    file: "", plugin: "oil.nvim", group: "File Explorer", source: "default" }
+  - { key: "<CR>",   mode: "n,v", action: "actions.select",                              description: "Oil (default): open entry",                   file: "", plugin: "oil.nvim", group: "File Explorer", source: "default" }
+  - { key: "<C-s>",  mode: "n,v", action: "actions.select vertical",                     description: "Oil (default): open in vertical split",       file: "", plugin: "oil.nvim", group: "File Explorer", source: "default" }
+  - { key: "<C-h>",  mode: "n,v", action: "actions.select horizontal",                   description: "Oil (default): open in horizontal split",     file: "", plugin: "oil.nvim", group: "File Explorer", source: "default" }
+  - { key: "<C-t>",  mode: "n,v", action: "actions.select tab",                          description: "Oil (default): open in new tab",              file: "", plugin: "oil.nvim", group: "File Explorer", source: "default" }
+  - { key: "<C-p>",  mode: "n,v", action: "actions.preview",                             description: "Oil (default): preview entry",                file: "", plugin: "oil.nvim", group: "File Explorer", source: "default" }
+  - { key: "<C-c>",  mode: "n",  action: "actions.close",                                description: "Oil (default): close buffer",                 file: "", plugin: "oil.nvim", group: "File Explorer", source: "default" }
+  - { key: "<C-l>",  mode: "n,v", action: "actions.refresh",                             description: "Oil (default): refresh buffer",               file: "", plugin: "oil.nvim", group: "File Explorer", source: "default" }
+  - { key: "-",      mode: "n",  action: "actions.parent",                               description: "Oil (default): go to parent directory",       file: "", plugin: "oil.nvim", group: "File Explorer", source: "default" }
+  - { key: "_",      mode: "n",  action: "actions.open_cwd",                             description: "Oil (default): open current working directory", file: "", plugin: "oil.nvim", group: "File Explorer", source: "default" }
+  - { key: "`",      mode: "n",  action: "actions.cd",                                   description: "Oil (default): :cd to directory",             file: "", plugin: "oil.nvim", group: "File Explorer", source: "default" }
+  - { key: "g~",     mode: "n",  action: "actions.cd scope=tab",                         description: "Oil (default): :tcd to directory",            file: "", plugin: "oil.nvim", group: "File Explorer", source: "default" }
+  - { key: "gs",     mode: "n",  action: "actions.change_sort",                          description: "Oil (default): change sort order",            file: "", plugin: "oil.nvim", group: "File Explorer", source: "default" }
+  - { key: "gx",     mode: "n,v", action: "actions.open_external",                       description: "Oil (default): open with system app",         file: "", plugin: "oil.nvim", group: "File Explorer", source: "default" }
+  - { key: "g.",     mode: "n",  action: "actions.toggle_hidden",                        description: "Oil (default): toggle hidden files",          file: "", plugin: "oil.nvim", group: "File Explorer", source: "default" }
+  - { key: "g\\",    mode: "n",  action: "actions.toggle_trash",                         description: "Oil (default): toggle trash view",            file: "", plugin: "oil.nvim", group: "File Explorer", source: "default" }
+
+  # ---- codecompanion.nvim (chat buffer only) ---- #
+  - { key: "?",      mode: "n",  action: "chat: options/help",                           description: "CodeCompanion chat: show keymap help",        file: "", plugin: "codecompanion.nvim", group: "AI Chat", source: "default" }
+  - { key: "<C-_>",  mode: "i",  action: "chat: completion menu",                        description: "CodeCompanion chat: open completion menu",     file: "", plugin: "codecompanion.nvim", group: "AI Chat", source: "default" }
+  - { key: "<CR>",   mode: "n",  action: "chat: send",                                   description: "CodeCompanion chat: send message",            file: "", plugin: "codecompanion.nvim", group: "AI Chat", source: "default" }
+  - { key: "<C-s>",  mode: "n,i", action: "chat: send",                                  description: "CodeCompanion chat: send message",            file: "", plugin: "codecompanion.nvim", group: "AI Chat", source: "default" }
+  - { key: "gr",     mode: "n",  action: "chat: regenerate",                             description: "CodeCompanion chat: regenerate last response", file: "", plugin: "codecompanion.nvim", group: "AI Chat", source: "default" }
+  - { key: "<C-c>",  mode: "n,i", action: "chat: close",                                 description: "CodeCompanion chat: close buffer",            file: "", plugin: "codecompanion.nvim", group: "AI Chat", source: "default" }
+  - { key: "q",      mode: "n",  action: "chat: stop request",                           description: "CodeCompanion chat: stop current request",    file: "", plugin: "codecompanion.nvim", group: "AI Chat", source: "default" }
+  - { key: "gx",     mode: "n",  action: "chat: clear",                                  description: "CodeCompanion chat: clear all messages",      file: "", plugin: "codecompanion.nvim", group: "AI Chat", source: "default" }
+  - { key: "gc",     mode: "n",  action: "chat: insert codeblock",                       description: "CodeCompanion chat: insert empty codeblock",  file: "", plugin: "codecompanion.nvim", group: "AI Chat", source: "default" }
+  - { key: "gy",     mode: "n",  action: "chat: yank codeblock",                         description: "CodeCompanion chat: yank last codeblock",     file: "", plugin: "codecompanion.nvim", group: "AI Chat", source: "default" }
+  - { key: "}",      mode: "n",  action: "chat: next chat",                              description: "CodeCompanion chat: open next chat",          file: "", plugin: "codecompanion.nvim", group: "AI Chat", source: "default" }
+  - { key: "{",      mode: "n",  action: "chat: previous chat",                          description: "CodeCompanion chat: open previous chat",       file: "", plugin: "codecompanion.nvim", group: "AI Chat", source: "default" }
+  - { key: "]]",     mode: "n",  action: "chat: next header",                            description: "CodeCompanion chat: jump to next message header", file: "", plugin: "codecompanion.nvim", group: "AI Chat", source: "default" }
+  - { key: "[[",     mode: "n",  action: "chat: previous header",                        description: "CodeCompanion chat: jump to previous message header", file: "", plugin: "codecompanion.nvim", group: "AI Chat", source: "default" }
+  - { key: "ga",     mode: "n",  action: "chat: change adapter",                         description: "CodeCompanion chat: change adapter/model",     file: "", plugin: "codecompanion.nvim", group: "AI Chat", source: "default" }
+  - { key: "gf",     mode: "n",  action: "chat: fold codeblocks",                        description: "CodeCompanion chat: fold all codeblocks",     file: "", plugin: "codecompanion.nvim", group: "AI Chat", source: "default" }
+  - { key: "gd",     mode: "n",  action: "chat: debug info",                             description: "CodeCompanion chat: show debug info",         file: "", plugin: "codecompanion.nvim", group: "AI Chat", source: "default" }
+  - { key: "gs",     mode: "n",  action: "chat: toggle system prompt",                   description: "CodeCompanion chat: toggle system prompt",     file: "", plugin: "codecompanion.nvim", group: "AI Chat", source: "default" }
+
+  # ---- telescope.nvim (picker window; representative default mappings) ---- #
+  - { key: "<C-n>",  mode: "i",  action: "move_selection_next",                          description: "Telescope (default): next result",            file: "", plugin: "telescope.nvim", group: "Fuzzy Find", source: "default" }
+  - { key: "<C-p>",  mode: "i",  action: "move_selection_previous",                      description: "Telescope (default): previous result",        file: "", plugin: "telescope.nvim", group: "Fuzzy Find", source: "default" }
+  - { key: "<Down>", mode: "i",  action: "move_selection_next",                          description: "Telescope (default): next result",            file: "", plugin: "telescope.nvim", group: "Fuzzy Find", source: "default" }
+  - { key: "<Up>",   mode: "i",  action: "move_selection_previous",                      description: "Telescope (default): previous result",        file: "", plugin: "telescope.nvim", group: "Fuzzy Find", source: "default" }
+  - { key: "<CR>",   mode: "i,n", action: "select_default",                              description: "Telescope (default): open selected entry",    file: "", plugin: "telescope.nvim", group: "Fuzzy Find", source: "default" }
+  - { key: "<C-x>",  mode: "i,n", action: "select_horizontal",                           description: "Telescope (default): open in horizontal split", file: "", plugin: "telescope.nvim", group: "Fuzzy Find", source: "default" }
+  - { key: "<C-v>",  mode: "i,n", action: "select_vertical",                             description: "Telescope (default): open in vertical split", file: "", plugin: "telescope.nvim", group: "Fuzzy Find", source: "default" }
+  - { key: "<C-t>",  mode: "i,n", action: "select_tab",                                  description: "Telescope (default): open in new tab",        file: "", plugin: "telescope.nvim", group: "Fuzzy Find", source: "default" }
+  - { key: "<C-u>",  mode: "i,n", action: "preview_scrolling_up",                        description: "Telescope (default): scroll preview up",      file: "", plugin: "telescope.nvim", group: "Fuzzy Find", source: "default" }
+  - { key: "<C-d>",  mode: "i,n", action: "preview_scrolling_down",                      description: "Telescope (default): scroll preview down",    file: "", plugin: "telescope.nvim", group: "Fuzzy Find", source: "default" }
+  - { key: "<Tab>",  mode: "i,n", action: "toggle_selection + move worse",               description: "Telescope (default): toggle multi-selection", file: "", plugin: "telescope.nvim", group: "Fuzzy Find", source: "default" }
+  - { key: "<C-q>",  mode: "i,n", action: "send_to_qflist + open_qflist",                description: "Telescope (default): send all to quickfix",   file: "", plugin: "telescope.nvim", group: "Fuzzy Find", source: "default" }
+  - { key: "<M-q>",  mode: "i,n", action: "send_selected_to_qflist + open_qflist",       description: "Telescope (default): send selected to quickfix", file: "", plugin: "telescope.nvim", group: "Fuzzy Find", source: "default" }
+  - { key: "<C-c>",  mode: "i",  action: "close",                                        description: "Telescope (default): close picker",           file: "", plugin: "telescope.nvim", group: "Fuzzy Find", source: "default" }
+  - { key: "<Esc>",  mode: "n",  action: "close",                                        description: "Telescope (default): close picker",           file: "", plugin: "telescope.nvim", group: "Fuzzy Find", source: "default" }
+  - { key: "?",      mode: "n",  action: "which_key",                                    description: "Telescope (default): show mappings help",     file: "", plugin: "telescope.nvim", group: "Fuzzy Find", source: "default" }
+
+  # ---- nvim-origami (global; overrides h/l/^/$) ---- #
+  - { key: "h",      mode: "n",  action: "fold or normal h",                             description: "Origami: fold when at/before first non-blank, else h", file: "", plugin: "nvim-origami", group: "Folding", source: "default" }
+  - { key: "l",      mode: "n",  action: "unfold or normal l",                           description: "Origami: unfold folded line, else l",         file: "", plugin: "nvim-origami", group: "Folding", source: "default" }
+  - { key: "^",      mode: "n",  action: "fold recursively or normal ^",                 description: "Origami: fold recursively when before first non-blank, else ^", file: "", plugin: "nvim-origami", group: "Folding", source: "default" }
+  - { key: "$",      mode: "n",  action: "unfold recursively or normal $",               description: "Origami: unfold recursively on folded line, else $", file: "", plugin: "nvim-origami", group: "Folding", source: "default" }
+
+  # ---- diffview.nvim (diffview tab pages; representative default mappings) ---- #
+  - { key: "<Tab>",     mode: "n", action: "next file diff",                             description: "Diffview: open diff for next file",           file: "", plugin: "diffview.nvim", group: "Git", source: "default" }
+  - { key: "<S-Tab>",   mode: "n", action: "previous file diff",                         description: "Diffview: open diff for previous file",       file: "", plugin: "diffview.nvim", group: "Git", source: "default" }
+  - { key: "gf",        mode: "n", action: "goto_file",                                  description: "Diffview: open local file in a tabpage",      file: "", plugin: "diffview.nvim", group: "Git", source: "default" }
+  - { key: "<leader>b", mode: "n", action: "toggle file panel",                          description: "Diffview: toggle the file panel",             file: "", plugin: "diffview.nvim", group: "Git", source: "default" }
+  - { key: "<leader>e", mode: "n", action: "focus file panel",                           description: "Diffview: focus the file panel",              file: "", plugin: "diffview.nvim", group: "Git", source: "default" }
+  - { key: "-",         mode: "n", action: "stage/unstage entry (file panel)",           description: "Diffview file panel: stage/unstage entry",    file: "", plugin: "diffview.nvim", group: "Git", source: "default" }
+  - { key: "S",         mode: "n", action: "stage all (file panel)",                     description: "Diffview file panel: stage all entries",      file: "", plugin: "diffview.nvim", group: "Git", source: "default" }
+  - { key: "U",         mode: "n", action: "unstage all (file panel)",                   description: "Diffview file panel: unstage all entries",    file: "", plugin: "diffview.nvim", group: "Git", source: "default" }
+  - { key: "X",         mode: "n", action: "restore entry (file panel)",                 description: "Diffview file panel: revert file to left state", file: "", plugin: "diffview.nvim", group: "Git", source: "default" }
+  - { key: "<leader>co", mode: "n", action: "conflict: choose ours",                     description: "Diffview merge: choose OURS",                 file: "", plugin: "diffview.nvim", group: "Git", source: "default" }
+  - { key: "<leader>ct", mode: "n", action: "conflict: choose theirs",                   description: "Diffview merge: choose THEIRS",               file: "", plugin: "diffview.nvim", group: "Git", source: "default" }
+  - { key: "<leader>cb", mode: "n", action: "conflict: choose base",                     description: "Diffview merge: choose BASE",                 file: "", plugin: "diffview.nvim", group: "Git", source: "default" }
+  - { key: "]x",        mode: "n", action: "next conflict",                              description: "Diffview merge: jump to next conflict",       file: "", plugin: "diffview.nvim", group: "Git", source: "default" }
+  - { key: "[x",        mode: "n", action: "previous conflict",                          description: "Diffview merge: jump to previous conflict",   file: "", plugin: "diffview.nvim", group: "Git", source: "default" }
+
+  # ---- trouble.nvim (Trouble window-local; representative default mappings) ---- #
+  - { key: "?",      mode: "n",  action: "help",                                         description: "Trouble window: show help",                   file: "", plugin: "trouble.nvim", group: "Diagnostics", source: "default" }
+  - { key: "r",      mode: "n",  action: "refresh",                                      description: "Trouble window: refresh",                     file: "", plugin: "trouble.nvim", group: "Diagnostics", source: "default" }
+  - { key: "q",      mode: "n",  action: "close",                                        description: "Trouble window: close",                       file: "", plugin: "trouble.nvim", group: "Diagnostics", source: "default" }
+  - { key: "o",      mode: "n",  action: "jump + close",                                 description: "Trouble window: jump to item and close",      file: "", plugin: "trouble.nvim", group: "Diagnostics", source: "default" }
+  - { key: "<CR>",   mode: "n",  action: "jump",                                         description: "Trouble window: jump to item",                file: "", plugin: "trouble.nvim", group: "Diagnostics", source: "default" }
+  - { key: "<C-s>",  mode: "n",  action: "jump (horizontal split)",                      description: "Trouble window: jump in horizontal split",    file: "", plugin: "trouble.nvim", group: "Diagnostics", source: "default" }
+  - { key: "<C-v>",  mode: "n",  action: "jump (vertical split)",                        description: "Trouble window: jump in vertical split",      file: "", plugin: "trouble.nvim", group: "Diagnostics", source: "default" }
+  - { key: "}",      mode: "n",  action: "next item",                                    description: "Trouble window: next item",                   file: "", plugin: "trouble.nvim", group: "Diagnostics", source: "default" }
+  - { key: "{",      mode: "n",  action: "previous item",                                description: "Trouble window: previous item",               file: "", plugin: "trouble.nvim", group: "Diagnostics", source: "default" }
+  - { key: "p",      mode: "n",  action: "preview",                                      description: "Trouble window: preview item",                file: "", plugin: "trouble.nvim", group: "Diagnostics", source: "default" }
+  - { key: "P",      mode: "n",  action: "toggle preview",                               description: "Trouble window: toggle auto preview",         file: "", plugin: "trouble.nvim", group: "Diagnostics", source: "default" }

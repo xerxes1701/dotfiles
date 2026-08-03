@@ -19,6 +19,32 @@ return {
 		vim.api.nvim_create_autocmd("LspAttach", {
 			group = vim.api.nvim_create_augroup("UserLspConfig", {}),
 			callback = function(ev)
+				local client = vim.lsp.get_client_by_id(ev.data.client_id)
+
+				-- Show inlay hints for any server that provides them.
+				if client and client:supports_method("textDocument/inlayHint") then
+					vim.lsp.inlay_hint.enable(true, { bufnr = ev.buf })
+				end
+
+				-- Render and keep CodeLenses up to date for servers that provide them.
+				if client and client:supports_method("textDocument/codeLens") then
+					if vim.g.codelens_enabled == nil then
+						vim.g.codelens_enabled = true
+					end
+					if vim.g.codelens_enabled then
+						vim.lsp.codelens.refresh({ bufnr = ev.buf })
+					end
+					vim.api.nvim_create_autocmd({ "BufEnter", "InsertLeave", "TextChanged" }, {
+						group = vim.api.nvim_create_augroup("UserLspCodeLens" .. ev.buf, { clear = true }),
+						buffer = ev.buf,
+						callback = function()
+							if vim.g.codelens_enabled then
+								vim.lsp.codelens.refresh({ bufnr = ev.buf })
+							end
+						end,
+					})
+				end
+
 				local keymap = function(mode, key, cmd, opt)
 					vim.keymap.set(mode, key, cmd, { desc = opt.desc, buffer = ev.buf, silent = true })
 				end
@@ -43,6 +69,21 @@ return {
 				keymap("n", "K", vim.lsp.buf.hover, { desc = "show lsp documentation" })
 
 				keymap("n", "<leader>rSS", "<cmd>LspRestart<CR>", { desc = "restart LSP" })
+
+				keymap("n", "<leader>cl", vim.lsp.codelens.run, { desc = "run CodeLens action" })
+
+				keymap("n", "<leader>cL", function()
+					vim.g.codelens_enabled = not vim.g.codelens_enabled
+					if vim.g.codelens_enabled then
+						vim.lsp.codelens.refresh({ bufnr = ev.buf })
+					else
+						vim.lsp.codelens.clear()
+					end
+				end, { desc = "toggle CodeLenses" })
+
+				keymap("n", "<leader>ih", function()
+					vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = ev.buf }), { bufnr = ev.buf })
+				end, { desc = "toggle inlay hints" })
 			end,
 		})
 	end,

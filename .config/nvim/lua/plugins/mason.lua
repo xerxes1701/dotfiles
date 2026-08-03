@@ -31,6 +31,12 @@ return {
 				"rust_analyzer", -- rust
 				-- "roslyn", -- c# (this like dosn't work but `:MasonInstall` does)
 			},
+			-- rustaceanvim owns the rust-analyzer client (clippy-on-save, debugging,
+			-- code lens, macro expand). Excluding it here stops mason-lspconfig from
+			-- auto-starting a second, redundant client -> no more duplicate diagnostics.
+			automatic_enable = {
+				exclude = { "rust_analyzer" },
+			},
 		})
 
 		require("mason-tool-installer").setup({

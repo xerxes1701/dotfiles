@@ -47,5 +47,6 @@ return {
 		{ "<leader>fK", "<cmd>lua require('keymap_registry').pick()<cr>", desc = "fuzzy find keymaps by plugin" },
 		{ "<leader>ft", "<cmd>TodoTelescope<CR>", desc = "fuzzy find help tags" },
 		{ "<leader>fh", "<cmd>Telescope harpoon marks<CR>", desc = "fuzzy find harpoon marks" },
+		{ "<leader>fj", "<cmd>Telescope jumplist<CR>", desc = "fuzzy find jumplist entries" },
 	},
 }

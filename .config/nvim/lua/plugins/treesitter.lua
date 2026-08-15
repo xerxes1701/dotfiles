@@ -10,7 +10,7 @@ return {
 	branch = "master",
 	build = ":TSUpdate",
 	init = function()
-		local ts_repeat_move = require("nvim-treesitter.textobjects.repeatable_move")
+		local ts_repeat_move = require("nvim-treesitter-textobjects.repeatable_move")
 
 		-- This repeats the last query with always previous direction and to the start of the range.
 		vim.keymap.set({ "n", "x", "o" }, "<home>", function()
@@ -57,63 +57,70 @@ return {
 					node_decremental = "<A-V>",
 				},
 			},
-			textobjects = {
-				-- `af`, `if`, `ac`, `ic`, etc.
-				select = {
-					enable = true,
-					lookahead = true, -- jump forward automatically
+		})
 
-					keymaps = {
-						["=="] = "@assignment.outer",
-						["=l"] = "@assignment.lhs",
-						["=r"] = "@assignment.rhs",
-
-						["in"] = "@number.inner",
-						["an"] = "@number.inner",
-
-						["ii"] = "@conditional.inner",
-						["ai"] = "@conditional.outer",
-
-						-- ["ig"] = "@parameter.inner",
-						-- ["ag"] = "@parameter.outer",
-
-						["ia"] = "@parameter.inner",
-						["aa"] = "@parameter.outer",
-
-						["ib"] = "@block.inner",
-						["ab"] = "@block.outer",
-
-						["ic"] = "@comment.outer",
-						["ac"] = "@comment.outer",
-
-						["am"] = "@function.outer",
-						["im"] = "@function.inner",
-
-						["af"] = "@call.outer",
-						["if"] = "@call.inner",
-
-						["at"] = "@class.outer",
-						["it"] = "@class.inner",
-
-						["al"] = "@loop.outer",
-						["il"] = "@loop.inner",
-
-						["ar"] = "@return.outer",
-						["ir"] = "@return.inner",
-					},
-				},
-
-				-- swap parameters with <leader>a / <leader>A
-				swap = {
-					enable = true,
-					swap_next = {
-						["<leader>a"] = "@parameter.inner",
-					},
-					swap_previous = {
-						["<leader>A"] = "@parameter.inner",
-					},
-				},
+		-- nvim-treesitter-textobjects (main branch) is now a standalone plugin
+		-- with its own setup and manual keymaps instead of the old
+		-- `nvim-treesitter.configs` `textobjects` module.
+		require("nvim-treesitter-textobjects").setup({
+			select = {
+				lookahead = true, -- jump forward automatically
+			},
+			move = {
+				set_jumps = true,
 			},
 		})
+
+		-- `af`, `if`, `ac`, `ic`, etc.
+		local select = require("nvim-treesitter-textobjects.select")
+		local select_keymaps = {
+			["=="] = "@assignment.outer",
+			["=l"] = "@assignment.lhs",
+			["=r"] = "@assignment.rhs",
+
+			["in"] = "@number.inner",
+			["an"] = "@number.inner",
+
+			["ii"] = "@conditional.inner",
+			["ai"] = "@conditional.outer",
+
+			["ia"] = "@parameter.inner",
+			["aa"] = "@parameter.outer",
+
+			["ib"] = "@block.inner",
+			["ab"] = "@block.outer",
+
+			["ic"] = "@comment.outer",
+			["ac"] = "@comment.outer",
+
+			["am"] = "@function.outer",
+			["im"] = "@function.inner",
+
+			["af"] = "@call.outer",
+			["if"] = "@call.inner",
+
+			["at"] = "@class.outer",
+			["it"] = "@class.inner",
+
+			["al"] = "@loop.outer",
+			["il"] = "@loop.inner",
+
+			["ar"] = "@return.outer",
+			["ir"] = "@return.inner",
+		}
+		for lhs, query_string in pairs(select_keymaps) do
+			vim.keymap.set({ "x", "o" }, lhs, function()
+				select.select_textobject(query_string, "textobjects")
+			end, { silent = true, desc = "Select " .. query_string })
+		end
+
+		-- swap parameters with <leader>a / <leader>A
+		local swap = require("nvim-treesitter-textobjects.swap")
+		vim.keymap.set("n", "<leader>a", function()
+			swap.swap_next("@parameter.inner")
+		end, { silent = true, desc = "Swap next parameter" })
+		vim.keymap.set("n", "<leader>A", function()
+			swap.swap_previous("@parameter.inner")
+		end, { silent = true, desc = "Swap previous parameter" })
 	end,
 }

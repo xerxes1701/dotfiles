@@ -11,14 +11,14 @@ return {
 		local Hydra = require("hydra")
 
 		local tsmove_goto_next_start = function(obj)
-			local ts_move = require("nvim-treesitter.textobjects.move")
+			local ts_move = require("nvim-treesitter-textobjects.move")
 			return function()
 				ts_move.goto_next_start(obj)
 			end
 		end
 
 		local tsmove_goto_prev_start = function(obj)
-			local ts_move = require("nvim-treesitter.textobjects.move")
+			local ts_move = require("nvim-treesitter-textobjects.move")
 			return function()
 				ts_move.goto_previous_start(obj)
 			end

@@ -32,17 +32,8 @@ return {
 						vim.g.codelens_enabled = true
 					end
 					if vim.g.codelens_enabled then
-						vim.lsp.codelens.refresh({ bufnr = ev.buf })
+						vim.lsp.codelens.enable(true, { bufnr = ev.buf })
 					end
-					vim.api.nvim_create_autocmd({ "BufEnter", "InsertLeave", "TextChanged" }, {
-						group = vim.api.nvim_create_augroup("UserLspCodeLens" .. ev.buf, { clear = true }),
-						buffer = ev.buf,
-						callback = function()
-							if vim.g.codelens_enabled then
-								vim.lsp.codelens.refresh({ bufnr = ev.buf })
-							end
-						end,
-					})
 				end
 
 				local keymap = function(mode, key, cmd, opt)
@@ -75,9 +66,9 @@ return {
 				keymap("n", "<leader>cL", function()
 					vim.g.codelens_enabled = not vim.g.codelens_enabled
 					if vim.g.codelens_enabled then
-						vim.lsp.codelens.refresh({ bufnr = ev.buf })
+						vim.lsp.codelens.enable(true, { bufnr = ev.buf })
 					else
-						vim.lsp.codelens.clear()
+						vim.lsp.codelens.enable(false, { bufnr = ev.buf })
 					end
 				end, { desc = "toggle CodeLenses" })
 

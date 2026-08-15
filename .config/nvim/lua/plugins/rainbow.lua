@@ -3,7 +3,7 @@
 
 return {
 	"hiphish/rainbow-delimiters.nvim",
-	commit = "01993eb",
+	commit = "012f1480cd9a5fc99fce7678e0a536421a53fc46",
 	config = function()
 		require("rainbow-delimiters.setup").setup({})
 	end,

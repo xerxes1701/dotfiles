@@ -103,6 +103,14 @@ install
 
 > sudo apt install neovim
 
+## tree-sitter-cli
+
+dependency of nvim-treesitter
+
+install
+
+> sudo apt install tree-sitter-cli
+
 ## zig
 
 programming language, C compatible, easy to install on Windows

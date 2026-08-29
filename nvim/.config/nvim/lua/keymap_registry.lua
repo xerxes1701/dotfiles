@@ -109,7 +109,22 @@ end
 -- lazy.nvim's declarative `keys` specs.
 function M.build_index()
 	local by_plugin = {}
+	local seen = {}
 	local function add(plugin, rec)
+		-- Buffer-local maps (e.g. oil.nvim) are re-registered for every buffer
+		-- the plugin creates, so the same binding is captured many times. Key
+		-- on the identifying fields to keep only the first of each.
+		local key = table.concat({
+			plugin,
+			tostring(rec.mode),
+			tostring(rec.lhs),
+			tostring(rec.rhs),
+			tostring(rec.desc),
+		}, "\0")
+		if seen[key] then
+			return
+		end
+		seen[key] = true
 		by_plugin[plugin] = by_plugin[plugin] or {}
 		table.insert(by_plugin[plugin], rec)
 	end

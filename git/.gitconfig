@@ -40,7 +40,7 @@
   l = log
   lg = log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(auto)%d%C(reset)'
   lga = lg --all
-  lgm = "!pwsh --command \"git lg origin/master~1..(git bn)"\" 
+  lgm = "!f() { d=$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null); if [ -z \"$d\" ]; then for b in main master; do git show-ref --verify --quiet refs/remotes/origin/$b && d=origin/$b && break; done; fi; git lg $d~1..$(git bn); }; f"
   m = merge
   p = pull
   r = reset
@@ -48,12 +48,12 @@
   st = stash
   sw = switch
   root = rev-parse --show-toplevel
-  fadd = "!fish -c \"cd (git root); git status --porcelain | rg '^( |\\?\\?)' | cut -c4- | fzf -m --preview 'git diff --color=always {}' | xargs git add; cd -\""
-  x = !fish -c \"git status --porcelain | rg '^( |\\?\\?)'\"
-  ffiles = "!fish -c \"cd (git root); git status --porcelain | rg '^( |\\?\\?)' | cut -c4- | fzf -m --preview 'git diff --color=always {}'; cd -\""
-  undo = "!fish -c \"cd (git root); git status --porcelain | rg '^( |\\?\\?)' | cut -c4- | fzf -m --preview 'git diff --color=always {}' | xargs git checkout; cd -\""
-  incoming-first-pretty = !fish -c 'git log -1 --oneline --decorate $(git rev-list --reverse HEAD..@{u} | head -n1)'
-  incoming-first-hash = !fish -c 'git log -1 --format=%h $(git rev-list --reverse HEAD..@{u} | head -n1)'
+  af = "!f() { cd \"$(git root)\" && git status --porcelain | rg '^( |\\?\\?)' | cut -c4- | fzf -m --preview-window 'up,70%' --bind 'ctrl-u:preview-half-page-up,ctrl-d:preview-half-page-down,ctrl-f:preview-page-down,ctrl-b:preview-page-up' --preview 'git diff -- {} | delta --width $FZF_PREVIEW_COLUMNS; git diff --no-index -- /dev/null {} 2>/dev/null | delta --width $FZF_PREVIEW_COLUMNS' | xargs -r git add; }; f"
+  x = "!git status --porcelain | rg '^( |\\?\\?)'"
+  ffiles = "!f() { cd \"$(git root)\" && git status --porcelain | rg '^( |\\?\\?)' | cut -c4- | fzf -m --preview 'git diff --color=always {}'; }; f"
+  undo = "!f() { cd \"$(git root)\" && git status --porcelain | rg '^( |\\?\\?)' | cut -c4- | fzf -m --preview 'git diff --color=always {}' | xargs -r git checkout; }; f"
+  incoming-first-pretty = !git log -1 --oneline --decorate $(git rev-list --reverse HEAD..@{u} | head -n1)
+  incoming-first-hash = !git log -1 --format=%h $(git rev-list --reverse HEAD..@{u} | head -n1)
   check-ff = merge-base --is-ancestor HEAD 
   ddiff = -c diff.external=difft diff
   dshow = -c diff.external=difft show --ext-diff

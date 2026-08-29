@@ -5,7 +5,7 @@ return {
 		"nvim-treesitter/nvim-treesitter-textobjects",
 	},
 	init = function()
-		vim.keymap.set("n", "s", "<Nop>")
+		vim.keymap.set("n", "S", "<Nop>")
 	end,
 	config = function()
 		local Hydra = require("hydra")
@@ -27,7 +27,7 @@ return {
 		Hydra({
 			name = "treewalker",
 			mode = "n",
-			body = "s",
+			body = "S",
 
 			-- these are explained below
 			hint = [[ treewalker ]],

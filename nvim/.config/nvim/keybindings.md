@@ -212,7 +212,7 @@ Configures: `flash.nvim`
 | `<k7>` | n,x,o | Flash jump                                                                       | `require('flash').jump()`                |  |
 | `r` | o | Remote flash (operator pending)                                                  | `require('flash').remote()`              |  |
 | `R` | o,x | Treesitter search                                                                | `require('flash').treesitter_search()`   |  |
-| `S` | n | Flash jump (alt)                                                                 | `require('flash').jump()`                |  |
+| `s` | n | Flash jump                                                                       | `require('flash').jump()`                |  |
 
 ### lua/plugins/formatter.lua <a id="file-luapluginsformatterlua"></a>
 
@@ -266,7 +266,7 @@ Configures: `hydra.nvim`
 
 | Key | Mode | Description                                                                      | Action                                   | Implicit |
 | --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- |
-| `s` | n | Open treewalker hydra (also disables default s)                                  | `activate treewalker hydra`              |  |
+| `S` | n | Open treewalker hydra (also disables default S)                                  | `activate treewalker hydra`              |  |
 | `s =+ / s ++` | n | Hydra: previous assignment                                                       | `goto_prev_start @assignment.outer`      |  |
 | `s ==` | n | Hydra: next assignment                                                           | `goto_next_start @assignment.outer`      |  |
 | `s =l` | n | Hydra: next assignment LHS                                                       | `goto_next_start @assignment.lhs`        |  |
@@ -612,7 +612,7 @@ Defined in: `lua/plugins/flash.lua`; includes 6 implicit default(s) 🔸
 | `<k7>` | n,x,o | Flash jump                                                                       | `require('flash').jump()`                |  |
 | `r` | o | Remote flash (operator pending)                                                  | `require('flash').remote()`              |  |
 | `R` | o,x | Treesitter search                                                                | `require('flash').treesitter_search()`   |  |
-| `S` | n | Flash jump (alt)                                                                 | `require('flash').jump()`                |  |
+| `s` | n | Flash jump                                                                       | `require('flash').jump()`                |  |
 | `,` | n,x,o | Flash: repeat last char motion, opposite direction                               | `repeat f/t/F/T (opposite dir)`          | 🔸 |
 | `;` | n,x,o | Flash: repeat last char motion, same direction                                   | `repeat f/t/F/T (same dir)`              | 🔸 |
 | `f` | n,x,o | Flash: enhanced f, jump to char (dot-repeat)                                     | `enhanced f (flash char)`                | 🔸 |
@@ -664,7 +664,7 @@ Defined in: `lua/plugins/hydra.lua`
 
 | Key | Mode | Description                                                                      | Action                                   | Implicit |
 | --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- |
-| `s` | n | Open treewalker hydra (also disables default s)                                  | `activate treewalker hydra`              |  |
+| `S` | n | Open treewalker hydra (also disables default S)                                  | `activate treewalker hydra`              |  |
 | `s =+ / s ++` | n | Hydra: previous assignment                                                       | `goto_prev_start @assignment.outer`      |  |
 | `s ==` | n | Hydra: next assignment                                                           | `goto_next_start @assignment.outer`      |  |
 | `s =l` | n | Hydra: next assignment LHS                                                       | `goto_next_start @assignment.lhs`        |  |
@@ -1367,7 +1367,7 @@ plugin.
 | `F` | n,x,o | Flash: enhanced F, backward jump to char                                         | `enhanced F (flash char back)`           | `flash.nvim` | 🔸 |
 | `r` | o | Remote flash (operator pending)                                                  | `require('flash').remote()`              | `flash.nvim` |  |
 | `R` | o,x | Treesitter search                                                                | `require('flash').treesitter_search()`   | `flash.nvim` |  |
-| `S` | n | Flash jump (alt)                                                                 | `require('flash').jump()`                | `flash.nvim` |  |
+| `s` | n | Flash jump                                                                       | `require('flash').jump()`                | `flash.nvim` |  |
 | `t` | n,x,o | Flash: enhanced t, jump till char                                                | `enhanced t (flash till)`                | `flash.nvim` | 🔸 |
 | `T` | n,x,o | Flash: enhanced T, backward jump till char                                       | `enhanced T (flash till back)`           | `flash.nvim` | 🔸 |
 
@@ -1448,7 +1448,7 @@ plugin.
 
 | Key | Mode | Description                                                                      | Action                                   | Plugin | Implicit |
 | --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- | --- |
-| `s` | n | Open treewalker hydra (also disables default s)                                  | `activate treewalker hydra`              | `hydra.nvim` |  |
+| `S` | n | Open treewalker hydra (also disables default S)                                  | `activate treewalker hydra`              | `hydra.nvim` |  |
 | `s =+ / s ++` | n | Hydra: previous assignment                                                       | `goto_prev_start @assignment.outer`      | `hydra.nvim` |  |
 | `s ==` | n | Hydra: next assignment                                                           | `goto_next_start @assignment.outer`      | `hydra.nvim` |  |
 | `s =l` | n | Hydra: next assignment LHS                                                       | `goto_next_start @assignment.lhs`        | `hydra.nvim` |  |
@@ -1788,8 +1788,8 @@ Every keybinding in one flat table, sorted by key then mode.
 | `r` | n | Trouble window: refresh                                                          | `refresh`                                | `trouble.nvim` | 🔸 |
 | `r` | o | Remote flash (operator pending)                                                  | `require('flash').remote()`              | `flash.nvim` |  |
 | `R` | o,x | Treesitter search                                                                | `require('flash').treesitter_search()`   | `flash.nvim` |  |
-| `s` | n | Open treewalker hydra (also disables default s)                                  | `activate treewalker hydra`              | `hydra.nvim` |  |
-| `S` | n | Flash jump (alt)                                                                 | `require('flash').jump()`                | `flash.nvim` |  |
+| `S` | n | Open treewalker hydra (also disables default S)                                  | `activate treewalker hydra`              | `hydra.nvim` |  |
+| `s` | n | Flash jump                                                                       | `require('flash').jump()`                | `flash.nvim` |  |
 | `S` | n | Diffview file panel: stage all entries                                           | `stage all (file panel)`                 | `diffview.nvim` | 🔸 |
 | `S` | x | Surround: add pair around visual selection                                       | `surround selection`                     | `nvim-surround` | 🔸 |
 | `s =+ / s ++` | n | Hydra: previous assignment                                                       | `goto_prev_start @assignment.outer`      | `hydra.nvim` |  |

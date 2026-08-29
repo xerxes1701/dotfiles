@@ -149,7 +149,7 @@ keybindings:
   # `s` opens a persistent "pink" hydra; the remaining keys are heads  #
   # active only while the hydra is open.                               #
   # ------------------------------------------------------------------ #
-  - { key: "s",            mode: "n",     action: "activate treewalker hydra",        description: "Open treewalker hydra (also disables default s)", file: "lua/plugins/hydra.lua", plugin: "hydra.nvim", group: "Treewalker Hydra", source: "explicit" }
+  - { key: "S",            mode: "n",     action: "activate treewalker hydra",        description: "Open treewalker hydra (also disables default S)", file: "lua/plugins/hydra.lua", plugin: "hydra.nvim", group: "Treewalker Hydra", source: "explicit" }
   - { key: "s k",          mode: "n",     action: "<cmd>Treewalker Up<cr>",           description: "Treewalker: move up",                     file: "lua/plugins/hydra.lua", plugin: "hydra.nvim", group: "Treewalker Hydra", source: "explicit" }
   - { key: "s l",          mode: "n",     action: "<cmd>Treewalker Right<cr>",        description: "Treewalker: move right",                  file: "lua/plugins/hydra.lua", plugin: "hydra.nvim", group: "Treewalker Hydra", source: "explicit" }
   - { key: "s j",          mode: "n",     action: "<cmd>Treewalker Down<cr>",         description: "Treewalker: move down",                   file: "lua/plugins/hydra.lua", plugin: "hydra.nvim", group: "Treewalker Hydra", source: "explicit" }
@@ -251,7 +251,7 @@ keybindings:
   # ------------------------------------------------------------------ #
   # flash.nvim - lua/plugins/flash.lua                                 #
   # ------------------------------------------------------------------ #
-  - { key: "S",            mode: "n",     action: "require('flash').jump()",          description: "Flash jump (alt)",                        file: "lua/plugins/flash.lua", plugin: "flash.nvim", group: "Search", source: "explicit" }
+  - { key: "s",            mode: "n",     action: "require('flash').jump()",          description: "Flash jump",                              file: "lua/plugins/flash.lua", plugin: "flash.nvim", group: "Search", source: "explicit" }
   - { key: "<k7>",         mode: "n,x,o", action: "require('flash').jump()",          description: "Flash jump",                              file: "lua/plugins/flash.lua", plugin: "flash.nvim", group: "Search", source: "explicit" }
   - { key: "<F17>",        mode: "n,x,o", action: "require('flash').jump()",          description: "Flash jump",                              file: "lua/plugins/flash.lua", plugin: "flash.nvim", group: "Search", source: "explicit" }
   - { key: "<F18>",        mode: "n,x,o", action: "require('flash').treesitter()",    description: "Flash treesitter",                        file: "lua/plugins/flash.lua", plugin: "flash.nvim", group: "Search", source: "explicit" }

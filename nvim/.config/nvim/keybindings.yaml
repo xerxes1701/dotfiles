@@ -251,6 +251,7 @@ keybindings:
   # ------------------------------------------------------------------ #
   # flash.nvim - lua/plugins/flash.lua                                 #
   # ------------------------------------------------------------------ #
+  - { key: "S",            mode: "n",     action: "require('flash').jump()",          description: "Flash jump (alt)",                        file: "lua/plugins/flash.lua", plugin: "flash.nvim", group: "Search", source: "explicit" }
   - { key: "<k7>",         mode: "n,x,o", action: "require('flash').jump()",          description: "Flash jump",                              file: "lua/plugins/flash.lua", plugin: "flash.nvim", group: "Search", source: "explicit" }
   - { key: "<F17>",        mode: "n,x,o", action: "require('flash').jump()",          description: "Flash jump",                              file: "lua/plugins/flash.lua", plugin: "flash.nvim", group: "Search", source: "explicit" }
   - { key: "<F18>",        mode: "n,x,o", action: "require('flash').treesitter()",    description: "Flash treesitter",                        file: "lua/plugins/flash.lua", plugin: "flash.nvim", group: "Search", source: "explicit" }

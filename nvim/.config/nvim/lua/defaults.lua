@@ -6,6 +6,12 @@ require("statuscolumn").setup()
 
 g.is_windows = (vim.fn.has("win32") == 1 or vim.fn.has("win64") == 1)
 
+-- Disable terminal flow-control so <C-s>/<C-q> reach Neovim instead of
+-- freezing/unfreezing the terminal (XOFF/XON).
+if not g.is_windows then
+	vim.cmd("silent !stty -ixon")
+end
+
 -- api.nvim_set_keymap("", "<Space>", "<Nop>", { noremap = true, silent = true })
 
 -- Make sure to setup `mapleader` and `maplocalleader` before

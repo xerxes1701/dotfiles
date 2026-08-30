@@ -102,6 +102,7 @@ catch (Exception ex)
 var all = new List<Binding>();
 all.AddRange(root.Keybindings ?? new());
 all.AddRange(root.DefaultBindings ?? new());
+all.AddRange(root.BuiltinBindings ?? new());
 foreach (var b in all) b.Normalize();
 
 if (all.Count == 0)
@@ -114,7 +115,9 @@ var md = new MarkdownBuilder(root, all, descWidth, actionWidth);
 File.WriteAllText(output, md.Build());
 
 int defaults = all.Count(b => b.IsDefault);
-Console.WriteLine($"Wrote {output}: {all.Count} keybindings ({all.Count - defaults} explicit, {defaults} implicit defaults).");
+int builtins = all.Count(b => b.IsBuiltin);
+int explicits = all.Count - defaults - builtins;
+Console.WriteLine($"Wrote {output}: {all.Count} keybindings ({explicits} explicit, {defaults} implicit defaults, {builtins} built-ins).");
 return 0;
 
 
@@ -132,6 +135,9 @@ class Root
 
     [YamlMember(Alias = "default_bindings")]
     public List<Binding>? DefaultBindings { get; set; }
+
+    [YamlMember(Alias = "builtin_bindings")]
+    public List<Binding>? BuiltinBindings { get; set; }
 }
 
 class Binding
@@ -146,6 +152,7 @@ class Binding
     [YamlMember(Alias = "source")] public string Source { get; set; } = "explicit";
 
     public bool IsDefault => string.Equals(Source, "default", StringComparison.OrdinalIgnoreCase);
+    public bool IsBuiltin => string.Equals(Source, "builtin", StringComparison.OrdinalIgnoreCase);
 
     public void Normalize()
     {
@@ -167,6 +174,7 @@ class Binding
 class MarkdownBuilder
 {
     private const string DefaultMarker = "🔸";
+    private const string BuiltinMarker = "🔹";
 
     private readonly Root _root;
     private readonly List<Binding> _all;
@@ -224,14 +232,18 @@ class MarkdownBuilder
             Line();
         }
 
-        int explicitCount = _all.Count(b => !b.IsDefault);
         int defaultCount = _all.Count(b => b.IsDefault);
+        int builtinCount = _all.Count(b => b.IsBuiltin);
+        int explicitCount = _all.Count - defaultCount - builtinCount;
 
         Line("> **Legend**");
         Line($"> {DefaultMarker} marks an **implicitly-defined** keybinding — one a plugin sets by");
         Line("> default (out-of-the-box), not something written in this configuration.");
         Line(">");
-        Line($"> Totals: **{_all.Count}** keybindings — **{explicitCount}** explicit, **{defaultCount}** implicit defaults ({DefaultMarker}).");
+        Line($"> {BuiltinMarker} marks a **Neovim built-in** default — a core editor command that is");
+        Line("> not defined via a keymap (it never appears in `:map`/`nvim_get_keymap`).");
+        Line(">");
+        Line($"> Totals: **{_all.Count}** keybindings — **{explicitCount}** explicit, **{defaultCount}** implicit defaults ({DefaultMarker}), **{builtinCount}** built-ins ({BuiltinMarker}).");
         Line();
     }
 
@@ -405,9 +417,10 @@ class MarkdownBuilder
     private static string PluginCell(Binding b) =>
         string.IsNullOrEmpty(b.Plugin) ? "_core_" : Code(b.Plugin);
 
-    // Only implicit (default) bindings get a marker; explicit rows are blank.
+    // Implicit column marker: plugin defaults and Neovim built-ins each get
+    // their own marker; explicit config rows are blank.
     private static string ImplicitCell(Binding b) =>
-        b.IsDefault ? DefaultMarker : "";
+        b.IsDefault ? DefaultMarker : b.IsBuiltin ? BuiltinMarker : "";
 
     // Description cell: truncate to the max width, then pad to that width so
     // the source column lines up. Empty descriptions still pad to width.

@@ -12,7 +12,10 @@ _Generated from `keybindings.yaml` by `keybindings-to-md.cs`._
 > 🔸 marks an **implicitly-defined** keybinding — one a plugin sets by
 > default (out-of-the-box), not something written in this configuration.
 >
-> Totals: **347** keybindings — **201** explicit, **146** implicit defaults (🔸).
+> 🔹 marks a **Neovim built-in** default — a core editor command that is
+> not defined via a keymap (it never appears in `:map`/`nvim_get_keymap`).
+>
+> Totals: **488** keybindings — **201** explicit, **146** implicit defaults (🔸), **141** built-ins (🔹).
 
 ## Table of Contents
 
@@ -76,6 +79,7 @@ _Generated from `keybindings.yaml` by `keybindings-to-md.cs`._
 3. [Grouped Logically](#sec-logical)
    - [AI Chat](#group-ai-chat)
    - [Clipboard](#group-clipboard)
+   - [Command](#group-command)
    - [Comments](#group-comments)
    - [Completion](#group-completion)
    - [Copilot](#group-copilot)
@@ -84,20 +88,27 @@ _Generated from `keybindings.yaml` by `keybindings-to-md.cs`._
    - [Editing](#group-editing)
    - [File Explorer](#group-file-explorer)
    - [Folding](#group-folding)
+   - [Folds](#group-folds)
    - [Fuzzy Find](#group-fuzzy-find)
    - [Git](#group-git)
    - [Harpoon](#group-harpoon)
    - [Help](#group-help)
+   - [Insert](#group-insert)
    - [LSP](#group-lsp)
+   - [Marks & Jumps](#group-marks--jumps)
    - [Misc](#group-misc)
+   - [Motion](#group-motion)
    - [Navigation](#group-navigation)
    - [Operators](#group-operators)
+   - [Registers & Macros](#group-registers--macros)
+   - [Scrolling](#group-scrolling)
    - [Search](#group-search)
    - [Surround](#group-surround)
    - [Tabs](#group-tabs)
    - [Terminal](#group-terminal)
    - [Text Objects](#group-text-objects)
    - [Treewalker Hydra](#group-treewalker-hydra)
+   - [Visual](#group-visual)
    - [Windows](#group-windows)
 4. [All Keybindings (sorted)](#sec-all)
 
@@ -1047,6 +1058,12 @@ plugin.
 | `<leader>y` | n | Yank to system clipboard                                                         | `"+y`                                    | _core_ |  |
 | `<leader>y` | v | Yank selection to system clipboard                                               | `"+y`                                    | _core_ |  |
 
+### Command <a id="group-command"></a>
+
+| Key | Mode | Description                                                                      | Action                                   | Plugin | Implicit |
+| --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- | --- |
+| `:` | n,x | Enter Command-line (Ex) mode                                                     | `(command)`                              | _core_ | 🔹 |
+
 ### Comments <a id="group-comments"></a>
 
 | Key | Mode | Description                                                                      | Action                                   | Plugin | Implicit |
@@ -1147,22 +1164,53 @@ plugin.
 
 | Key | Mode | Description                                                                      | Action                                   | Plugin | Implicit |
 | --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- | --- |
+| `.` | n | Repeat last change                                                               | `(edit)`                                 | _core_ | 🔹 |
 | `<` | n | Indent line left                                                                 | `<<`                                     | _core_ |  |
 | `<` | v | Indent left, keep selection                                                      | `<gv`                                    | _core_ |  |
+| `<C-r>` | n | Redo                                                                             | `(edit)`                                 | _core_ | 🔹 |
 | `<leader>+` | n | Increment number under cursor                                                    | `<C-a>`                                  | _core_ |  |
 | `<leader>-` | n | Decrement number under cursor                                                    | `<C-x>`                                  | _core_ |  |
 | `<leader>c` | n | Change (yank into default register)                                              | `c`                                      | _core_ |  |
 | `<leader>cf` | n,v | Format file or range                                                             | `conform.format`                         | `conform.nvim` |  |
 | `<leader>d` | n | Delete (yank into default register)                                              | `d`                                      | _core_ |  |
+| `=` | n,x | Auto-indent {motion}/selection                                                   | `(operator)`                             | _core_ | 🔹 |
+| `==` | n | Auto-indent current line                                                         | `(operator)`                             | _core_ | 🔹 |
 | `>` | n | Indent line right                                                                | `>>`                                     | _core_ |  |
 | `>` | v | Indent right, keep selection                                                     | `>gv`                                    | _core_ |  |
+| `a` | n | Insert after cursor                                                              | `(edit)`                                 | _core_ | 🔹 |
+| `A` | n | Insert at end of line                                                            | `(edit)`                                 | _core_ | 🔹 |
 | `c` | n | Change into black-hole register                                                  | `"_c`                                    | _core_ |  |
+| `C` | n | Change to end of line                                                            | `(operator)`                             | _core_ | 🔹 |
+| `c` | x | Change {motion}/selection                                                        | `(operator)`                             | _core_ | 🔹 |
+| `cc` | n | Change line                                                                      | `(operator)`                             | _core_ | 🔹 |
 | `d` | n | Delete into black-hole register                                                  | `"_d`                                    | _core_ |  |
+| `D` | n | Delete to end of line                                                            | `(operator)`                             | _core_ | 🔹 |
+| `d` | x | Delete {motion}/selection                                                        | `(operator)`                             | _core_ | 🔹 |
+| `dd` | n | Delete line                                                                      | `(operator)`                             | _core_ | 🔹 |
+| `gJ` | n | Join line below without a space                                                  | `(edit)`                                 | _core_ | 🔹 |
+| `gq` | x | Format {motion}/selection                                                        | `(operator)`                             | _core_ | 🔹 |
 | `gS` | n,x | mini.splitjoin: split if single line, join if multiline                          | `toggle split/join`                      | `mini.splitjoin` | 🔸 |
+| `gu` | n,x | Lowercase {motion}/selection                                                     | `(operator)`                             | _core_ | 🔹 |
+| `gU` | n,x | Uppercase {motion}/selection                                                     | `(operator)`                             | _core_ | 🔹 |
+| `g~` | n,x | Toggle case of {motion}/selection                                                | `(operator)`                             | _core_ | 🔹 |
+| `i` | n | Insert before cursor                                                             | `(edit)`                                 | _core_ | 🔹 |
+| `I` | n | Insert at first non-blank                                                        | `(edit)`                                 | _core_ | 🔹 |
+| `J` | n | Join line below with a space                                                     | `(edit)`                                 | _core_ | 🔹 |
 | `J` | x | Move selected block down                                                         | `:move '>+1<CR>gv=gv`                    | _core_ |  |
 | `K` | x | Move selected block up                                                           | `:move '<-2<CR>gv=gv`                    | _core_ |  |
+| `o` | n | Open new line below and insert                                                   | `(edit)`                                 | _core_ | 🔹 |
+| `O` | n | Open new line above and insert                                                   | `(edit)`                                 | _core_ | 🔹 |
+| `p` | n | Paste after cursor                                                               | `(edit)`                                 | _core_ | 🔹 |
+| `P` | n | Paste before cursor                                                              | `(edit)`                                 | _core_ | 🔹 |
 | `Q` | n | Disable Ex mode                                                                  | `<nop>`                                  | _core_ |  |
+| `r` | n | Replace single character                                                         | `(edit)`                                 | _core_ | 🔹 |
+| `R` | n | Enter Replace mode                                                               | `(edit)`                                 | _core_ | 🔹 |
+| `u` | n | Undo                                                                             | `(edit)`                                 | _core_ | 🔹 |
 | `x` | n | Delete char without yanking                                                      | `"_x`                                    | _core_ |  |
+| `X` | n | Delete character before cursor                                                   | `(edit)`                                 | _core_ | 🔹 |
+| `Y` | n | Yank line (like yy)                                                              | `(operator)`                             | _core_ | 🔹 |
+| `y` | n,x | Yank {motion}/selection                                                          | `(operator)`                             | _core_ | 🔹 |
+| `yy` | n | Yank line                                                                        | `(operator)`                             | _core_ | 🔹 |
 
 ### File Explorer <a id="group-file-explorer"></a>
 
@@ -1211,6 +1259,20 @@ plugin.
 | `h` | n | Origami: fold when at/before first non-blank, else h                             | `fold or normal h`                       | `nvim-origami` | 🔸 |
 | `l` | n | Origami: unfold folded line, else l                                              | `unfold or normal l`                     | `nvim-origami` | 🔸 |
 | `^` | n | Origami: fold recursively when before first non-blank, else ^                    | `fold recursively or normal ^`           | `nvim-origami` | 🔸 |
+
+### Folds <a id="group-folds"></a>
+
+| Key | Mode | Description                                                                      | Action                                   | Plugin | Implicit |
+| --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- | --- |
+| `za` | n | Toggle fold under cursor                                                         | `(fold)`                                 | _core_ | 🔹 |
+| `zc` | n | Close fold under cursor                                                          | `(fold)`                                 | _core_ | 🔹 |
+| `zd` | n | Delete fold under cursor                                                         | `(fold)`                                 | _core_ | 🔹 |
+| `zf` | n,x | Create fold over {motion}/selection                                              | `(operator)`                             | _core_ | 🔹 |
+| `zj` | n | Move to start of next fold                                                       | `(motion)`                               | _core_ | 🔹 |
+| `zk` | n | Move to end of previous fold                                                     | `(motion)`                               | _core_ | 🔹 |
+| `zM` | n | Close all folds                                                                  | `(fold)`                                 | _core_ | 🔹 |
+| `zo` | n | Open fold under cursor                                                           | `(fold)`                                 | _core_ | 🔹 |
+| `zR` | n | Open all folds                                                                   | `(fold)`                                 | _core_ | 🔹 |
 
 ### Fuzzy Find <a id="group-fuzzy-find"></a>
 
@@ -1296,6 +1358,18 @@ plugin.
 | --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- | --- |
 | `<leader>?` | n | Show all keymaps (which-key)                                                     | `require('which-key').show({ global = tr…` | `which-key.nvim` |  |
 
+### Insert <a id="group-insert"></a>
+
+| Key | Mode | Description                                                                      | Action                                   | Plugin | Implicit |
+| --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- | --- |
+| `<C-a>` | i | Insert previously inserted text                                                  | `(edit)`                                 | _core_ | 🔹 |
+| `<C-d>` | i | Un-indent current line                                                           | `(edit)`                                 | _core_ | 🔹 |
+| `<C-o>` | i | Execute one Normal-mode command                                                  | `(edit)`                                 | _core_ | 🔹 |
+| `<C-r>` | i | Insert contents of a register                                                    | `(edit)`                                 | _core_ | 🔹 |
+| `<C-t>` | i | Indent current line                                                              | `(edit)`                                 | _core_ | 🔹 |
+| `<C-u>` | i | Delete to start of line                                                          | `(edit)`                                 | _core_ | 🔹 |
+| `<C-w>` | i | Delete word before cursor                                                        | `(edit)`                                 | _core_ | 🔹 |
+
 ### LSP <a id="group-lsp"></a>
 
 | Key | Mode | Description                                                                      | Action                                   | Plugin | Implicit |
@@ -1313,12 +1387,72 @@ plugin.
 | `gt` | n | LSP: type definitions (Telescope)                                                | `<cmd>Telescope lsp_type_implementations…` | `nvim-lspconfig` |  |
 | `K` | n | LSP: hover documentation                                                         | `vim.lsp.buf.hover`                      | `nvim-lspconfig` |  |
 
+### Marks & Jumps <a id="group-marks--jumps"></a>
+
+| Key | Mode | Description                                                                      | Action                                   | Plugin | Implicit |
+| --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- | --- |
+| `'{mark}` | n,x,o | To first non-blank of marked line                                                | `(motion)`                               | _core_ | 🔹 |
+| `<C-i>` | n | Jump to newer position in jumplist                                               | `(jump)`                                 | _core_ | 🔹 |
+| `<C-o>` | n | Jump to older position in jumplist                                               | `(jump)`                                 | _core_ | 🔹 |
+| `<C-t>` | n | Jump back from tag                                                               | `(jump)`                                 | _core_ | 🔹 |
+| `<C-]>` | n | Jump to definition/tag under cursor                                              | `(jump)`                                 | _core_ | 🔹 |
+| `g,` | n | Go to newer position in change list                                              | `(jump)`                                 | _core_ | 🔹 |
+| `g;` | n | Go to older position in change list                                              | `(jump)`                                 | _core_ | 🔹 |
+| `gf` | n | Go to file under cursor                                                          | `(jump)`                                 | _core_ | 🔹 |
+| `m{a-zA-Z}` | n | Set mark at cursor                                                               | `(mark)`                                 | _core_ | 🔹 |
+
 ### Misc <a id="group-misc"></a>
 
 | Key | Mode | Description                                                                      | Action                                   | Plugin | Implicit |
 | --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- | --- |
+| `<C-g>` | n | Show file name and status                                                        | `(misc)`                                 | _core_ | 🔹 |
+| `<C-l>` | n | Redraw screen                                                                    | `(misc)`                                 | _core_ | 🔹 |
 | `<leader><leader>sn` | n | Show notification history                                                        | `Snacks.notifier.show_history()`         | `snacks.nvim` |  |
 | `<leader>ll` | n | Open Lazy plugin manager                                                         | `<cmd>Lazy<CR>`                          | _core_ |  |
+| `ga` | n | Show character codes under cursor                                                | `(misc)`                                 | _core_ | 🔹 |
+| `ZQ` | n | Quit without writing                                                             | `(misc)`                                 | _core_ | 🔹 |
+| `ZZ` | n | Write file and quit                                                              | `(misc)`                                 | _core_ | 🔹 |
+
+### Motion <a id="group-motion"></a>
+
+| Key | Mode | Description                                                                      | Action                                   | Plugin | Implicit |
+| --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- | --- |
+| `$` | n,x,o | To end of line                                                                   | `(motion)`                               | _core_ | 🔹 |
+| `%` | n,x,o | To matching bracket/pair                                                         | `(motion)`                               | _core_ | 🔹 |
+| `(` | n,x,o | Backward one sentence                                                            | `(motion)`                               | _core_ | 🔹 |
+| `)` | n,x,o | Forward one sentence                                                             | `(motion)`                               | _core_ | 🔹 |
+| `+` | n,x,o | Down to first non-blank of next line                                             | `(motion)`                               | _core_ | 🔹 |
+| `,` | n,x,o | Repeat last f/F/t/T reversed                                                     | `(motion)`                               | _core_ | 🔹 |
+| `0` | n,x,o | To first column of line                                                          | `(motion)`                               | _core_ | 🔹 |
+| `;` | n,x,o | Repeat last f/F/t/T                                                              | `(motion)`                               | _core_ | 🔹 |
+| `b` | n,x,o | Back to start of word                                                            | `(motion)`                               | _core_ | 🔹 |
+| `B` | n,x,o | Back to start of WORD                                                            | `(motion)`                               | _core_ | 🔹 |
+| `e` | n,x,o | Forward to end of word                                                           | `(motion)`                               | _core_ | 🔹 |
+| `E` | n,x,o | Forward to end of WORD                                                           | `(motion)`                               | _core_ | 🔹 |
+| `f{char}` | n,x,o | To next occurrence of {char}                                                     | `(motion)`                               | _core_ | 🔹 |
+| `F{char}` | n,x,o | To previous occurrence of {char}                                                 | `(motion)`                               | _core_ | 🔹 |
+| `G` | n,x,o | To last line (or line [count])                                                   | `(motion)`                               | _core_ | 🔹 |
+| `ge` | n,x,o | Back to end of previous word                                                     | `(motion)`                               | _core_ | 🔹 |
+| `gE` | n,x,o | Back to end of previous WORD                                                     | `(motion)`                               | _core_ | 🔹 |
+| `gg` | n,x,o | To first line (or line [count])                                                  | `(motion)`                               | _core_ | 🔹 |
+| `g_` | n,x,o | To last non-blank character of line                                              | `(motion)`                               | _core_ | 🔹 |
+| `h` | n,x,o | Left one character                                                               | `(motion)`                               | _core_ | 🔹 |
+| `H` | n,x,o | To top of window                                                                 | `(motion)`                               | _core_ | 🔹 |
+| `j` | n,x,o | Down one line                                                                    | `(motion)`                               | _core_ | 🔹 |
+| `k` | n,x,o | Up one line                                                                      | `(motion)`                               | _core_ | 🔹 |
+| `l` | n,x,o | Right one character                                                              | `(motion)`                               | _core_ | 🔹 |
+| `L` | n,x,o | To bottom of window                                                              | `(motion)`                               | _core_ | 🔹 |
+| `M` | n,x,o | To middle of window                                                              | `(motion)`                               | _core_ | 🔹 |
+| `t{char}` | n,x,o | Till before next {char}                                                          | `(motion)`                               | _core_ | 🔹 |
+| `T{char}` | n,x,o | Till after previous {char}                                                       | `(motion)`                               | _core_ | 🔹 |
+| `w` | n,x,o | Forward to start of next word                                                    | `(motion)`                               | _core_ | 🔹 |
+| `W` | n,x,o | Forward to start of next WORD                                                    | `(motion)`                               | _core_ | 🔹 |
+| `[[` | n,x,o | Backward to section/'{' in column 1                                              | `(motion)`                               | _core_ | 🔹 |
+| `]]` | n,x,o | Forward to section/'{' in column 1                                               | `(motion)`                               | _core_ | 🔹 |
+| `^` | n,x,o | To first non-blank character of line                                             | `(motion)`                               | _core_ | 🔹 |
+| `{` | n,x,o | Backward one paragraph                                                           | `(motion)`                               | _core_ | 🔹 |
+| `\|` | n,x,o | To column [count]                                                                | `(motion)`                               | _core_ | 🔹 |
+| `}` | n,x,o | Forward one paragraph                                                            | `(motion)`                               | _core_ | 🔹 |
 
 ### Navigation <a id="group-navigation"></a>
 
@@ -1352,19 +1486,50 @@ plugin.
 | `gx` | x | mini.operators: exchange selection                                               | `exchange (selection)`                   | `mini.operators` | 🔸 |
 | `gxx` | n | mini.operators: exchange current line                                            | `exchange (line)`                        | `mini.operators` | 🔸 |
 
+### Registers & Macros <a id="group-registers--macros"></a>
+
+| Key | Mode | Description                                                                      | Action                                   | Plugin | Implicit |
+| --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- | --- |
+| `"{reg}` | n,x | Use register for next yank/delete/paste                                          | `(register)`                             | _core_ | 🔹 |
+| `@@` | n | Repeat last played macro                                                         | `(macro)`                                | _core_ | 🔹 |
+| `@{reg}` | n | Play back macro from register                                                    | `(macro)`                                | _core_ | 🔹 |
+| `q{a-z}` | n | Record macro into register                                                       | `(macro)`                                | _core_ | 🔹 |
+
+### Scrolling <a id="group-scrolling"></a>
+
+| Key | Mode | Description                                                                      | Action                                   | Plugin | Implicit |
+| --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- | --- |
+| `<C-b>` | n | Scroll up one full screen                                                        | `(scroll)`                               | _core_ | 🔹 |
+| `<C-d>` | n | Scroll down half a screen                                                        | `(scroll)`                               | _core_ | 🔹 |
+| `<C-e>` | n | Scroll down one line                                                             | `(scroll)`                               | _core_ | 🔹 |
+| `<C-f>` | n | Scroll down one full screen                                                      | `(scroll)`                               | _core_ | 🔹 |
+| `<C-u>` | n | Scroll up half a screen                                                          | `(scroll)`                               | _core_ | 🔹 |
+| `<C-y>` | n | Scroll up one line                                                               | `(scroll)`                               | _core_ | 🔹 |
+| `zb` | n | Scroll current line to bottom                                                    | `(scroll)`                               | _core_ | 🔹 |
+| `zt` | n | Scroll current line to top                                                       | `(scroll)`                               | _core_ | 🔹 |
+| `zz` | n | Center current line in window                                                    | `(scroll)`                               | _core_ | 🔹 |
+
 ### Search <a id="group-search"></a>
 
 | Key | Mode | Description                                                                      | Action                                   | Plugin | Implicit |
 | --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- | --- |
+| `#` | n,x,o | Search backward for word under cursor                                            | `(search)`                               | _core_ | 🔹 |
+| `*` | n,x,o | Search forward for word under cursor                                             | `(search)`                               | _core_ | 🔹 |
 | `,` | n,x,o | Flash: repeat last char motion, opposite direction                               | `repeat f/t/F/T (opposite dir)`          | `flash.nvim` | 🔸 |
+| `/` | n,x,o | Search forward                                                                   | `(search)`                               | _core_ | 🔹 |
 | `;` | n,x,o | Flash: repeat last char motion, same direction                                   | `repeat f/t/F/T (same dir)`              | `flash.nvim` | 🔸 |
 | `<c-s>` | c | Toggle flash while searching                                                     | `require('flash').toggle()`              | `flash.nvim` |  |
 | `<ESC>` | n | Clear search highlight                                                           | `:nohlsearch\|:echo<CR>`                 | _core_ |  |
 | `<F17>` | n,x,o | Flash jump                                                                       | `require('flash').jump()`                | `flash.nvim` |  |
 | `<F18>` | n,x,o | Flash treesitter                                                                 | `require('flash').treesitter()`          | `flash.nvim` |  |
 | `<k7>` | n,x,o | Flash jump                                                                       | `require('flash').jump()`                | `flash.nvim` |  |
+| `?` | n,x,o | Search backward                                                                  | `(search)`                               | _core_ | 🔹 |
 | `f` | n,x,o | Flash: enhanced f, jump to char (dot-repeat)                                     | `enhanced f (flash char)`                | `flash.nvim` | 🔸 |
 | `F` | n,x,o | Flash: enhanced F, backward jump to char                                         | `enhanced F (flash char back)`           | `flash.nvim` | 🔸 |
+| `g#` | n,x,o | Search backward for partial word under cursor                                    | `(search)`                               | _core_ | 🔹 |
+| `g*` | n,x,o | Search forward for partial word under cursor                                     | `(search)`                               | _core_ | 🔹 |
+| `n` | n,x,o | Repeat last search                                                               | `(search)`                               | _core_ | 🔹 |
+| `N` | n,x,o | Repeat last search, opposite direction                                           | `(search)`                               | _core_ | 🔹 |
 | `r` | o | Remote flash (operator pending)                                                  | `require('flash').remote()`              | `flash.nvim` |  |
 | `R` | o,x | Treesitter search                                                                | `require('flash').treesitter_search()`   | `flash.nvim` |  |
 | `s` | n | Flash jump                                                                       | `require('flash').jump()`                | `flash.nvim` |  |
@@ -1398,6 +1563,7 @@ plugin.
 | `<leader>to` | n | Open new tab                                                                     | `<cmd>tabnew<CR>`                        | _core_ |  |
 | `<leader>tp` | n | Go to previous tab                                                               | `<cmd>tabp<CR>`                          | _core_ |  |
 | `<leader>tq` | n | Close current tab                                                                | `<cmd>tabclose<CR>`                      | _core_ |  |
+| `gT` | n | Go to previous tab page                                                          | `(tab)`                                  | _core_ | 🔹 |
 
 ### Terminal <a id="group-terminal"></a>
 
@@ -1473,6 +1639,20 @@ plugin.
 | `s v / s V` | n | Hydra: next block (outer/inner)                                                  | `goto next @block.outer / @block.inner`  | `hydra.nvim` |  |
 | `s w / s W` | n | Hydra: next/previous loop                                                        | `goto next/prev @loop.outer`             | `hydra.nvim` |  |
 
+### Visual <a id="group-visual"></a>
+
+| Key | Mode | Description                                                                      | Action                                   | Plugin | Implicit |
+| --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- | --- |
+| `<C-v>` | n | Start blockwise Visual mode                                                      | `(visual)`                               | _core_ | 🔹 |
+| `A` | x | Append at end of block (blockwise)                                               | `(edit)`                                 | _core_ | 🔹 |
+| `I` | x | Insert at start of block (blockwise)                                             | `(edit)`                                 | _core_ | 🔹 |
+| `o` | x | Move to other end of selection                                                   | `(visual)`                               | _core_ | 🔹 |
+| `O` | x | Move to other corner (blockwise)                                                 | `(visual)`                               | _core_ | 🔹 |
+| `u` | x | Lowercase selection                                                              | `(edit)`                                 | _core_ | 🔹 |
+| `U` | x | Uppercase selection                                                              | `(edit)`                                 | _core_ | 🔹 |
+| `v` | n | Start charwise Visual mode                                                       | `(visual)`                               | _core_ | 🔹 |
+| `V` | n | Start linewise Visual mode                                                       | `(visual)`                               | _core_ | 🔹 |
+
 ### Windows <a id="group-windows"></a>
 
 | Key | Mode | Description                                                                      | Action                                   | Plugin | Implicit |
@@ -1481,6 +1661,18 @@ plugin.
 | `<C-Left>` | n | Increase vertical split width                                                    | `:vertical resize +1<CR>`                | _core_ |  |
 | `<C-Right>` | n | Decrease vertical split width                                                    | `:vertical resize -1<CR>`                | _core_ |  |
 | `<C-Up>` | n | Increase split height                                                            | `:resize +1<CR>`                         | _core_ |  |
+| `<C-w>=` | n | Equalize window sizes                                                            | `(window)`                               | _core_ | 🔹 |
+| `<C-w>h` | n | Move to window on the left                                                       | `(window)`                               | _core_ | 🔹 |
+| `<C-w>j` | n | Move to window below                                                             | `(window)`                               | _core_ | 🔹 |
+| `<C-w>k` | n | Move to window above                                                             | `(window)`                               | _core_ | 🔹 |
+| `<C-w>l` | n | Move to window on the right                                                      | `(window)`                               | _core_ | 🔹 |
+| `<C-w>o` | n | Close all other windows                                                          | `(window)`                               | _core_ | 🔹 |
+| `<C-w>q` | n | Quit current window                                                              | `(window)`                               | _core_ | 🔹 |
+| `<C-w>s` | n | Split window horizontally                                                        | `(window)`                               | _core_ | 🔹 |
+| `<C-w>v` | n | Split window vertically                                                          | `(window)`                               | _core_ | 🔹 |
+| `<C-w>w` | n | Cycle to next window                                                             | `(window)`                               | _core_ | 🔹 |
+| `<C-w>_` | n | Maximize window height                                                           | `(window)`                               | _core_ | 🔹 |
+| `<C-w>\|` | n | Maximize window width                                                            | `(window)`                               | _core_ | 🔹 |
 | `<leader>se` | n | Equalize split sizes                                                             | `<C-w>=`                                 | _core_ |  |
 | `<leader>sh` | n | Split window horizontally                                                        | `<cmd>split<CR>`                         | _core_ |  |
 | `<leader>sm` | n | Toggle split maximize                                                            | `<cmd>MaximizerToggle<CR>`               | `vim-maximizer` |  |
@@ -1493,12 +1685,27 @@ Every keybinding in one flat table, sorted by key then mode.
 
 | Key | Mode | Description                                                                      | Action                                   | Plugin | Implicit |
 | --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- | --- |
+| `"{reg}` | n,x | Use register for next yank/delete/paste                                          | `(register)`                             | _core_ | 🔹 |
+| `#` | n,x,o | Search backward for word under cursor                                            | `(search)`                               | _core_ | 🔹 |
 | `$` | n | Origami: unfold recursively on folded line, else $                               | `unfold recursively or normal $`         | `nvim-origami` | 🔸 |
+| `$` | n,x,o | To end of line                                                                   | `(motion)`                               | _core_ | 🔹 |
+| `%` | n,x,o | To matching bracket/pair                                                         | `(motion)`                               | _core_ | 🔹 |
+| `'{mark}` | n,x,o | To first non-blank of marked line                                                | `(motion)`                               | _core_ | 🔹 |
+| `(` | n,x,o | Backward one sentence                                                            | `(motion)`                               | _core_ | 🔹 |
+| `)` | n,x,o | Forward one sentence                                                             | `(motion)`                               | _core_ | 🔹 |
+| `*` | n,x,o | Search forward for word under cursor                                             | `(search)`                               | _core_ | 🔹 |
+| `+` | n,x,o | Down to first non-blank of next line                                             | `(motion)`                               | _core_ | 🔹 |
 | `,` | n,x,o | Flash: repeat last char motion, opposite direction                               | `repeat f/t/F/T (opposite dir)`          | `flash.nvim` | 🔸 |
+| `,` | n,x,o | Repeat last f/F/t/T reversed                                                     | `(motion)`                               | _core_ | 🔹 |
 | `-` | n | Oil: go to parent directory                                                      | `actions.parent`                         | `oil.nvim` |  |
 | `-` | n | Oil (default): go to parent directory                                            | `actions.parent`                         | `oil.nvim` | 🔸 |
 | `-` | n | Diffview file panel: stage/unstage entry                                         | `stage/unstage entry (file panel)`       | `diffview.nvim` | 🔸 |
+| `.` | n | Repeat last change                                                               | `(edit)`                                 | _core_ | 🔹 |
+| `/` | n,x,o | Search forward                                                                   | `(search)`                               | _core_ | 🔹 |
+| `0` | n,x,o | To first column of line                                                          | `(motion)`                               | _core_ | 🔹 |
+| `:` | n,x | Enter Command-line (Ex) mode                                                     | `(command)`                              | _core_ | 🔹 |
 | `;` | n,x,o | Flash: repeat last char motion, same direction                                   | `repeat f/t/F/T (same dir)`              | `flash.nvim` | 🔸 |
+| `;` | n,x,o | Repeat last f/F/t/T                                                              | `(motion)`                               | _core_ | 🔹 |
 | `<` | n | Indent line left                                                                 | `<<`                                     | _core_ |  |
 | `<` | v | Indent left, keep selection                                                      | `<gv`                                    | _core_ |  |
 | `<A-1>` | n | Harpoon: go to file 1                                                            | `harpoon.ui.nav_file(1)`                 | `harpoon` |  |
@@ -1513,52 +1720,85 @@ Every keybinding in one flat table, sorted by key then mode.
 | `<A-v>` | n | Incremental selection: start / expand node                                       | `init_selection`                         | `nvim-treesitter` |  |
 | `<A-v>` | x | Incremental selection: expand to next node                                       | `node_incremental`                       | `nvim-treesitter` |  |
 | `<A-V>` | x | Incremental selection: shrink node                                               | `node_decremental`                       | `nvim-treesitter` |  |
+| `<C-a>` | i | Insert previously inserted text                                                  | `(edit)`                                 | _core_ | 🔹 |
 | `<C-b>` | i | Completion: scroll documentation up                                              | `scroll_documentation_up / fallback`     | `blink.cmp` |  |
 | `<C-b>` | i | Completion: scroll documentation up                                              | `scroll docs up`                         | `blink.cmp` | 🔸 |
+| `<C-b>` | n | Scroll up one full screen                                                        | `(scroll)`                               | _core_ | 🔹 |
 | `<C-c>` | i | Telescope (default): close picker                                                | `close`                                  | `telescope.nvim` | 🔸 |
 | `<C-c>` | n | Oil (default): close buffer                                                      | `actions.close`                          | `oil.nvim` | 🔸 |
 | `<C-c>` | n,i | CodeCompanion chat: close buffer                                                 | `chat: close`                            | `codecompanion.nvim` | 🔸 |
+| `<C-d>` | i | Un-indent current line                                                           | `(edit)`                                 | _core_ | 🔹 |
 | `<C-d>` | i,n | Telescope (default): scroll preview down                                         | `preview_scrolling_down`                 | `telescope.nvim` | 🔸 |
+| `<C-d>` | n | Scroll down half a screen                                                        | `(scroll)`                               | _core_ | 🔹 |
 | `<C-Down>` | n | Decrease split height                                                            | `:resize -1<CR>`                         | _core_ |  |
 | `<C-e>` | i | Completion: cancel / hide menu                                                   | `hide menu`                              | `blink.cmp` | 🔸 |
+| `<C-e>` | n | Scroll down one line                                                             | `(scroll)`                               | _core_ | 🔹 |
 | `<C-F14>` | n | Go to previous diagnostic                                                        | `:Lspsaga diagnostic_jump_prev<CR>`      | `lspsaga.nvim` |  |
 | `<C-f>` | i | Completion: scroll documentation down                                            | `scroll_documentation_down / fallback`   | `blink.cmp` |  |
 | `<C-f>` | i | Completion: scroll documentation down                                            | `scroll docs down`                       | `blink.cmp` | 🔸 |
+| `<C-f>` | n | Scroll down one full screen                                                      | `(scroll)`                               | _core_ | 🔹 |
+| `<C-g>` | n | Show file name and status                                                        | `(misc)`                                 | _core_ | 🔹 |
 | `<C-g>s` | i | Surround: add pair around the cursor                                             | `surround at cursor`                     | `nvim-surround` | 🔸 |
 | `<C-g>S` | i | Surround: add pair around cursor, on new lines                                   | `surround at cursor (new lines)`         | `nvim-surround` | 🔸 |
 | `<c-h>` | n | Navigate to left pane/split                                                      | `<cmd>TmuxNavigateLeft<cr>`              | `vim-tmux-navigator` |  |
 | `<C-h>` | n,v | Oil (default): open in horizontal split                                          | `actions.select horizontal`              | `oil.nvim` | 🔸 |
+| `<C-i>` | n | Jump to newer position in jumplist                                               | `(jump)`                                 | _core_ | 🔹 |
 | `<C-j>` | i | Telescope picker: move to next item                                              | `actions.move_selection_next`            | `telescope.nvim` |  |
 | `<c-j>` | n | Navigate to lower pane/split                                                     | `<cmd>TmuxNavigateDown<cr>`              | `vim-tmux-navigator` |  |
 | `<C-k>` | i | Telescope picker: move to previous item                                          | `actions.move_selection_previous`        | `telescope.nvim` |  |
 | `<C-k>` | i | Completion: toggle signature help                                                | `toggle signature help`                  | `blink.cmp` | 🔸 |
 | `<c-k>` | n | Navigate to upper pane/split                                                     | `<cmd>TmuxNavigateUp<cr>`                | `vim-tmux-navigator` |  |
 | `<c-l>` | n | Navigate to right pane/split                                                     | `<cmd>TmuxNavigateRight<cr>`             | `vim-tmux-navigator` |  |
+| `<C-l>` | n | Redraw screen                                                                    | `(misc)`                                 | _core_ | 🔹 |
 | `<C-l>` | n,v | Oil (default): refresh buffer                                                    | `actions.refresh`                        | `oil.nvim` | 🔸 |
 | `<C-Left>` | n | Increase vertical split width                                                    | `:vertical resize +1<CR>`                | _core_ |  |
 | `<C-n>` | i | Completion: select next item                                                     | `select next`                            | `blink.cmp` | 🔸 |
 | `<C-n>` | i | Telescope (default): next result                                                 | `move_selection_next`                    | `telescope.nvim` | 🔸 |
+| `<C-o>` | i | Execute one Normal-mode command                                                  | `(edit)`                                 | _core_ | 🔹 |
+| `<C-o>` | n | Jump to older position in jumplist                                               | `(jump)`                                 | _core_ | 🔹 |
 | `<C-p>` | i | Completion: select previous item                                                 | `select previous`                        | `blink.cmp` | 🔸 |
 | `<C-p>` | i | Telescope (default): previous result                                             | `move_selection_previous`                | `telescope.nvim` | 🔸 |
 | `<C-p>` | n,v | Oil (default): preview entry                                                     | `actions.preview`                        | `oil.nvim` | 🔸 |
 | `<C-q>` | i | Telescope picker: send selection to quickfix                                     | `send_selected_to_qflist + open_qflist`  | `telescope.nvim` |  |
 | `<C-q>` | i,n | Telescope (default): send all to quickfix                                        | `send_to_qflist + open_qflist`           | `telescope.nvim` | 🔸 |
+| `<C-r>` | i | Insert contents of a register                                                    | `(edit)`                                 | _core_ | 🔹 |
+| `<C-r>` | n | Redo                                                                             | `(edit)`                                 | _core_ | 🔹 |
 | `<C-Right>` | n | Decrease vertical split width                                                    | `:vertical resize -1<CR>`                | _core_ |  |
 | `<c-s>` | c | Toggle flash while searching                                                     | `require('flash').toggle()`              | `flash.nvim` |  |
 | `<C-s>` | n | Trouble window: jump in horizontal split                                         | `jump (horizontal split)`                | `trouble.nvim` | 🔸 |
 | `<C-s>` | n,i | CodeCompanion chat: send message                                                 | `chat: send`                             | `codecompanion.nvim` | 🔸 |
 | `<C-s>` | n,v | Oil (default): open in vertical split                                            | `actions.select vertical`                | `oil.nvim` | 🔸 |
 | `<C-space>` | i | Completion: open menu or toggle docs                                             | `show menu / toggle docs`                | `blink.cmp` | 🔸 |
+| `<C-t>` | i | Indent current line                                                              | `(edit)`                                 | _core_ | 🔹 |
 | `<C-t>` | i,n | Telescope (default): open in new tab                                             | `select_tab`                             | `telescope.nvim` | 🔸 |
+| `<C-t>` | n | Jump back from tag                                                               | `(jump)`                                 | _core_ | 🔹 |
 | `<C-t>` | n,v | Oil (default): open in new tab                                                   | `actions.select tab`                     | `oil.nvim` | 🔸 |
+| `<C-u>` | i | Delete to start of line                                                          | `(edit)`                                 | _core_ | 🔹 |
 | `<C-u>` | i,n | Telescope (default): scroll preview up                                           | `preview_scrolling_up`                   | `telescope.nvim` | 🔸 |
+| `<C-u>` | n | Scroll up half a screen                                                          | `(scroll)`                               | _core_ | 🔹 |
 | `<C-Up>` | n | Increase split height                                                            | `:resize +1<CR>`                         | _core_ |  |
 | `<C-v>` | i,n | Telescope (default): open in vertical split                                      | `select_vertical`                        | `telescope.nvim` | 🔸 |
 | `<C-v>` | n | Trouble window: jump in vertical split                                           | `jump (vertical split)`                  | `trouble.nvim` | 🔸 |
+| `<C-v>` | n | Start blockwise Visual mode                                                      | `(visual)`                               | _core_ | 🔹 |
+| `<C-w>` | i | Delete word before cursor                                                        | `(edit)`                                 | _core_ | 🔹 |
+| `<C-w>=` | n | Equalize window sizes                                                            | `(window)`                               | _core_ | 🔹 |
+| `<C-w>h` | n | Move to window on the left                                                       | `(window)`                               | _core_ | 🔹 |
+| `<C-w>j` | n | Move to window below                                                             | `(window)`                               | _core_ | 🔹 |
+| `<C-w>k` | n | Move to window above                                                             | `(window)`                               | _core_ | 🔹 |
+| `<C-w>l` | n | Move to window on the right                                                      | `(window)`                               | _core_ | 🔹 |
+| `<C-w>o` | n | Close all other windows                                                          | `(window)`                               | _core_ | 🔹 |
+| `<C-w>q` | n | Quit current window                                                              | `(window)`                               | _core_ | 🔹 |
+| `<C-w>s` | n | Split window horizontally                                                        | `(window)`                               | _core_ | 🔹 |
+| `<C-w>v` | n | Split window vertically                                                          | `(window)`                               | _core_ | 🔹 |
+| `<C-w>w` | n | Cycle to next window                                                             | `(window)`                               | _core_ | 🔹 |
+| `<C-w>_` | n | Maximize window height                                                           | `(window)`                               | _core_ | 🔹 |
+| `<C-w>\|` | n | Maximize window width                                                            | `(window)`                               | _core_ | 🔹 |
 | `<C-x>` | i,n | Telescope (default): open in horizontal split                                    | `select_horizontal`                      | `telescope.nvim` | 🔸 |
 | `<C-y>` | i | Completion: accept selected item                                                 | `accept item`                            | `blink.cmp` | 🔸 |
+| `<C-y>` | n | Scroll up one line                                                               | `(scroll)`                               | _core_ | 🔹 |
 | `<c-\>` | n | Navigate to previous pane/split                                                  | `<cmd>TmuxNavigatePrevious<cr>`          | `vim-tmux-navigator` |  |
 | `<C-]>` | i | Copilot: dismiss current suggestion                                              | `dismiss suggestion`                     | `copilot.lua` | 🔸 |
+| `<C-]>` | n | Jump to definition/tag under cursor                                              | `(jump)`                                 | _core_ | 🔹 |
 | `<C-_>` | i | CodeCompanion chat: open completion menu                                         | `chat: completion menu`                  | `codecompanion.nvim` | 🔸 |
 | `<CR>` | i,n | Telescope (default): open selected entry                                         | `select_default`                         | `telescope.nvim` | 🔸 |
 | `<CR>` | n | Oil: open entry                                                                  | `actions.select`                         | `oil.nvim` |  |
@@ -1673,6 +1913,8 @@ Every keybinding in one flat table, sorted by key then mode.
 | `<Tab>` | n | Diffview: open diff for next file                                                | `next file diff`                         | `diffview.nvim` | 🔸 |
 | `<Up>` | i | Completion: select previous item                                                 | `select previous`                        | `blink.cmp` | 🔸 |
 | `<Up>` | i | Telescope (default): previous result                                             | `move_selection_previous`                | `telescope.nvim` | 🔸 |
+| `=` | n,x | Auto-indent {motion}/selection                                                   | `(operator)`                             | _core_ | 🔹 |
+| `==` | n | Auto-indent current line                                                         | `(operator)`                             | _core_ | 🔹 |
 | `==` | x,o | Textobject: assignment (outer)                                                   | `@assignment.outer`                      | `nvim-treesitter` |  |
 | `=l` | x,o | Textobject: assignment left-hand side                                            | `@assignment.lhs`                        | `nvim-treesitter` |  |
 | `=r` | x,o | Textobject: assignment right-hand side                                           | `@assignment.rhs`                        | `nvim-treesitter` |  |
@@ -1681,6 +1923,12 @@ Every keybinding in one flat table, sorted by key then mode.
 | `?` | n | CodeCompanion chat: show keymap help                                             | `chat: options/help`                     | `codecompanion.nvim` | 🔸 |
 | `?` | n | Telescope (default): show mappings help                                          | `which_key`                              | `telescope.nvim` | 🔸 |
 | `?` | n | Trouble window: show help                                                        | `help`                                   | `trouble.nvim` | 🔸 |
+| `?` | n,x,o | Search backward                                                                  | `(search)`                               | _core_ | 🔹 |
+| `@@` | n | Repeat last played macro                                                         | `(macro)`                                | _core_ | 🔹 |
+| `@{reg}` | n | Play back macro from register                                                    | `(macro)`                                | _core_ | 🔹 |
+| `a` | n | Insert after cursor                                                              | `(edit)`                                 | _core_ | 🔹 |
+| `A` | n | Insert at end of line                                                            | `(edit)`                                 | _core_ | 🔹 |
+| `A` | x | Append at end of block (blockwise)                                               | `(edit)`                                 | _core_ | 🔹 |
 | `aa` | x,o | Textobject: parameter (outer)                                                    | `@parameter.outer`                       | `nvim-treesitter` |  |
 | `ab` | x,o | Textobject: block (outer)                                                        | `@block.outer`                           | `nvim-treesitter` |  |
 | `ac` | x,o | Textobject: comment (outer)                                                      | `@comment.outer`                         | `nvim-treesitter` |  |
@@ -1692,23 +1940,41 @@ Every keybinding in one flat table, sorted by key then mode.
 | `ar` | x,o | Textobject: return (outer)                                                       | `@return.outer`                          | `nvim-treesitter` |  |
 | `at` | x,o | Textobject: class (outer)                                                        | `@class.outer`                           | `nvim-treesitter` |  |
 | `a{id}` | x,o | mini.ai: select 'around' textobject {id}                                         | `select around textobject`               | `mini.ai` | 🔸 |
+| `b` | n,x,o | Back to start of word                                                            | `(motion)`                               | _core_ | 🔹 |
+| `B` | n,x,o | Back to start of WORD                                                            | `(motion)`                               | _core_ | 🔹 |
 | `c` | n | Change into black-hole register                                                  | `"_c`                                    | _core_ |  |
+| `C` | n | Change to end of line                                                            | `(operator)`                             | _core_ | 🔹 |
+| `c` | x | Change {motion}/selection                                                        | `(operator)`                             | _core_ | 🔹 |
 | `C-s` | i | Completion: open menu or toggle docs (verbatim config key)                       | `show / show_documentation / hide_docume…` | `blink.cmp` |  |
 | `C-space` | i | Completion: open menu or toggle docs (verbatim config key)                       | `show / show_documentation / hide_docume…` | `blink.cmp` |  |
+| `cc` | n | Change line                                                                      | `(operator)`                             | _core_ | 🔹 |
 | `cS` | n | Surround: change a pair onto new lines                                           | `change surround (new lines)`            | `nvim-surround` | 🔸 |
 | `cs{target}{replacement}` | n | Surround: change a surrounding pair                                              | `change surround`                        | `nvim-surround` | 🔸 |
 | `d` | n | Delete into black-hole register                                                  | `"_d`                                    | _core_ |  |
+| `D` | n | Delete to end of line                                                            | `(operator)`                             | _core_ | 🔹 |
+| `d` | x | Delete {motion}/selection                                                        | `(operator)`                             | _core_ | 🔹 |
+| `dd` | n | Delete line                                                                      | `(operator)`                             | _core_ | 🔹 |
 | `ds{char}` | n | Surround: delete a surrounding pair                                              | `delete surround`                        | `nvim-surround` | 🔸 |
+| `e` | n,x,o | Forward to end of word                                                           | `(motion)`                               | _core_ | 🔹 |
+| `E` | n,x,o | Forward to end of WORD                                                           | `(motion)`                               | _core_ | 🔹 |
 | `f` | n,x,o | Flash: enhanced f, jump to char (dot-repeat)                                     | `enhanced f (flash char)`                | `flash.nvim` | 🔸 |
 | `F` | n,x,o | Flash: enhanced F, backward jump to char                                         | `enhanced F (flash char back)`           | `flash.nvim` | 🔸 |
+| `f{char}` | n,x,o | To next occurrence of {char}                                                     | `(motion)`                               | _core_ | 🔹 |
+| `F{char}` | n,x,o | To previous occurrence of {char}                                                 | `(motion)`                               | _core_ | 🔹 |
+| `G` | n,x,o | To last line (or line [count])                                                   | `(motion)`                               | _core_ | 🔹 |
+| `g#` | n,x,o | Search backward for partial word under cursor                                    | `(search)`                               | _core_ | 🔹 |
+| `g*` | n,x,o | Search forward for partial word under cursor                                     | `(search)`                               | _core_ | 🔹 |
+| `g,` | n | Go to newer position in change list                                              | `(jump)`                                 | _core_ | 🔹 |
 | `g.` | n | Oil: toggle hidden files                                                         | `actions.toggle_hidden`                  | `oil.nvim` |  |
 | `g.` | n | Oil (default): toggle hidden files                                               | `actions.toggle_hidden`                  | `oil.nvim` | 🔸 |
+| `g;` | n | Go to older position in change list                                              | `(jump)`                                 | _core_ | 🔹 |
 | `g=` | n | mini.operators: evaluate text and replace with result                            | `evaluate (motion)`                      | `mini.operators` | 🔸 |
 | `g=` | x | mini.operators: evaluate selection                                               | `evaluate (selection)`                   | `mini.operators` | 🔸 |
 | `g==` | n | mini.operators: evaluate current line                                            | `evaluate (line)`                        | `mini.operators` | 🔸 |
 | `g?` | n | Oil: show help                                                                   | `actions.show_help`                      | `oil.nvim` |  |
 | `g?` | n | Oil (default): show help                                                         | `actions.show_help`                      | `oil.nvim` | 🔸 |
 | `ga` | n | CodeCompanion chat: change adapter/model                                         | `chat: change adapter`                   | `codecompanion.nvim` | 🔸 |
+| `ga` | n | Show character codes under cursor                                                | `(misc)`                                 | _core_ | 🔹 |
 | `gb` | x | Comment: toggle selection (blockwise)                                            | `toggle blockwise comment (selection)`   | `Comment.nvim` | 🔸 |
 | `gbc` | n | Comment: toggle current line (blockwise)                                         | `toggle blockwise comment (line)`        | `Comment.nvim` | 🔸 |
 | `gb{motion}` | n | Comment: blockwise comment over a motion                                         | `toggle blockwise comment (operator)`    | `Comment.nvim` | 🔸 |
@@ -1722,17 +1988,23 @@ Every keybinding in one flat table, sorted by key then mode.
 | `gD` | n | LSP: go to declaration                                                           | `vim.lsp.buf.declaration`                | `nvim-lspconfig` |  |
 | `gd` | n | LSP: definitions (Telescope)                                                     | `<cmd>Telescope lsp_definitions<CR>`     | `nvim-lspconfig` |  |
 | `gd` | n | CodeCompanion chat: show debug info                                              | `chat: debug info`                       | `codecompanion.nvim` | 🔸 |
+| `ge` | n,x,o | Back to end of previous word                                                     | `(motion)`                               | _core_ | 🔹 |
+| `gE` | n,x,o | Back to end of previous WORD                                                     | `(motion)`                               | _core_ | 🔹 |
 | `gf` | n | CodeCompanion chat: fold all codeblocks                                          | `chat: fold codeblocks`                  | `codecompanion.nvim` | 🔸 |
 | `gf` | n | Diffview: open local file in a tabpage                                           | `goto_file`                              | `diffview.nvim` | 🔸 |
+| `gf` | n | Go to file under cursor                                                          | `(jump)`                                 | _core_ | 🔹 |
+| `gg` | n,x,o | To first line (or line [count])                                                  | `(motion)`                               | _core_ | 🔹 |
 | `gh` | n | Oil: open entry in horizontal split                                              | `actions.select horizontal`              | `oil.nvim` |  |
 | `gi` | n | LSP: implementations (Telescope)                                                 | `<cmd>Telescope lsp_implementations<CR>` | `nvim-lspconfig` |  |
 | `gj` | n | History: go back                                                                 | `<cmd>HisTravBack<cr>`                   | `history-traverse` |  |
+| `gJ` | n | Join line below without a space                                                  | `(edit)`                                 | _core_ | 🔹 |
 | `gk` | n | History: go forward                                                              | `<cmd>HisTravForward<cr>`                | `history-traverse` |  |
 | `gm` | n | mini.operators: duplicate text over motion                                       | `multiply (motion)`                      | `mini.operators` | 🔸 |
 | `gm` | x | mini.operators: duplicate selection                                              | `multiply (selection)`                   | `mini.operators` | 🔸 |
 | `gmm` | n | mini.operators: duplicate current line                                           | `multiply (line)`                        | `mini.operators` | 🔸 |
 | `gp` | n | Oil: preview entry                                                               | `actions.preview`                        | `oil.nvim` |  |
 | `gq` | n | Oil: close                                                                       | `actions.close`                          | `oil.nvim` |  |
+| `gq` | x | Format {motion}/selection                                                        | `(operator)`                             | _core_ | 🔹 |
 | `gr` | n | Oil: refresh                                                                     | `actions.refresh`                        | `oil.nvim` |  |
 | `gR` | n | LSP: references (Telescope)                                                      | `<cmd>Telescope lsp_references<CR>`      | `nvim-lspconfig` |  |
 | `gr` | n | mini.operators: replace text with register                                       | `replace w/ register (motion)`           | `mini.operators` | 🔸 |
@@ -1750,6 +2022,9 @@ Every keybinding in one flat table, sorted by key then mode.
 | `gss` | n | mini.operators: sort current line                                                | `sort (line)`                            | `mini.operators` | 🔸 |
 | `gt` | n | Oil: open entry in new tab                                                       | `actions.select tab`                     | `oil.nvim` |  |
 | `gt` | n | LSP: type definitions (Telescope)                                                | `<cmd>Telescope lsp_type_implementations…` | `nvim-lspconfig` |  |
+| `gT` | n | Go to previous tab page                                                          | `(tab)`                                  | _core_ | 🔹 |
+| `gu` | n,x | Lowercase {motion}/selection                                                     | `(operator)`                             | _core_ | 🔹 |
+| `gU` | n,x | Uppercase {motion}/selection                                                     | `(operator)`                             | _core_ | 🔹 |
 | `gv` | n | Oil: open entry in vertical split                                                | `actions.select vertical`                | `oil.nvim` |  |
 | `gx` | n | Oil: open externally                                                             | `actions.open_external`                  | `oil.nvim` |  |
 | `gx` | n | mini.operators: exchange region (2-step swap)                                    | `exchange (motion)`                      | `mini.operators` | 🔸 |
@@ -1762,8 +2037,15 @@ Every keybinding in one flat table, sorted by key then mode.
 | `g\` | n | Oil: toggle trash                                                                | `actions.toggle_trash`                   | `oil.nvim` |  |
 | `g\` | n | Oil (default): toggle trash view                                                 | `actions.toggle_trash`                   | `oil.nvim` | 🔸 |
 | `g]` | n,x,o | mini.ai: move to right edge of nearest textobject                                | `go to right edge of textobject`         | `mini.ai` | 🔸 |
+| `g_` | n,x,o | To last non-blank character of line                                              | `(motion)`                               | _core_ | 🔹 |
 | `g~` | n | Oil (default): :tcd to directory                                                 | `actions.cd scope=tab`                   | `oil.nvim` | 🔸 |
+| `g~` | n,x | Toggle case of {motion}/selection                                                | `(operator)`                             | _core_ | 🔹 |
 | `h` | n | Origami: fold when at/before first non-blank, else h                             | `fold or normal h`                       | `nvim-origami` | 🔸 |
+| `h` | n,x,o | Left one character                                                               | `(motion)`                               | _core_ | 🔹 |
+| `H` | n,x,o | To top of window                                                                 | `(motion)`                               | _core_ | 🔹 |
+| `i` | n | Insert before cursor                                                             | `(edit)`                                 | _core_ | 🔹 |
+| `I` | n | Insert at first non-blank                                                        | `(edit)`                                 | _core_ | 🔹 |
+| `I` | x | Insert at start of block (blockwise)                                             | `(edit)`                                 | _core_ | 🔹 |
 | `ia` | x,o | Textobject: parameter (inner)                                                    | `@parameter.inner`                       | `nvim-treesitter` |  |
 | `ib` | x,o | Textobject: block (inner)                                                        | `@block.inner`                           | `nvim-treesitter` |  |
 | `ic` | x,o | Textobject: comment (outer)                                                      | `@comment.outer`                         | `nvim-treesitter` |  |
@@ -1775,17 +2057,35 @@ Every keybinding in one flat table, sorted by key then mode.
 | `ir` | x,o | Textobject: return (inner)                                                       | `@return.inner`                          | `nvim-treesitter` |  |
 | `it` | x,o | Textobject: class (inner)                                                        | `@class.inner`                           | `nvim-treesitter` |  |
 | `i{id}` | x,o | mini.ai: select 'inside' textobject {id}                                         | `select inside textobject`               | `mini.ai` | 🔸 |
+| `J` | n | Join line below with a space                                                     | `(edit)`                                 | _core_ | 🔹 |
+| `j` | n,x,o | Down one line                                                                    | `(motion)`                               | _core_ | 🔹 |
 | `J` | x | Move selected block down                                                         | `:move '>+1<CR>gv=gv`                    | _core_ |  |
 | `K` | n | LSP: hover documentation                                                         | `vim.lsp.buf.hover`                      | `nvim-lspconfig` |  |
+| `k` | n,x,o | Up one line                                                                      | `(motion)`                               | _core_ | 🔹 |
 | `K` | x | Move selected block up                                                           | `:move '<-2<CR>gv=gv`                    | _core_ |  |
 | `l` | n | Origami: unfold folded line, else l                                              | `unfold or normal l`                     | `nvim-origami` | 🔸 |
+| `l` | n,x,o | Right one character                                                              | `(motion)`                               | _core_ | 🔹 |
+| `L` | n,x,o | To bottom of window                                                              | `(motion)`                               | _core_ | 🔹 |
+| `M` | n,x,o | To middle of window                                                              | `(motion)`                               | _core_ | 🔹 |
+| `m{a-zA-Z}` | n | Set mark at cursor                                                               | `(mark)`                                 | _core_ | 🔹 |
+| `n` | n,x,o | Repeat last search                                                               | `(search)`                               | _core_ | 🔹 |
+| `N` | n,x,o | Repeat last search, opposite direction                                           | `(search)`                               | _core_ | 🔹 |
 | `o` | n | Trouble window: jump to item and close                                           | `jump + close`                           | `trouble.nvim` | 🔸 |
+| `o` | n | Open new line below and insert                                                   | `(edit)`                                 | _core_ | 🔹 |
+| `O` | n | Open new line above and insert                                                   | `(edit)`                                 | _core_ | 🔹 |
+| `o` | x | Move to other end of selection                                                   | `(visual)`                               | _core_ | 🔹 |
+| `O` | x | Move to other corner (blockwise)                                                 | `(visual)`                               | _core_ | 🔹 |
 | `p` | n | Trouble window: preview item                                                     | `preview`                                | `trouble.nvim` | 🔸 |
 | `P` | n | Trouble window: toggle auto preview                                              | `toggle preview`                         | `trouble.nvim` | 🔸 |
+| `p` | n | Paste after cursor                                                               | `(edit)`                                 | _core_ | 🔹 |
+| `P` | n | Paste before cursor                                                              | `(edit)`                                 | _core_ | 🔹 |
 | `Q` | n | Disable Ex mode                                                                  | `<nop>`                                  | _core_ |  |
 | `q` | n | CodeCompanion chat: stop current request                                         | `chat: stop request`                     | `codecompanion.nvim` | 🔸 |
 | `q` | n | Trouble window: close                                                            | `close`                                  | `trouble.nvim` | 🔸 |
+| `q{a-z}` | n | Record macro into register                                                       | `(macro)`                                | _core_ | 🔹 |
 | `r` | n | Trouble window: refresh                                                          | `refresh`                                | `trouble.nvim` | 🔸 |
+| `r` | n | Replace single character                                                         | `(edit)`                                 | _core_ | 🔹 |
+| `R` | n | Enter Replace mode                                                               | `(edit)`                                 | _core_ | 🔹 |
 | `r` | o | Remote flash (operator pending)                                                  | `require('flash').remote()`              | `flash.nvim` |  |
 | `R` | o,x | Treesitter search                                                                | `require('flash').treesitter_search()`   | `flash.nvim` |  |
 | `S` | n | Open treewalker hydra (also disables default S)                                  | `activate treewalker hydra`              | `hydra.nvim` |  |
@@ -1817,27 +2117,60 @@ Every keybinding in one flat table, sorted by key then mode.
 | `s w / s W` | n | Hydra: next/previous loop                                                        | `goto next/prev @loop.outer`             | `hydra.nvim` |  |
 | `t` | n,x,o | Flash: enhanced t, jump till char                                                | `enhanced t (flash till)`                | `flash.nvim` | 🔸 |
 | `T` | n,x,o | Flash: enhanced T, backward jump till char                                       | `enhanced T (flash till back)`           | `flash.nvim` | 🔸 |
+| `t{char}` | n,x,o | Till before next {char}                                                          | `(motion)`                               | _core_ | 🔹 |
+| `T{char}` | n,x,o | Till after previous {char}                                                       | `(motion)`                               | _core_ | 🔹 |
 | `U` | n | Diffview file panel: unstage all entries                                         | `unstage all (file panel)`               | `diffview.nvim` | 🔸 |
+| `u` | n | Undo                                                                             | `(edit)`                                 | _core_ | 🔹 |
+| `u` | x | Lowercase selection                                                              | `(edit)`                                 | _core_ | 🔹 |
+| `U` | x | Uppercase selection                                                              | `(edit)`                                 | _core_ | 🔹 |
+| `v` | n | Start charwise Visual mode                                                       | `(visual)`                               | _core_ | 🔹 |
+| `V` | n | Start linewise Visual mode                                                       | `(visual)`                               | _core_ | 🔹 |
+| `w` | n,x,o | Forward to start of next word                                                    | `(motion)`                               | _core_ | 🔹 |
+| `W` | n,x,o | Forward to start of next WORD                                                    | `(motion)`                               | _core_ | 🔹 |
 | `x` | n | Delete char without yanking                                                      | `"_x`                                    | _core_ |  |
 | `X` | n | Diffview file panel: revert file to left state                                   | `restore entry (file panel)`             | `diffview.nvim` | 🔸 |
+| `X` | n | Delete character before cursor                                                   | `(edit)`                                 | _core_ | 🔹 |
+| `Y` | n | Yank line (like yy)                                                              | `(operator)`                             | _core_ | 🔹 |
+| `y` | n,x | Yank {motion}/selection                                                          | `(operator)`                             | _core_ | 🔹 |
 | `yS` | n | Surround: add pair around motion, on new lines                                   | `add surround around motion (new lines)` | `nvim-surround` | 🔸 |
 | `yss` | n | Surround: add pair around current line                                           | `add surround around line`               | `nvim-surround` | 🔸 |
 | `ySS` | n | Surround: add pair around line, on new lines                                     | `add surround around line (new lines)`   | `nvim-surround` | 🔸 |
 | `ys{motion}{char}` | n | Surround: add pair around a motion                                               | `add surround around motion`             | `nvim-surround` | 🔸 |
+| `yy` | n | Yank line                                                                        | `(operator)`                             | _core_ | 🔹 |
+| `za` | n | Toggle fold under cursor                                                         | `(fold)`                                 | _core_ | 🔹 |
+| `zb` | n | Scroll current line to bottom                                                    | `(scroll)`                               | _core_ | 🔹 |
+| `zc` | n | Close fold under cursor                                                          | `(fold)`                                 | _core_ | 🔹 |
+| `zd` | n | Delete fold under cursor                                                         | `(fold)`                                 | _core_ | 🔹 |
+| `zf` | n,x | Create fold over {motion}/selection                                              | `(operator)`                             | _core_ | 🔹 |
+| `zj` | n | Move to start of next fold                                                       | `(motion)`                               | _core_ | 🔹 |
+| `zk` | n | Move to end of previous fold                                                     | `(motion)`                               | _core_ | 🔹 |
+| `zM` | n | Close all folds                                                                  | `(fold)`                                 | _core_ | 🔹 |
+| `zo` | n | Open fold under cursor                                                           | `(fold)`                                 | _core_ | 🔹 |
+| `ZQ` | n | Quit without writing                                                             | `(misc)`                                 | _core_ | 🔹 |
+| `zR` | n | Open all folds                                                                   | `(fold)`                                 | _core_ | 🔹 |
+| `zt` | n | Scroll current line to top                                                       | `(scroll)`                               | _core_ | 🔹 |
+| `zz` | n | Center current line in window                                                    | `(scroll)`                               | _core_ | 🔹 |
+| `ZZ` | n | Write file and quit                                                              | `(misc)`                                 | _core_ | 🔹 |
 | `[x` | n | Diffview merge: jump to previous conflict                                        | `previous conflict`                      | `diffview.nvim` | 🔸 |
 | `[[` | n | Copilot panel: jump to previous suggestion                                       | `panel: prev suggestion`                 | `copilot.lua` | 🔸 |
 | `[[` | n | CodeCompanion chat: jump to previous message header                              | `chat: previous header`                  | `codecompanion.nvim` | 🔸 |
+| `[[` | n,x,o | Backward to section/'{' in column 1                                              | `(motion)`                               | _core_ | 🔹 |
 | `]x` | n | Diffview merge: jump to next conflict                                            | `next conflict`                          | `diffview.nvim` | 🔸 |
 | `]]` | n | Copilot panel: jump to next suggestion                                           | `panel: next suggestion`                 | `copilot.lua` | 🔸 |
 | `]]` | n | CodeCompanion chat: jump to next message header                                  | `chat: next header`                      | `codecompanion.nvim` | 🔸 |
+| `]]` | n,x,o | Forward to section/'{' in column 1                                               | `(motion)`                               | _core_ | 🔹 |
 | `^` | n | Origami: fold recursively when before first non-blank, else ^                    | `fold recursively or normal ^`           | `nvim-origami` | 🔸 |
+| `^` | n,x,o | To first non-blank character of line                                             | `(motion)`                               | _core_ | 🔹 |
 | `_` | n | Oil: open current working directory                                              | `actions.open_cwd`                       | `oil.nvim` |  |
 | `_` | n | Oil (default): open current working directory                                    | `actions.open_cwd`                       | `oil.nvim` | 🔸 |
 | `'` | n | Oil: :cd to directory                                                            | `actions.cd`                             | `oil.nvim` |  |
 | `'` | n | Oil (default): :cd to directory                                                  | `actions.cd`                             | `oil.nvim` | 🔸 |
 | `{` | n | CodeCompanion chat: open previous chat                                           | `chat: previous chat`                    | `codecompanion.nvim` | 🔸 |
 | `{` | n | Trouble window: previous item                                                    | `previous item`                          | `trouble.nvim` | 🔸 |
+| `{` | n,x,o | Backward one paragraph                                                           | `(motion)`                               | _core_ | 🔹 |
+| `\|` | n,x,o | To column [count]                                                                | `(motion)`                               | _core_ | 🔹 |
 | `}` | n | CodeCompanion chat: open next chat                                               | `chat: next chat`                        | `codecompanion.nvim` | 🔸 |
 | `}` | n | Trouble window: next item                                                        | `next item`                              | `trouble.nvim` | 🔸 |
+| `}` | n,x,o | Forward one paragraph                                                            | `(motion)`                               | _core_ | 🔹 |
 | `~` | n | Oil: :tcd to directory                                                           | `actions.cd scope=tab`                   | `oil.nvim` |  |
 

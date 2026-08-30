@@ -2,15 +2,20 @@
 #
 # Inventory of Neovim keybindings for this configuration.
 #
-# Two kinds of entries live in `keybindings`:
-#   * source: explicit  -> the mapping is defined somewhere in a *.lua file of
-#                          this config. `file` points at the relative path and
-#                          `plugin` (when set) names the plugin that file
-#                          configures.
-#   * source: default   -> the mapping is set implicitly by the plugin itself
-#                          (its built-in / out-of-the-box default). `file` is
-#                          empty because the user never wrote it down; `plugin`
-#                          names the owning plugin.
+# Three kinds of entries are tracked, each in its own top-level list:
+#   * keybindings       (source: explicit) -> the mapping is defined somewhere
+#                          in a *.lua file of this config. `file` points at the
+#                          relative path and `plugin` (when set) names the
+#                          plugin that file configures.
+#   * default_bindings  (source: default)  -> the mapping is set implicitly by
+#                          the plugin itself (its built-in / out-of-the-box
+#                          default). `file` is empty because the user never
+#                          wrote it down; `plugin` names the owning plugin.
+#   * builtin_bindings  (source: builtin)  -> a Neovim core default (motions,
+#                          operators, text objects, ...). These are NOT set via
+#                          vim.keymap.set and never appear in `:map` /
+#                          `nvim_get_keymap`. `file` and `plugin` are empty.
+#                          Keys this config globally remaps are omitted.
 #
 # The companion script `keybindings-to-md.cs` turns this file into
 # `keybindings.md` with four different groupings.
@@ -504,3 +509,193 @@ default_bindings:
   - { key: "{",      mode: "n",  action: "previous item",                                description: "Trouble window: previous item",               file: "", plugin: "trouble.nvim", group: "Diagnostics", source: "default" }
   - { key: "p",      mode: "n",  action: "preview",                                      description: "Trouble window: preview item",                file: "", plugin: "trouble.nvim", group: "Diagnostics", source: "default" }
   - { key: "P",      mode: "n",  action: "toggle preview",                               description: "Trouble window: toggle auto preview",         file: "", plugin: "trouble.nvim", group: "Diagnostics", source: "default" }
+
+# ==================================================================== #
+# Neovim BUILT-IN defaults (source: builtin)                           #
+#                                                                      #
+# Core editor commands Neovim ships with (motions, operators, text     #
+# objects, etc.). These are NOT set via vim.keymap.set and never show  #
+# up in :map / nvim_get_keymap. Entries whose (key,mode) is globally    #
+# remapped by this config are intentionally omitted.                   #
+# ==================================================================== #
+builtin_bindings:
+  # ------------------------------------------------------------------ #
+  # Motion                                                             #
+  # ------------------------------------------------------------------ #
+  - { key: "h"        , mode: "n,x,o", action: "(motion)"  , description: "Left one character"                           , file: "", plugin: "", group: "Motion"            , source: "builtin" }
+  - { key: "l"        , mode: "n,x,o", action: "(motion)"  , description: "Right one character"                          , file: "", plugin: "", group: "Motion"            , source: "builtin" }
+  - { key: "0"        , mode: "n,x,o", action: "(motion)"  , description: "To first column of line"                      , file: "", plugin: "", group: "Motion"            , source: "builtin" }
+  - { key: "^"        , mode: "n,x,o", action: "(motion)"  , description: "To first non-blank character of line"         , file: "", plugin: "", group: "Motion"            , source: "builtin" }
+  - { key: "$"        , mode: "n,x,o", action: "(motion)"  , description: "To end of line"                               , file: "", plugin: "", group: "Motion"            , source: "builtin" }
+  - { key: "g_"       , mode: "n,x,o", action: "(motion)"  , description: "To last non-blank character of line"          , file: "", plugin: "", group: "Motion"            , source: "builtin" }
+  - { key: "|"        , mode: "n,x,o", action: "(motion)"  , description: "To column [count]"                            , file: "", plugin: "", group: "Motion"            , source: "builtin" }
+  - { key: "f{char}"  , mode: "n,x,o", action: "(motion)"  , description: "To next occurrence of {char}"                 , file: "", plugin: "", group: "Motion"            , source: "builtin" }
+  - { key: "F{char}"  , mode: "n,x,o", action: "(motion)"  , description: "To previous occurrence of {char}"             , file: "", plugin: "", group: "Motion"            , source: "builtin" }
+  - { key: "t{char}"  , mode: "n,x,o", action: "(motion)"  , description: "Till before next {char}"                      , file: "", plugin: "", group: "Motion"            , source: "builtin" }
+  - { key: "T{char}"  , mode: "n,x,o", action: "(motion)"  , description: "Till after previous {char}"                   , file: "", plugin: "", group: "Motion"            , source: "builtin" }
+  - { key: ";"        , mode: "n,x,o", action: "(motion)"  , description: "Repeat last f/F/t/T"                          , file: "", plugin: "", group: "Motion"            , source: "builtin" }
+  - { key: ","        , mode: "n,x,o", action: "(motion)"  , description: "Repeat last f/F/t/T reversed"                 , file: "", plugin: "", group: "Motion"            , source: "builtin" }
+  - { key: "j"        , mode: "n,x,o", action: "(motion)"  , description: "Down one line"                                , file: "", plugin: "", group: "Motion"            , source: "builtin" }
+  - { key: "k"        , mode: "n,x,o", action: "(motion)"  , description: "Up one line"                                  , file: "", plugin: "", group: "Motion"            , source: "builtin" }
+  - { key: "+"        , mode: "n,x,o", action: "(motion)"  , description: "Down to first non-blank of next line"         , file: "", plugin: "", group: "Motion"            , source: "builtin" }
+  - { key: "G"        , mode: "n,x,o", action: "(motion)"  , description: "To last line (or line [count])"               , file: "", plugin: "", group: "Motion"            , source: "builtin" }
+  - { key: "gg"       , mode: "n,x,o", action: "(motion)"  , description: "To first line (or line [count])"              , file: "", plugin: "", group: "Motion"            , source: "builtin" }
+  - { key: "H"        , mode: "n,x,o", action: "(motion)"  , description: "To top of window"                             , file: "", plugin: "", group: "Motion"            , source: "builtin" }
+  - { key: "M"        , mode: "n,x,o", action: "(motion)"  , description: "To middle of window"                          , file: "", plugin: "", group: "Motion"            , source: "builtin" }
+  - { key: "L"        , mode: "n,x,o", action: "(motion)"  , description: "To bottom of window"                          , file: "", plugin: "", group: "Motion"            , source: "builtin" }
+  - { key: "w"        , mode: "n,x,o", action: "(motion)"  , description: "Forward to start of next word"                , file: "", plugin: "", group: "Motion"            , source: "builtin" }
+  - { key: "W"        , mode: "n,x,o", action: "(motion)"  , description: "Forward to start of next WORD"                , file: "", plugin: "", group: "Motion"            , source: "builtin" }
+  - { key: "e"        , mode: "n,x,o", action: "(motion)"  , description: "Forward to end of word"                       , file: "", plugin: "", group: "Motion"            , source: "builtin" }
+  - { key: "E"        , mode: "n,x,o", action: "(motion)"  , description: "Forward to end of WORD"                       , file: "", plugin: "", group: "Motion"            , source: "builtin" }
+  - { key: "b"        , mode: "n,x,o", action: "(motion)"  , description: "Back to start of word"                        , file: "", plugin: "", group: "Motion"            , source: "builtin" }
+  - { key: "B"        , mode: "n,x,o", action: "(motion)"  , description: "Back to start of WORD"                        , file: "", plugin: "", group: "Motion"            , source: "builtin" }
+  - { key: "ge"       , mode: "n,x,o", action: "(motion)"  , description: "Back to end of previous word"                 , file: "", plugin: "", group: "Motion"            , source: "builtin" }
+  - { key: "gE"       , mode: "n,x,o", action: "(motion)"  , description: "Back to end of previous WORD"                 , file: "", plugin: "", group: "Motion"            , source: "builtin" }
+  - { key: "{"        , mode: "n,x,o", action: "(motion)"  , description: "Backward one paragraph"                       , file: "", plugin: "", group: "Motion"            , source: "builtin" }
+  - { key: "}"        , mode: "n,x,o", action: "(motion)"  , description: "Forward one paragraph"                        , file: "", plugin: "", group: "Motion"            , source: "builtin" }
+  - { key: "("        , mode: "n,x,o", action: "(motion)"  , description: "Backward one sentence"                        , file: "", plugin: "", group: "Motion"            , source: "builtin" }
+  - { key: ")"        , mode: "n,x,o", action: "(motion)"  , description: "Forward one sentence"                         , file: "", plugin: "", group: "Motion"            , source: "builtin" }
+  - { key: "%"        , mode: "n,x,o", action: "(motion)"  , description: "To matching bracket/pair"                     , file: "", plugin: "", group: "Motion"            , source: "builtin" }
+  - { key: "[["       , mode: "n,x,o", action: "(motion)"  , description: "Backward to section/'{' in column 1"          , file: "", plugin: "", group: "Motion"            , source: "builtin" }
+  - { key: "]]"       , mode: "n,x,o", action: "(motion)"  , description: "Forward to section/'{' in column 1"           , file: "", plugin: "", group: "Motion"            , source: "builtin" }
+  # ------------------------------------------------------------------ #
+  # Search                                                             #
+  # ------------------------------------------------------------------ #
+  - { key: "/"        , mode: "n,x,o", action: "(search)"  , description: "Search forward"                               , file: "", plugin: "", group: "Search"            , source: "builtin" }
+  - { key: "?"        , mode: "n,x,o", action: "(search)"  , description: "Search backward"                              , file: "", plugin: "", group: "Search"            , source: "builtin" }
+  - { key: "n"        , mode: "n,x,o", action: "(search)"  , description: "Repeat last search"                           , file: "", plugin: "", group: "Search"            , source: "builtin" }
+  - { key: "N"        , mode: "n,x,o", action: "(search)"  , description: "Repeat last search, opposite direction"       , file: "", plugin: "", group: "Search"            , source: "builtin" }
+  - { key: "*"        , mode: "n,x,o", action: "(search)"  , description: "Search forward for word under cursor"         , file: "", plugin: "", group: "Search"            , source: "builtin" }
+  - { key: "#"        , mode: "n,x,o", action: "(search)"  , description: "Search backward for word under cursor"        , file: "", plugin: "", group: "Search"            , source: "builtin" }
+  - { key: "g*"       , mode: "n,x,o", action: "(search)"  , description: "Search forward for partial word under cursor" , file: "", plugin: "", group: "Search"            , source: "builtin" }
+  - { key: "g#"       , mode: "n,x,o", action: "(search)"  , description: "Search backward for partial word under cursor", file: "", plugin: "", group: "Search"            , source: "builtin" }
+  # ------------------------------------------------------------------ #
+  # Scrolling                                                          #
+  # ------------------------------------------------------------------ #
+  - { key: "<C-d>"    , mode: "n"    , action: "(scroll)"  , description: "Scroll down half a screen"                    , file: "", plugin: "", group: "Scrolling"         , source: "builtin" }
+  - { key: "<C-u>"    , mode: "n"    , action: "(scroll)"  , description: "Scroll up half a screen"                      , file: "", plugin: "", group: "Scrolling"         , source: "builtin" }
+  - { key: "<C-f>"    , mode: "n"    , action: "(scroll)"  , description: "Scroll down one full screen"                  , file: "", plugin: "", group: "Scrolling"         , source: "builtin" }
+  - { key: "<C-b>"    , mode: "n"    , action: "(scroll)"  , description: "Scroll up one full screen"                    , file: "", plugin: "", group: "Scrolling"         , source: "builtin" }
+  - { key: "<C-e>"    , mode: "n"    , action: "(scroll)"  , description: "Scroll down one line"                         , file: "", plugin: "", group: "Scrolling"         , source: "builtin" }
+  - { key: "<C-y>"    , mode: "n"    , action: "(scroll)"  , description: "Scroll up one line"                           , file: "", plugin: "", group: "Scrolling"         , source: "builtin" }
+  - { key: "zz"       , mode: "n"    , action: "(scroll)"  , description: "Center current line in window"                , file: "", plugin: "", group: "Scrolling"         , source: "builtin" }
+  - { key: "zt"       , mode: "n"    , action: "(scroll)"  , description: "Scroll current line to top"                   , file: "", plugin: "", group: "Scrolling"         , source: "builtin" }
+  - { key: "zb"       , mode: "n"    , action: "(scroll)"  , description: "Scroll current line to bottom"                , file: "", plugin: "", group: "Scrolling"         , source: "builtin" }
+  # ------------------------------------------------------------------ #
+  # Editing                                                            #
+  # ------------------------------------------------------------------ #
+  - { key: "y"        , mode: "n,x"  , action: "(operator)", description: "Yank {motion}/selection"                      , file: "", plugin: "", group: "Editing"           , source: "builtin" }
+  - { key: "yy"       , mode: "n"    , action: "(operator)", description: "Yank line"                                    , file: "", plugin: "", group: "Editing"           , source: "builtin" }
+  - { key: "Y"        , mode: "n"    , action: "(operator)", description: "Yank line (like yy)"                          , file: "", plugin: "", group: "Editing"           , source: "builtin" }
+  - { key: "d"        , mode: "x"    , action: "(operator)", description: "Delete {motion}/selection"                    , file: "", plugin: "", group: "Editing"           , source: "builtin" }
+  - { key: "dd"       , mode: "n"    , action: "(operator)", description: "Delete line"                                  , file: "", plugin: "", group: "Editing"           , source: "builtin" }
+  - { key: "D"        , mode: "n"    , action: "(operator)", description: "Delete to end of line"                        , file: "", plugin: "", group: "Editing"           , source: "builtin" }
+  - { key: "c"        , mode: "x"    , action: "(operator)", description: "Change {motion}/selection"                    , file: "", plugin: "", group: "Editing"           , source: "builtin" }
+  - { key: "cc"       , mode: "n"    , action: "(operator)", description: "Change line"                                  , file: "", plugin: "", group: "Editing"           , source: "builtin" }
+  - { key: "C"        , mode: "n"    , action: "(operator)", description: "Change to end of line"                        , file: "", plugin: "", group: "Editing"           , source: "builtin" }
+  - { key: "X"        , mode: "n"    , action: "(edit)"    , description: "Delete character before cursor"               , file: "", plugin: "", group: "Editing"           , source: "builtin" }
+  - { key: "r"        , mode: "n"    , action: "(edit)"    , description: "Replace single character"                     , file: "", plugin: "", group: "Editing"           , source: "builtin" }
+  - { key: "R"        , mode: "n"    , action: "(edit)"    , description: "Enter Replace mode"                           , file: "", plugin: "", group: "Editing"           , source: "builtin" }
+  - { key: "J"        , mode: "n"    , action: "(edit)"    , description: "Join line below with a space"                 , file: "", plugin: "", group: "Editing"           , source: "builtin" }
+  - { key: "gJ"       , mode: "n"    , action: "(edit)"    , description: "Join line below without a space"              , file: "", plugin: "", group: "Editing"           , source: "builtin" }
+  - { key: "p"        , mode: "n"    , action: "(edit)"    , description: "Paste after cursor"                           , file: "", plugin: "", group: "Editing"           , source: "builtin" }
+  - { key: "P"        , mode: "n"    , action: "(edit)"    , description: "Paste before cursor"                          , file: "", plugin: "", group: "Editing"           , source: "builtin" }
+  - { key: "u"        , mode: "n"    , action: "(edit)"    , description: "Undo"                                         , file: "", plugin: "", group: "Editing"           , source: "builtin" }
+  - { key: "<C-r>"    , mode: "n"    , action: "(edit)"    , description: "Redo"                                         , file: "", plugin: "", group: "Editing"           , source: "builtin" }
+  - { key: "."        , mode: "n"    , action: "(edit)"    , description: "Repeat last change"                           , file: "", plugin: "", group: "Editing"           , source: "builtin" }
+  - { key: "="        , mode: "n,x"  , action: "(operator)", description: "Auto-indent {motion}/selection"               , file: "", plugin: "", group: "Editing"           , source: "builtin" }
+  - { key: "=="       , mode: "n"    , action: "(operator)", description: "Auto-indent current line"                     , file: "", plugin: "", group: "Editing"           , source: "builtin" }
+  - { key: "gu"       , mode: "n,x"  , action: "(operator)", description: "Lowercase {motion}/selection"                 , file: "", plugin: "", group: "Editing"           , source: "builtin" }
+  - { key: "gU"       , mode: "n,x"  , action: "(operator)", description: "Uppercase {motion}/selection"                 , file: "", plugin: "", group: "Editing"           , source: "builtin" }
+  - { key: "g~"       , mode: "n,x"  , action: "(operator)", description: "Toggle case of {motion}/selection"            , file: "", plugin: "", group: "Editing"           , source: "builtin" }
+  - { key: "gq"       , mode: "x"    , action: "(operator)", description: "Format {motion}/selection"                    , file: "", plugin: "", group: "Editing"           , source: "builtin" }
+  - { key: "o"        , mode: "n"    , action: "(edit)"    , description: "Open new line below and insert"               , file: "", plugin: "", group: "Editing"           , source: "builtin" }
+  - { key: "O"        , mode: "n"    , action: "(edit)"    , description: "Open new line above and insert"               , file: "", plugin: "", group: "Editing"           , source: "builtin" }
+  - { key: "a"        , mode: "n"    , action: "(edit)"    , description: "Insert after cursor"                          , file: "", plugin: "", group: "Editing"           , source: "builtin" }
+  - { key: "A"        , mode: "n"    , action: "(edit)"    , description: "Insert at end of line"                        , file: "", plugin: "", group: "Editing"           , source: "builtin" }
+  - { key: "i"        , mode: "n"    , action: "(edit)"    , description: "Insert before cursor"                         , file: "", plugin: "", group: "Editing"           , source: "builtin" }
+  - { key: "I"        , mode: "n"    , action: "(edit)"    , description: "Insert at first non-blank"                    , file: "", plugin: "", group: "Editing"           , source: "builtin" }
+  # ------------------------------------------------------------------ #
+  # Insert                                                             #
+  # ------------------------------------------------------------------ #
+  - { key: "<C-w>"    , mode: "i"    , action: "(edit)"    , description: "Delete word before cursor"                    , file: "", plugin: "", group: "Insert"            , source: "builtin" }
+  - { key: "<C-u>"    , mode: "i"    , action: "(edit)"    , description: "Delete to start of line"                      , file: "", plugin: "", group: "Insert"            , source: "builtin" }
+  - { key: "<C-r>"    , mode: "i"    , action: "(edit)"    , description: "Insert contents of a register"                , file: "", plugin: "", group: "Insert"            , source: "builtin" }
+  - { key: "<C-o>"    , mode: "i"    , action: "(edit)"    , description: "Execute one Normal-mode command"              , file: "", plugin: "", group: "Insert"            , source: "builtin" }
+  - { key: "<C-a>"    , mode: "i"    , action: "(edit)"    , description: "Insert previously inserted text"              , file: "", plugin: "", group: "Insert"            , source: "builtin" }
+  - { key: "<C-t>"    , mode: "i"    , action: "(edit)"    , description: "Indent current line"                          , file: "", plugin: "", group: "Insert"            , source: "builtin" }
+  - { key: "<C-d>"    , mode: "i"    , action: "(edit)"    , description: "Un-indent current line"                       , file: "", plugin: "", group: "Insert"            , source: "builtin" }
+  # ------------------------------------------------------------------ #
+  # Visual                                                             #
+  # ------------------------------------------------------------------ #
+  - { key: "v"        , mode: "n"    , action: "(visual)"  , description: "Start charwise Visual mode"                   , file: "", plugin: "", group: "Visual"            , source: "builtin" }
+  - { key: "V"        , mode: "n"    , action: "(visual)"  , description: "Start linewise Visual mode"                   , file: "", plugin: "", group: "Visual"            , source: "builtin" }
+  - { key: "<C-v>"    , mode: "n"    , action: "(visual)"  , description: "Start blockwise Visual mode"                  , file: "", plugin: "", group: "Visual"            , source: "builtin" }
+  - { key: "o"        , mode: "x"    , action: "(visual)"  , description: "Move to other end of selection"               , file: "", plugin: "", group: "Visual"            , source: "builtin" }
+  - { key: "O"        , mode: "x"    , action: "(visual)"  , description: "Move to other corner (blockwise)"             , file: "", plugin: "", group: "Visual"            , source: "builtin" }
+  - { key: "u"        , mode: "x"    , action: "(edit)"    , description: "Lowercase selection"                          , file: "", plugin: "", group: "Visual"            , source: "builtin" }
+  - { key: "U"        , mode: "x"    , action: "(edit)"    , description: "Uppercase selection"                          , file: "", plugin: "", group: "Visual"            , source: "builtin" }
+  - { key: "I"        , mode: "x"    , action: "(edit)"    , description: "Insert at start of block (blockwise)"         , file: "", plugin: "", group: "Visual"            , source: "builtin" }
+  - { key: "A"        , mode: "x"    , action: "(edit)"    , description: "Append at end of block (blockwise)"           , file: "", plugin: "", group: "Visual"            , source: "builtin" }
+  # ------------------------------------------------------------------ #
+  # Marks & Jumps                                                      #
+  # ------------------------------------------------------------------ #
+  - { key: "m{a-zA-Z}", mode: "n"    , action: "(mark)"    , description: "Set mark at cursor"                           , file: "", plugin: "", group: "Marks & Jumps"     , source: "builtin" }
+  - { key: "'{mark}"  , mode: "n,x,o", action: "(motion)"  , description: "To first non-blank of marked line"            , file: "", plugin: "", group: "Marks & Jumps"     , source: "builtin" }
+  - { key: "<C-o>"    , mode: "n"    , action: "(jump)"    , description: "Jump to older position in jumplist"           , file: "", plugin: "", group: "Marks & Jumps"     , source: "builtin" }
+  - { key: "<C-i>"    , mode: "n"    , action: "(jump)"    , description: "Jump to newer position in jumplist"           , file: "", plugin: "", group: "Marks & Jumps"     , source: "builtin" }
+  - { key: "<C-]>"    , mode: "n"    , action: "(jump)"    , description: "Jump to definition/tag under cursor"          , file: "", plugin: "", group: "Marks & Jumps"     , source: "builtin" }
+  - { key: "<C-t>"    , mode: "n"    , action: "(jump)"    , description: "Jump back from tag"                           , file: "", plugin: "", group: "Marks & Jumps"     , source: "builtin" }
+  - { key: "gf"       , mode: "n"    , action: "(jump)"    , description: "Go to file under cursor"                      , file: "", plugin: "", group: "Marks & Jumps"     , source: "builtin" }
+  - { key: "g;"       , mode: "n"    , action: "(jump)"    , description: "Go to older position in change list"          , file: "", plugin: "", group: "Marks & Jumps"     , source: "builtin" }
+  - { key: "g,"       , mode: "n"    , action: "(jump)"    , description: "Go to newer position in change list"          , file: "", plugin: "", group: "Marks & Jumps"     , source: "builtin" }
+  # ------------------------------------------------------------------ #
+  # Registers & Macros                                                 #
+  # ------------------------------------------------------------------ #
+  - { key: '"{reg}'   , mode: "n,x"  , action: "(register)", description: "Use register for next yank/delete/paste"      , file: "", plugin: "", group: "Registers & Macros", source: "builtin" }
+  - { key: "q{a-z}"   , mode: "n"    , action: "(macro)"   , description: "Record macro into register"                   , file: "", plugin: "", group: "Registers & Macros", source: "builtin" }
+  - { key: "@{reg}"   , mode: "n"    , action: "(macro)"   , description: "Play back macro from register"                , file: "", plugin: "", group: "Registers & Macros", source: "builtin" }
+  - { key: "@@"       , mode: "n"    , action: "(macro)"   , description: "Repeat last played macro"                     , file: "", plugin: "", group: "Registers & Macros", source: "builtin" }
+  # ------------------------------------------------------------------ #
+  # Command                                                            #
+  # ------------------------------------------------------------------ #
+  - { key: ":"        , mode: "n,x"  , action: "(command)" , description: "Enter Command-line (Ex) mode"                 , file: "", plugin: "", group: "Command"           , source: "builtin" }
+  # ------------------------------------------------------------------ #
+  # Folds                                                              #
+  # ------------------------------------------------------------------ #
+  - { key: "za"       , mode: "n"    , action: "(fold)"    , description: "Toggle fold under cursor"                     , file: "", plugin: "", group: "Folds"             , source: "builtin" }
+  - { key: "zo"       , mode: "n"    , action: "(fold)"    , description: "Open fold under cursor"                       , file: "", plugin: "", group: "Folds"             , source: "builtin" }
+  - { key: "zc"       , mode: "n"    , action: "(fold)"    , description: "Close fold under cursor"                      , file: "", plugin: "", group: "Folds"             , source: "builtin" }
+  - { key: "zR"       , mode: "n"    , action: "(fold)"    , description: "Open all folds"                               , file: "", plugin: "", group: "Folds"             , source: "builtin" }
+  - { key: "zM"       , mode: "n"    , action: "(fold)"    , description: "Close all folds"                              , file: "", plugin: "", group: "Folds"             , source: "builtin" }
+  - { key: "zj"       , mode: "n"    , action: "(motion)"  , description: "Move to start of next fold"                   , file: "", plugin: "", group: "Folds"             , source: "builtin" }
+  - { key: "zk"       , mode: "n"    , action: "(motion)"  , description: "Move to end of previous fold"                 , file: "", plugin: "", group: "Folds"             , source: "builtin" }
+  - { key: "zf"       , mode: "n,x"  , action: "(operator)", description: "Create fold over {motion}/selection"          , file: "", plugin: "", group: "Folds"             , source: "builtin" }
+  - { key: "zd"       , mode: "n"    , action: "(fold)"    , description: "Delete fold under cursor"                     , file: "", plugin: "", group: "Folds"             , source: "builtin" }
+  # ------------------------------------------------------------------ #
+  # Windows                                                            #
+  # ------------------------------------------------------------------ #
+  - { key: "<C-w>s"   , mode: "n"    , action: "(window)"  , description: "Split window horizontally"                    , file: "", plugin: "", group: "Windows"           , source: "builtin" }
+  - { key: "<C-w>v"   , mode: "n"    , action: "(window)"  , description: "Split window vertically"                      , file: "", plugin: "", group: "Windows"           , source: "builtin" }
+  - { key: "<C-w>w"   , mode: "n"    , action: "(window)"  , description: "Cycle to next window"                         , file: "", plugin: "", group: "Windows"           , source: "builtin" }
+  - { key: "<C-w>h"   , mode: "n"    , action: "(window)"  , description: "Move to window on the left"                   , file: "", plugin: "", group: "Windows"           , source: "builtin" }
+  - { key: "<C-w>j"   , mode: "n"    , action: "(window)"  , description: "Move to window below"                         , file: "", plugin: "", group: "Windows"           , source: "builtin" }
+  - { key: "<C-w>k"   , mode: "n"    , action: "(window)"  , description: "Move to window above"                         , file: "", plugin: "", group: "Windows"           , source: "builtin" }
+  - { key: "<C-w>l"   , mode: "n"    , action: "(window)"  , description: "Move to window on the right"                  , file: "", plugin: "", group: "Windows"           , source: "builtin" }
+  - { key: "<C-w>q"   , mode: "n"    , action: "(window)"  , description: "Quit current window"                          , file: "", plugin: "", group: "Windows"           , source: "builtin" }
+  - { key: "<C-w>o"   , mode: "n"    , action: "(window)"  , description: "Close all other windows"                      , file: "", plugin: "", group: "Windows"           , source: "builtin" }
+  - { key: "<C-w>="   , mode: "n"    , action: "(window)"  , description: "Equalize window sizes"                        , file: "", plugin: "", group: "Windows"           , source: "builtin" }
+  - { key: "<C-w>_"   , mode: "n"    , action: "(window)"  , description: "Maximize window height"                       , file: "", plugin: "", group: "Windows"           , source: "builtin" }
+  - { key: "<C-w>|"   , mode: "n"    , action: "(window)"  , description: "Maximize window width"                        , file: "", plugin: "", group: "Windows"           , source: "builtin" }
+  # ------------------------------------------------------------------ #
+  # Tabs                                                               #
+  # ------------------------------------------------------------------ #
+  - { key: "gT"       , mode: "n"    , action: "(tab)"     , description: "Go to previous tab page"                      , file: "", plugin: "", group: "Tabs"              , source: "builtin" }
+  # ------------------------------------------------------------------ #
+  # Misc                                                               #
+  # ------------------------------------------------------------------ #
+  - { key: "<C-g>"    , mode: "n"    , action: "(misc)"    , description: "Show file name and status"                    , file: "", plugin: "", group: "Misc"              , source: "builtin" }
+  - { key: "ga"       , mode: "n"    , action: "(misc)"    , description: "Show character codes under cursor"            , file: "", plugin: "", group: "Misc"              , source: "builtin" }
+  - { key: "ZZ"       , mode: "n"    , action: "(misc)"    , description: "Write file and quit"                          , file: "", plugin: "", group: "Misc"              , source: "builtin" }
+  - { key: "ZQ"       , mode: "n"    , action: "(misc)"    , description: "Quit without writing"                         , file: "", plugin: "", group: "Misc"              , source: "builtin" }
+  - { key: "<C-l>"    , mode: "n"    , action: "(misc)"    , description: "Redraw screen"                                , file: "", plugin: "", group: "Misc"              , source: "builtin" }

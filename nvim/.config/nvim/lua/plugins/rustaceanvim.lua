@@ -1,7 +1,7 @@
 return {
 	"mrcjkb/rustaceanvim",
-	commit = "88575b9",
-	version = "^6", -- Recommended
+	commit = "9cb125d",
+	version = "^9", -- Recommended
 	lazy = false, -- This plugin is already lazy
 	init = function()
 		-- rustaceanvim is configured via the `vim.g.rustaceanvim` global, which

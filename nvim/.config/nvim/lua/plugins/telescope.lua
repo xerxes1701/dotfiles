@@ -3,8 +3,8 @@
 
 return {
 	"nvim-telescope/telescope.nvim",
-	commit = "a0bbec2",
-	tag = "0.1.8",
+	commit = "5255aa27c422de944791318024167ad5d40aad20",
+	tag = "v0.2.2",
 	dependencies = {
 		"nvim-lua/plenary.nvim",
 		"nvim-tree/nvim-web-devicons",

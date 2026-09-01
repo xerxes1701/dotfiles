@@ -2,9 +2,8 @@ return {
 	"saghen/blink.cmp",
 	-- optional: provides snippets for the snippet source
 	dependencies = { "rafamadriz/friendly-snippets", commit = "6cd7280" },
-	-- release tag (blink.cmp downloads the pre-built binary for it) plus the
-	-- commit behind that tag, which is what actually pins it
-	tag = "v1.10.2",
+	-- commit behind release tag v1.10.2; blink.cmp downloads the pre-built
+	-- binary matching this commit
 	commit = "78336bc89ee5365633bcf754d93df01678b5c08f",
 	-- AND/OR build from source, requires nightly: https://rust-lang.github.io/rustup/concepts/channels.html#working-with-nightly-rust
 	-- build = 'cargo build --release',

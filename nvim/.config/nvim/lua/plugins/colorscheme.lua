@@ -4,15 +4,13 @@
 return {
 	"catppuccin/nvim",
 	name = "catppuccin",
-	tag = "v1.9.0",
-	commit = "c9e205f",
+	commit = "605b4603797de970e9f3a4238c199c850da03186",
 	priority = 1000,
 	config = function()
 		require("catppuccin").setup({
 			transparent_background = true,
 			term_colors = true,
 			integrations = {
-				bufferline = true,
 				cmp = true,
 				gitsigns = true,
 				mason = true,
@@ -22,7 +20,6 @@ return {
 				telescope = {
 					enabled = true,
 				},
-				treesitter = true,
 				treesitter_context = true,
 				which_key = true,
 			},

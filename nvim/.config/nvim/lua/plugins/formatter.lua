@@ -3,10 +3,8 @@
 
 return {
 	"stevearc/conform.nvim",
-	commit = "acc7337",
+	commit = "3543d000dafbc41cc7761d860cfdb24e82154f75",
 	event = { "BufReadPre", "BufNewFile" },
-	-- newest version requires neovim 0.10
-	tag = "v7.0.0",
 	config = function()
 		local conform = require("conform")
 

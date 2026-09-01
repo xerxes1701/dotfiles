@@ -3,8 +3,7 @@
 
 return {
 	"rmagatti/auto-session",
-	commit = "5dd9600",
-	tag = "v2.5.0",
+	commit = "79ef41274354a486cf4f100a7adf4a7575802ccf",
 	lazy = false,
 	dependencies = {
 		"nvim-telescope/telescope.nvim", -- Only needed if you want to use sesssion lens

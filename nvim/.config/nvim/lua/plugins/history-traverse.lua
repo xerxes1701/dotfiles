@@ -7,6 +7,7 @@
 
 return {
 	"ckarnell/history-traverse",
+	commit = "67ea6522a78f2c1901926e5276b2aee2f3489abf",
 	-- The plugin defines its commands on load, so load it on buffer read so
 	-- the commands are always available when navigating.
 	event = "BufReadPost",

@@ -9,7 +9,7 @@ binds {
     Mod+Shift+ESCAPE                     { show-hotkey-overlay; }
 
     // ─── Applications ───
-    Mod+Return                          hotkey-overlay-title="Open Terminal: Alacritty" { spawn "alacritty"; }
+    Mod+Return                          hotkey-overlay-title="Open Terminal: Ghostty" { spawn "ghostty"; }
     Mod+CTRL+Return                     hotkey-overlay-title="Open App Launcher: noctalia launcher" { spawn-sh "qs -c noctalia-shell ipc call launcher toggle"; }
     Mod+Space                           hotkey-overlay-title="Open App Launcher: noctalia launcher" { spawn-sh "qs -c noctalia-shell ipc call launcher toggle"; }
     Mod+B                               hotkey-overlay-title="Open Browser: firefox" { spawn "firefox"; }
@@ -122,8 +122,10 @@ binds {
 
     // ─── Modes ───
     Mod+T                               { toggle-window-floating; }
-    Mod+F                               { fullscreen-window; }
+    Mod+F                               { maximize-window-to-edges; } // Fills the screen but stays in the layout, so window opacity still shows the wallpaper
+    Mod+Shift+F                         { fullscreen-window; } // True fullscreen (niri paints a solid black backdrop behind it)
     Mod+W                               { toggle-column-tabbed-display; }
+    Mod+CTRL+M                          hotkey-overlay-title="Stack: maximize window, float the one to its right on top" { spawn-sh "~/.config/niri/scripts/stack-right-on-maximized.sh"; }
 
     // ─── Screenshots ───
     CTRL+Shift+1                        { screenshot; }

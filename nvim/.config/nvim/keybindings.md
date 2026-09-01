@@ -15,11 +15,13 @@ _Generated from `keybindings.yaml` by `keybindings-to-md.cs`._
 > 🔹 marks a **Neovim built-in** default — a core editor command that is
 > not defined via a keymap (it never appears in `:map`/`nvim_get_keymap`).
 >
-> Totals: **488** keybindings — **201** explicit, **146** implicit defaults (🔸), **141** built-ins (🔹).
+> Totals: **520** keybindings — **233** explicit, **146** implicit defaults (🔸), **141** built-ins (🔹).
 
 ## Table of Contents
 
 1. [Grouped by File](#sec-by-file)
+   - [lua/config/hydra-codenav.lua](#file-luaconfighydra-codenavlua)
+   - [lua/config/hydra-diagnostics.lua](#file-luaconfighydra-diagnosticslua)
    - [lua/keymaps.lua](#file-luakeymapslua)
    - [lua/plugins/blinkcmp.lua](#file-luapluginsblinkcmplua)
    - [lua/plugins/dap_ui.lua](#file-luapluginsdap-uilua)
@@ -30,7 +32,6 @@ _Generated from `keybindings.yaml` by `keybindings-to-md.cs`._
    - [lua/plugins/gitsigns.lua](#file-luapluginsgitsignslua)
    - [lua/plugins/harpoon.lua](#file-luapluginsharpoonlua)
    - [lua/plugins/history-traverse.lua](#file-luapluginshistory-traverselua)
-   - [lua/plugins/hydra.lua](#file-luapluginshydralua)
    - [lua/plugins/linter.lua](#file-luapluginslinterlua)
    - [lua/plugins/lsp-saga.lua](#file-luapluginslsp-sagalua)
    - [lua/plugins/lspconfig.lua](#file-luapluginslspconfiglua)
@@ -85,6 +86,7 @@ _Generated from `keybindings.yaml` by `keybindings-to-md.cs`._
    - [Copilot](#group-copilot)
    - [Debug](#group-debug)
    - [Diagnostics](#group-diagnostics)
+   - [Diagnostics Hydra](#group-diagnostics-hydra)
    - [Editing](#group-editing)
    - [File Explorer](#group-file-explorer)
    - [Folding](#group-folding)
@@ -118,6 +120,81 @@ Every keybinding explicitly defined in the configuration, grouped by the
 file it lives in. (Implicit plugin defaults have no source file and appear
 in the plugin and logical views instead.)
 
+### lua/config/hydra-codenav.lua <a id="file-luaconfighydra-codenavlua"></a>
+
+Configures: `hydra.nvim`
+
+| Key | Mode | Description                                                                      | Action                                   | Implicit |
+| --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- |
+| `++` | hydra(treewalker) | Previous assignment (outer) (alias of =+)                                        | `goto_previous_start @assignment.outer`  |  |
+| `+L` | hydra(treewalker) | Previous assignment (lhs) (alias of =L)                                          | `goto_previous_start @assignment.lhs`    |  |
+| `+R` | hydra(treewalker) | Previous assignment (rhs) (alias of =R)                                          | `goto_previous_start @assignment.rhs`    |  |
+| `=+` | hydra(treewalker) | Previous assignment (outer)                                                      | `goto_previous_start @assignment.outer`  |  |
+| `==` | hydra(treewalker) | Next assignment (outer)                                                          | `goto_next_start @assignment.outer`      |  |
+| `=l` | hydra(treewalker) | Next assignment (lhs)                                                            | `goto_next_start @assignment.lhs`        |  |
+| `=L` | hydra(treewalker) | Previous assignment (lhs)                                                        | `goto_previous_start @assignment.lhs`    |  |
+| `=r` | hydra(treewalker) | Next assignment (rhs)                                                            | `goto_next_start @assignment.rhs`        |  |
+| `=R` | hydra(treewalker) | Previous assignment (rhs)                                                        | `goto_previous_start @assignment.rhs`    |  |
+| `a` | hydra(treewalker) | Next parameter (outer)                                                           | `goto_next_start @parameter.outer`       |  |
+| `A` | hydra(treewalker) | Previous parameter (outer)                                                       | `goto_previous_start @parameter.outer`   |  |
+| `b` | hydra(treewalker) | Next block (outer)                                                               | `goto_next_start @block.outer`           |  |
+| `B` | hydra(treewalker) | Previous block (outer)                                                           | `goto_previous_start @block.outer`       |  |
+| `c` | hydra(treewalker) | Next comment (outer)                                                             | `goto_next_start @comment.outer`         |  |
+| `C` | hydra(treewalker) | Previous comment (outer)                                                         | `goto_previous_start @comment.outer`     |  |
+| `f` | hydra(treewalker) | Next call (outer)                                                                | `goto_next_start @call.outer`            |  |
+| `F` | hydra(treewalker) | Previous call (outer)                                                            | `goto_previous_start @call.outer`        |  |
+| `h` | hydra(treewalker) | Move left / ascend                                                               | `<cmd>Treewalker Left<cr>`               |  |
+| `i` | hydra(treewalker) | Next conditional (outer)                                                         | `goto_next_start @conditional.outer`     |  |
+| `I` | hydra(treewalker) | Previous conditional (outer)                                                     | `goto_previous_start @conditional.outer` |  |
+| `j` | hydra(treewalker) | Move down a sibling node                                                         | `<cmd>Treewalker Down<cr>`               |  |
+| `k` | hydra(treewalker) | Move up a sibling node                                                           | `<cmd>Treewalker Up<cr>`                 |  |
+| `l` | hydra(treewalker) | Move right / descend                                                             | `<cmd>Treewalker Right<cr>`              |  |
+| `m` | hydra(treewalker) | Next function (outer)                                                            | `goto_next_start @function.outer`        |  |
+| `M` | hydra(treewalker) | Previous function (outer)                                                        | `goto_previous_start @function.outer`    |  |
+| `n` | hydra(treewalker) | Next number (inner)                                                              | `goto_next_start @number.inner`          |  |
+| `N` | hydra(treewalker) | Previous number (inner)                                                          | `goto_previous_start @number.inner`      |  |
+| `o` | hydra(treewalker) | Next conditional (inner)                                                         | `goto_next_start @conditional.inner`     |  |
+| `O` | hydra(treewalker) | Previous conditional (inner)                                                     | `goto_previous_start @conditional.inner` |  |
+| `p` | hydra(treewalker) | Next parameter (inner)                                                           | `goto_next_start @parameter.inner`       |  |
+| `P` | hydra(treewalker) | Previous parameter (inner)                                                       | `goto_previous_start @parameter.inner`   |  |
+| `r` | hydra(treewalker) | Next return (outer)                                                              | `goto_next_start @return.outer`          |  |
+| `R` | hydra(treewalker) | Previous return (outer)                                                          | `goto_previous_start @return.outer`      |  |
+| `S` | n → hydra(treewalker) | Enter the pink hydra "treewalker" (also unbinds the default S)                   | `enter hydra`                            |  |
+| `t` | hydra(treewalker) | Next class (outer)                                                               | `goto_next_start @class.outer`           |  |
+| `T` | hydra(treewalker) | Previous class (outer)                                                           | `goto_previous_start @class.outer`       |  |
+| `v` | hydra(treewalker) | Next block (outer)                                                               | `goto_next_start @block.outer`           |  |
+| `V` | hydra(treewalker) | Previous block (inner)                                                           | `goto_previous_start @block.inner`       |  |
+| `w` | hydra(treewalker) | Next loop (outer)                                                                | `goto_next_start @loop.outer`            |  |
+| `W` | hydra(treewalker) | Previous loop (outer)                                                            | `goto_previous_start @loop.outer`        |  |
+
+### lua/config/hydra-diagnostics.lua <a id="file-luaconfighydra-diagnosticslua"></a>
+
+Configures: `hydra.nvim`
+
+| Key | Mode | Description                                                                      | Action                                   | Implicit |
+| --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- |
+| `<Esc>` | hydra(diagnostics) | Leave the hydra                                                                  | `exit hydra`                             |  |
+| `<leader>ld` | n → hydra(diagnostics) | Enter the red hydra "diagnostics"                                                | `enter hydra`                            |  |
+| `b` | hydra(diagnostics) | Toggle scope (buffer/project)                                                    | `toggle scope buffer/project`            |  |
+| `d` | hydra(diagnostics) | Next diagnostic                                                                  | `goto next diagnostic`                   |  |
+| `D` | hydra(diagnostics) | Previous diagnostic                                                              | `goto previous diagnostic`               |  |
+| `e` | hydra(diagnostics) | Next error                                                                       | `goto next ERROR diagnostic`             |  |
+| `E` | hydra(diagnostics) | Previous error                                                                   | `goto previous ERROR diagnostic`         |  |
+| `h` | hydra(diagnostics) | Next hint                                                                        | `goto next HINT diagnostic`              |  |
+| `H` | hydra(diagnostics) | Previous hint                                                                    | `goto previous HINT diagnostic`          |  |
+| `i` | hydra(diagnostics) | Next info                                                                        | `goto next INFO diagnostic`              |  |
+| `I` | hydra(diagnostics) | Previous info                                                                    | `goto previous INFO diagnostic`          |  |
+| `q` | hydra(diagnostics) | Leave the hydra                                                                  | `exit hydra`                             |  |
+| `tc` | hydra(diagnostics) | Toggle CodeLenses                                                                | `toggle codelens_enabled`                |  |
+| `ti` | hydra(diagnostics) | Toggle inlay hints                                                               | `toggle inlay hints`                     |  |
+| `tv` | hydra(diagnostics) | Toggle virtual_lines                                                             | `toggle diagnostic virtual_lines`        |  |
+| `w` | hydra(diagnostics) | Next warning                                                                     | `goto next WARN diagnostic`              |  |
+| `W` | hydra(diagnostics) | Previous warning                                                                 | `goto previous WARN diagnostic`          |  |
+| `x` | hydra(diagnostics) | Trouble diagnostics (workspace)                                                  | `<cmd>Trouble diagnostics toggle<cr>`    |  |
+| `X` | hydra(diagnostics) | Trouble diagnostics (buffer)                                                     | `<cmd>Trouble diagnostics toggle filter.…` |  |
+| `{` | hydra(diagnostics) | First diagnostic                                                                 | `goto first diagnostic`                  |  |
+| `}` | hydra(diagnostics) | Last diagnostic                                                                  | `goto last diagnostic`                   |  |
+
 ### lua/keymaps.lua <a id="file-luakeymapslua"></a>
 
 Core configuration (no plugin)
@@ -138,7 +215,7 @@ Core configuration (no plugin)
 | `<leader><Tab>` | n | Go to next tab                                                                   | `<cmd>tabn<CR>`                          |  |
 | `<leader>c` | n | Change (yank into default register)                                              | `c`                                      |  |
 | `<leader>d` | n | Delete (yank into default register)                                              | `d`                                      |  |
-| `<leader>ll` | n | Open Lazy plugin manager                                                         | `<cmd>Lazy<CR>`                          |  |
+| `<leader>L` | n | Open Lazy plugin manager                                                         | `<cmd>Lazy<CR>`                          |  |
 | `<leader>p` | n | Paste from system clipboard                                                      | `"+p`                                    |  |
 | `<leader>p` | v | Paste over selection without yanking                                             | `"_dP`                                   |  |
 | `<leader>se` | n | Equalize split sizes                                                             | `<C-w>=`                                 |  |
@@ -169,8 +246,7 @@ Configures: `blink.cmp`
 | --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- |
 | `<C-b>` | i | Completion: scroll documentation up                                              | `scroll_documentation_up / fallback`     |  |
 | `<C-f>` | i | Completion: scroll documentation down                                            | `scroll_documentation_down / fallback`   |  |
-| `C-s` | i | Completion: open menu or toggle docs (verbatim config key)                       | `show / show_documentation / hide_docume…` |  |
-| `C-space` | i | Completion: open menu or toggle docs (verbatim config key)                       | `show / show_documentation / hide_docume…` |  |
+| `<C-space>` | i | Completion: open menu or toggle docs                                             | `show / show_documentation / hide_docume…` |  |
 
 ### lua/plugins/dap_ui.lua <a id="file-luapluginsdap-uilua"></a>
 
@@ -271,44 +347,13 @@ Configures: `history-traverse`
 | `gj` | n | History: go back                                                                 | `<cmd>HisTravBack<cr>`                   |  |
 | `gk` | n | History: go forward                                                              | `<cmd>HisTravForward<cr>`                |  |
 
-### lua/plugins/hydra.lua <a id="file-luapluginshydralua"></a>
-
-Configures: `hydra.nvim`
-
-| Key | Mode | Description                                                                      | Action                                   | Implicit |
-| --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- |
-| `S` | n | Open treewalker hydra (also disables default S)                                  | `activate treewalker hydra`              |  |
-| `s =+ / s ++` | n | Hydra: previous assignment                                                       | `goto_prev_start @assignment.outer`      |  |
-| `s ==` | n | Hydra: next assignment                                                           | `goto_next_start @assignment.outer`      |  |
-| `s =l` | n | Hydra: next assignment LHS                                                       | `goto_next_start @assignment.lhs`        |  |
-| `s =L / s +L` | n | Hydra: previous assignment LHS                                                   | `goto_prev_start @assignment.lhs`        |  |
-| `s =r` | n | Hydra: next assignment RHS                                                       | `goto_next_start @assignment.rhs`        |  |
-| `s =R / s +R` | n | Hydra: previous assignment RHS                                                   | `goto_prev_start @assignment.rhs`        |  |
-| `s a / s A` | n | Hydra: next/previous parameter (outer)                                           | `goto next/prev @parameter.outer`        |  |
-| `s b / s B` | n | Hydra: next/previous block                                                       | `goto next/prev @block.outer`            |  |
-| `s c / s C` | n | Hydra: next/previous comment                                                     | `goto next/prev @comment.outer`          |  |
-| `s f / s F` | n | Hydra: next/previous call                                                        | `goto next/prev @call.outer`             |  |
-| `s h` | n | Treewalker: move left                                                            | `<cmd>Treewalker Left<cr>`               |  |
-| `s i / s I` | n | Hydra: next/previous conditional (outer)                                         | `goto next/prev @conditional.outer`      |  |
-| `s j` | n | Treewalker: move down                                                            | `<cmd>Treewalker Down<cr>`               |  |
-| `s k` | n | Treewalker: move up                                                              | `<cmd>Treewalker Up<cr>`                 |  |
-| `s l` | n | Treewalker: move right                                                           | `<cmd>Treewalker Right<cr>`              |  |
-| `s m / s M` | n | Hydra: next/previous function                                                    | `goto next/prev @function.outer`         |  |
-| `s n / s N` | n | Hydra: next/previous number                                                      | `goto next/prev @number.inner`           |  |
-| `s o / s O` | n | Hydra: next/previous conditional (inner)                                         | `goto next/prev @conditional.inner`      |  |
-| `s p / s P` | n | Hydra: next/previous parameter (inner)                                           | `goto next/prev @parameter.inner`        |  |
-| `s r / s R` | n | Hydra: next/previous return                                                      | `goto next/prev @return.outer`           |  |
-| `s t / s T` | n | Hydra: next/previous class                                                       | `goto next/prev @class.outer`            |  |
-| `s v / s V` | n | Hydra: next block (outer/inner)                                                  | `goto next @block.outer / @block.inner`  |  |
-| `s w / s W` | n | Hydra: next/previous loop                                                        | `goto next/prev @loop.outer`             |  |
-
 ### lua/plugins/linter.lua <a id="file-luapluginslinterlua"></a>
 
 Configures: `nvim-lint`
 
 | Key | Mode | Description                                                                      | Action                                   | Implicit |
 | --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- |
-| `<leader>cl` | n | Trigger linting (conflicts with LSP CodeLens)                                    | `lint.try_lint`                          |  |
+| `<leader>cl` | n | Trigger linting                                                                  | `lint.try_lint`                          |  |
 
 ### lua/plugins/lsp-saga.lua <a id="file-luapluginslsp-sagalua"></a>
 
@@ -318,8 +363,7 @@ Configures: `lspsaga.nvim`
 | --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- |
 | `<C-F14>` | n | Go to previous diagnostic                                                        | `:Lspsaga diagnostic_jump_prev<CR>`      |  |
 | `<F14>` | n | Go to next diagnostic                                                            | `:Lspsaga diagnostic_jump_next<CR>`      |  |
-| `<F15>t` | n | Toggle diagnostic virtual lines                                                  | `toggle diagnostic virtual_lines`        |  |
-| `<leader>ca` | n | LSP: code action (Lspsaga)                                                       | `:Lspsaga code_action<CR>`               |  |
+| `<leader>la` | n | LSP: code action (Lspsaga)                                                       | `:Lspsaga code_action<CR>`               |  |
 
 ### lua/plugins/lspconfig.lua <a id="file-luapluginslspconfiglua"></a>
 
@@ -327,11 +371,10 @@ Configures: `nvim-lspconfig`
 
 | Key | Mode | Description                                                                      | Action                                   | Implicit |
 | --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- |
-| `<leader>cl` | n | LSP: run CodeLens action (conflicts with nvim-lint)                              | `vim.lsp.codelens.run`                   |  |
-| `<leader>cL` | n | LSP: toggle CodeLenses                                                           | `toggle codelens_enabled`                |  |
-| `<leader>ih` | n | LSP: toggle inlay hints                                                          | `toggle inlay hints`                     |  |
-| `<leader>rr` | n | LSP: rename symbol                                                               | `vim.lsp.buf.rename`                     |  |
-| `<leader>rSS` | n | LSP: restart                                                                     | `<cmd>LspRestart<CR>`                    |  |
+| `<C-s>` | i | LSP: signature help                                                              | `vim.lsp.buf.signature_help`             |  |
+| `<leader>lc` | n | LSP: run CodeLens action                                                         | `vim.lsp.codelens.run`                   |  |
+| `<leader>lr` | n | LSP: rename symbol                                                               | `vim.lsp.buf.rename`                     |  |
+| `<leader>lSr` | n | LSP: restart                                                                     | `<cmd>lsp restart<CR>`                   |  |
 | `gD` | n | LSP: go to declaration                                                           | `vim.lsp.buf.declaration`                |  |
 | `gd` | n | LSP: definitions (Telescope)                                                     | `<cmd>Telescope lsp_definitions<CR>`     |  |
 | `gi` | n | LSP: implementations (Telescope)                                                 | `<cmd>Telescope lsp_implementations<CR>` |  |
@@ -472,12 +515,10 @@ Configures: `trouble.nvim`
 
 | Key | Mode | Description                                                                      | Action                                   | Implicit |
 | --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- |
-| `<F15>d` | n | Trouble: diagnostics                                                             | `<cmd>Trouble diagnostics toggle<cr>`    |  |
-| `<F15>D` | n | Trouble: buffer diagnostics                                                      | `<cmd>Trouble diagnostics toggle filter.…` |  |
-| `<F15>L` | n | Trouble: location list                                                           | `<cmd>Trouble loclist toggle<cr>`        |  |
-| `<F15>q` | n | Trouble: quickfix list                                                           | `<cmd>Trouble qflist toggle<cr>`         |  |
-| `<leader>l` | n | Trouble: LSP definitions/references                                              | `<cmd>Trouble lsp toggle focus=false win…` |  |
-| `<leader>s` | n | Trouble: document symbols                                                        | `<cmd>Trouble symbols toggle focus=false…` |  |
+| `<leader>lo` | n | Trouble: location list                                                           | `<cmd>Trouble loclist toggle<cr>`        |  |
+| `<leader>lq` | n | Trouble: quickfix list                                                           | `<cmd>Trouble qflist toggle<cr>`         |  |
+| `<leader>ls` | n | Trouble: document symbols                                                        | `<cmd>Trouble symbols toggle focus=false…` |  |
+| `<leader>lSl` | n | Trouble: LSP definitions/references                                              | `<cmd>Trouble lsp toggle focus=false win…` |  |
 
 ### lua/plugins/whichkey.lua <a id="file-luapluginswhichkeylua"></a>
 
@@ -501,8 +542,7 @@ Defined in: `lua/plugins/blinkcmp.lua`; includes 12 implicit default(s) 🔸
 | --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- |
 | `<C-b>` | i | Completion: scroll documentation up                                              | `scroll_documentation_up / fallback`     |  |
 | `<C-f>` | i | Completion: scroll documentation down                                            | `scroll_documentation_down / fallback`   |  |
-| `C-s` | i | Completion: open menu or toggle docs (verbatim config key)                       | `show / show_documentation / hide_docume…` |  |
-| `C-space` | i | Completion: open menu or toggle docs (verbatim config key)                       | `show / show_documentation / hide_docume…` |  |
+| `<C-space>` | i | Completion: open menu or toggle docs                                             | `show / show_documentation / hide_docume…` |  |
 | `<C-b>` | i | Completion: scroll documentation up                                              | `scroll docs up`                         | 🔸 |
 | `<C-e>` | i | Completion: cancel / hide menu                                                   | `hide menu`                              | 🔸 |
 | `<C-f>` | i | Completion: scroll documentation down                                            | `scroll docs down`                       | 🔸 |
@@ -671,34 +711,71 @@ Defined in: `lua/plugins/history-traverse.lua`
 
 ### hydra.nvim <a id="plugin-hydranvim"></a>
 
-Defined in: `lua/plugins/hydra.lua`
+Defined in: `lua/config/hydra-codenav.lua`, `lua/config/hydra-diagnostics.lua`
 
 | Key | Mode | Description                                                                      | Action                                   | Implicit |
 | --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- |
-| `S` | n | Open treewalker hydra (also disables default S)                                  | `activate treewalker hydra`              |  |
-| `s =+ / s ++` | n | Hydra: previous assignment                                                       | `goto_prev_start @assignment.outer`      |  |
-| `s ==` | n | Hydra: next assignment                                                           | `goto_next_start @assignment.outer`      |  |
-| `s =l` | n | Hydra: next assignment LHS                                                       | `goto_next_start @assignment.lhs`        |  |
-| `s =L / s +L` | n | Hydra: previous assignment LHS                                                   | `goto_prev_start @assignment.lhs`        |  |
-| `s =r` | n | Hydra: next assignment RHS                                                       | `goto_next_start @assignment.rhs`        |  |
-| `s =R / s +R` | n | Hydra: previous assignment RHS                                                   | `goto_prev_start @assignment.rhs`        |  |
-| `s a / s A` | n | Hydra: next/previous parameter (outer)                                           | `goto next/prev @parameter.outer`        |  |
-| `s b / s B` | n | Hydra: next/previous block                                                       | `goto next/prev @block.outer`            |  |
-| `s c / s C` | n | Hydra: next/previous comment                                                     | `goto next/prev @comment.outer`          |  |
-| `s f / s F` | n | Hydra: next/previous call                                                        | `goto next/prev @call.outer`             |  |
-| `s h` | n | Treewalker: move left                                                            | `<cmd>Treewalker Left<cr>`               |  |
-| `s i / s I` | n | Hydra: next/previous conditional (outer)                                         | `goto next/prev @conditional.outer`      |  |
-| `s j` | n | Treewalker: move down                                                            | `<cmd>Treewalker Down<cr>`               |  |
-| `s k` | n | Treewalker: move up                                                              | `<cmd>Treewalker Up<cr>`                 |  |
-| `s l` | n | Treewalker: move right                                                           | `<cmd>Treewalker Right<cr>`              |  |
-| `s m / s M` | n | Hydra: next/previous function                                                    | `goto next/prev @function.outer`         |  |
-| `s n / s N` | n | Hydra: next/previous number                                                      | `goto next/prev @number.inner`           |  |
-| `s o / s O` | n | Hydra: next/previous conditional (inner)                                         | `goto next/prev @conditional.inner`      |  |
-| `s p / s P` | n | Hydra: next/previous parameter (inner)                                           | `goto next/prev @parameter.inner`        |  |
-| `s r / s R` | n | Hydra: next/previous return                                                      | `goto next/prev @return.outer`           |  |
-| `s t / s T` | n | Hydra: next/previous class                                                       | `goto next/prev @class.outer`            |  |
-| `s v / s V` | n | Hydra: next block (outer/inner)                                                  | `goto next @block.outer / @block.inner`  |  |
-| `s w / s W` | n | Hydra: next/previous loop                                                        | `goto next/prev @loop.outer`             |  |
+| `++` | hydra(treewalker) | Previous assignment (outer) (alias of =+)                                        | `goto_previous_start @assignment.outer`  |  |
+| `+L` | hydra(treewalker) | Previous assignment (lhs) (alias of =L)                                          | `goto_previous_start @assignment.lhs`    |  |
+| `+R` | hydra(treewalker) | Previous assignment (rhs) (alias of =R)                                          | `goto_previous_start @assignment.rhs`    |  |
+| `<Esc>` | hydra(diagnostics) | Leave the hydra                                                                  | `exit hydra`                             |  |
+| `<leader>ld` | n → hydra(diagnostics) | Enter the red hydra "diagnostics"                                                | `enter hydra`                            |  |
+| `=+` | hydra(treewalker) | Previous assignment (outer)                                                      | `goto_previous_start @assignment.outer`  |  |
+| `==` | hydra(treewalker) | Next assignment (outer)                                                          | `goto_next_start @assignment.outer`      |  |
+| `=l` | hydra(treewalker) | Next assignment (lhs)                                                            | `goto_next_start @assignment.lhs`        |  |
+| `=L` | hydra(treewalker) | Previous assignment (lhs)                                                        | `goto_previous_start @assignment.lhs`    |  |
+| `=r` | hydra(treewalker) | Next assignment (rhs)                                                            | `goto_next_start @assignment.rhs`        |  |
+| `=R` | hydra(treewalker) | Previous assignment (rhs)                                                        | `goto_previous_start @assignment.rhs`    |  |
+| `a` | hydra(treewalker) | Next parameter (outer)                                                           | `goto_next_start @parameter.outer`       |  |
+| `A` | hydra(treewalker) | Previous parameter (outer)                                                       | `goto_previous_start @parameter.outer`   |  |
+| `b` | hydra(treewalker) | Next block (outer)                                                               | `goto_next_start @block.outer`           |  |
+| `B` | hydra(treewalker) | Previous block (outer)                                                           | `goto_previous_start @block.outer`       |  |
+| `b` | hydra(diagnostics) | Toggle scope (buffer/project)                                                    | `toggle scope buffer/project`            |  |
+| `c` | hydra(treewalker) | Next comment (outer)                                                             | `goto_next_start @comment.outer`         |  |
+| `C` | hydra(treewalker) | Previous comment (outer)                                                         | `goto_previous_start @comment.outer`     |  |
+| `d` | hydra(diagnostics) | Next diagnostic                                                                  | `goto next diagnostic`                   |  |
+| `D` | hydra(diagnostics) | Previous diagnostic                                                              | `goto previous diagnostic`               |  |
+| `e` | hydra(diagnostics) | Next error                                                                       | `goto next ERROR diagnostic`             |  |
+| `E` | hydra(diagnostics) | Previous error                                                                   | `goto previous ERROR diagnostic`         |  |
+| `f` | hydra(treewalker) | Next call (outer)                                                                | `goto_next_start @call.outer`            |  |
+| `F` | hydra(treewalker) | Previous call (outer)                                                            | `goto_previous_start @call.outer`        |  |
+| `h` | hydra(treewalker) | Move left / ascend                                                               | `<cmd>Treewalker Left<cr>`               |  |
+| `h` | hydra(diagnostics) | Next hint                                                                        | `goto next HINT diagnostic`              |  |
+| `H` | hydra(diagnostics) | Previous hint                                                                    | `goto previous HINT diagnostic`          |  |
+| `i` | hydra(treewalker) | Next conditional (outer)                                                         | `goto_next_start @conditional.outer`     |  |
+| `I` | hydra(treewalker) | Previous conditional (outer)                                                     | `goto_previous_start @conditional.outer` |  |
+| `i` | hydra(diagnostics) | Next info                                                                        | `goto next INFO diagnostic`              |  |
+| `I` | hydra(diagnostics) | Previous info                                                                    | `goto previous INFO diagnostic`          |  |
+| `j` | hydra(treewalker) | Move down a sibling node                                                         | `<cmd>Treewalker Down<cr>`               |  |
+| `k` | hydra(treewalker) | Move up a sibling node                                                           | `<cmd>Treewalker Up<cr>`                 |  |
+| `l` | hydra(treewalker) | Move right / descend                                                             | `<cmd>Treewalker Right<cr>`              |  |
+| `m` | hydra(treewalker) | Next function (outer)                                                            | `goto_next_start @function.outer`        |  |
+| `M` | hydra(treewalker) | Previous function (outer)                                                        | `goto_previous_start @function.outer`    |  |
+| `n` | hydra(treewalker) | Next number (inner)                                                              | `goto_next_start @number.inner`          |  |
+| `N` | hydra(treewalker) | Previous number (inner)                                                          | `goto_previous_start @number.inner`      |  |
+| `o` | hydra(treewalker) | Next conditional (inner)                                                         | `goto_next_start @conditional.inner`     |  |
+| `O` | hydra(treewalker) | Previous conditional (inner)                                                     | `goto_previous_start @conditional.inner` |  |
+| `p` | hydra(treewalker) | Next parameter (inner)                                                           | `goto_next_start @parameter.inner`       |  |
+| `P` | hydra(treewalker) | Previous parameter (inner)                                                       | `goto_previous_start @parameter.inner`   |  |
+| `q` | hydra(diagnostics) | Leave the hydra                                                                  | `exit hydra`                             |  |
+| `r` | hydra(treewalker) | Next return (outer)                                                              | `goto_next_start @return.outer`          |  |
+| `R` | hydra(treewalker) | Previous return (outer)                                                          | `goto_previous_start @return.outer`      |  |
+| `S` | n → hydra(treewalker) | Enter the pink hydra "treewalker" (also unbinds the default S)                   | `enter hydra`                            |  |
+| `t` | hydra(treewalker) | Next class (outer)                                                               | `goto_next_start @class.outer`           |  |
+| `T` | hydra(treewalker) | Previous class (outer)                                                           | `goto_previous_start @class.outer`       |  |
+| `tc` | hydra(diagnostics) | Toggle CodeLenses                                                                | `toggle codelens_enabled`                |  |
+| `ti` | hydra(diagnostics) | Toggle inlay hints                                                               | `toggle inlay hints`                     |  |
+| `tv` | hydra(diagnostics) | Toggle virtual_lines                                                             | `toggle diagnostic virtual_lines`        |  |
+| `v` | hydra(treewalker) | Next block (outer)                                                               | `goto_next_start @block.outer`           |  |
+| `V` | hydra(treewalker) | Previous block (inner)                                                           | `goto_previous_start @block.inner`       |  |
+| `w` | hydra(treewalker) | Next loop (outer)                                                                | `goto_next_start @loop.outer`            |  |
+| `W` | hydra(treewalker) | Previous loop (outer)                                                            | `goto_previous_start @loop.outer`        |  |
+| `w` | hydra(diagnostics) | Next warning                                                                     | `goto next WARN diagnostic`              |  |
+| `W` | hydra(diagnostics) | Previous warning                                                                 | `goto previous WARN diagnostic`          |  |
+| `x` | hydra(diagnostics) | Trouble diagnostics (workspace)                                                  | `<cmd>Trouble diagnostics toggle<cr>`    |  |
+| `X` | hydra(diagnostics) | Trouble diagnostics (buffer)                                                     | `<cmd>Trouble diagnostics toggle filter.…` |  |
+| `{` | hydra(diagnostics) | First diagnostic                                                                 | `goto first diagnostic`                  |  |
+| `}` | hydra(diagnostics) | Last diagnostic                                                                  | `goto last diagnostic`                   |  |
 
 ### lspsaga.nvim <a id="plugin-lspsaganvim"></a>
 
@@ -708,8 +785,7 @@ Defined in: `lua/plugins/lsp-saga.lua`
 | --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- |
 | `<C-F14>` | n | Go to previous diagnostic                                                        | `:Lspsaga diagnostic_jump_prev<CR>`      |  |
 | `<F14>` | n | Go to next diagnostic                                                            | `:Lspsaga diagnostic_jump_next<CR>`      |  |
-| `<F15>t` | n | Toggle diagnostic virtual lines                                                  | `toggle diagnostic virtual_lines`        |  |
-| `<leader>ca` | n | LSP: code action (Lspsaga)                                                       | `:Lspsaga code_action<CR>`               |  |
+| `<leader>la` | n | LSP: code action (Lspsaga)                                                       | `:Lspsaga code_action<CR>`               |  |
 
 ### mini.ai <a id="plugin-miniai"></a>
 
@@ -789,7 +865,7 @@ Defined in: `lua/plugins/linter.lua`
 
 | Key | Mode | Description                                                                      | Action                                   | Implicit |
 | --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- |
-| `<leader>cl` | n | Trigger linting (conflicts with LSP CodeLens)                                    | `lint.try_lint`                          |  |
+| `<leader>cl` | n | Trigger linting                                                                  | `lint.try_lint`                          |  |
 
 ### nvim-lspconfig <a id="plugin-nvim-lspconfig"></a>
 
@@ -797,11 +873,10 @@ Defined in: `lua/plugins/lspconfig.lua`
 
 | Key | Mode | Description                                                                      | Action                                   | Implicit |
 | --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- |
-| `<leader>cl` | n | LSP: run CodeLens action (conflicts with nvim-lint)                              | `vim.lsp.codelens.run`                   |  |
-| `<leader>cL` | n | LSP: toggle CodeLenses                                                           | `toggle codelens_enabled`                |  |
-| `<leader>ih` | n | LSP: toggle inlay hints                                                          | `toggle inlay hints`                     |  |
-| `<leader>rr` | n | LSP: rename symbol                                                               | `vim.lsp.buf.rename`                     |  |
-| `<leader>rSS` | n | LSP: restart                                                                     | `<cmd>LspRestart<CR>`                    |  |
+| `<C-s>` | i | LSP: signature help                                                              | `vim.lsp.buf.signature_help`             |  |
+| `<leader>lc` | n | LSP: run CodeLens action                                                         | `vim.lsp.codelens.run`                   |  |
+| `<leader>lr` | n | LSP: rename symbol                                                               | `vim.lsp.buf.rename`                     |  |
+| `<leader>lSr` | n | LSP: restart                                                                     | `<cmd>lsp restart<CR>`                   |  |
 | `gD` | n | LSP: go to declaration                                                           | `vim.lsp.buf.declaration`                |  |
 | `gd` | n | LSP: definitions (Telescope)                                                     | `<cmd>Telescope lsp_definitions<CR>`     |  |
 | `gi` | n | LSP: implementations (Telescope)                                                 | `<cmd>Telescope lsp_implementations<CR>` |  |
@@ -975,12 +1050,10 @@ Defined in: `lua/plugins/trouble.lua`; includes 11 implicit default(s) 🔸
 
 | Key | Mode | Description                                                                      | Action                                   | Implicit |
 | --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- |
-| `<F15>d` | n | Trouble: diagnostics                                                             | `<cmd>Trouble diagnostics toggle<cr>`    |  |
-| `<F15>D` | n | Trouble: buffer diagnostics                                                      | `<cmd>Trouble diagnostics toggle filter.…` |  |
-| `<F15>L` | n | Trouble: location list                                                           | `<cmd>Trouble loclist toggle<cr>`        |  |
-| `<F15>q` | n | Trouble: quickfix list                                                           | `<cmd>Trouble qflist toggle<cr>`         |  |
-| `<leader>l` | n | Trouble: LSP definitions/references                                              | `<cmd>Trouble lsp toggle focus=false win…` |  |
-| `<leader>s` | n | Trouble: document symbols                                                        | `<cmd>Trouble symbols toggle focus=false…` |  |
+| `<leader>lo` | n | Trouble: location list                                                           | `<cmd>Trouble loclist toggle<cr>`        |  |
+| `<leader>lq` | n | Trouble: quickfix list                                                           | `<cmd>Trouble qflist toggle<cr>`         |  |
+| `<leader>ls` | n | Trouble: document symbols                                                        | `<cmd>Trouble symbols toggle focus=false…` |  |
+| `<leader>lSl` | n | Trouble: LSP definitions/references                                              | `<cmd>Trouble lsp toggle focus=false win…` |  |
 | `<C-s>` | n | Trouble window: jump in horizontal split                                         | `jump (horizontal split)`                | 🔸 |
 | `<C-v>` | n | Trouble window: jump in vertical split                                           | `jump (vertical split)`                  | 🔸 |
 | `<CR>` | n | Trouble window: jump to item                                                     | `jump`                                   | 🔸 |
@@ -1090,14 +1163,13 @@ plugin.
 | `<C-k>` | i | Completion: toggle signature help                                                | `toggle signature help`                  | `blink.cmp` | 🔸 |
 | `<C-n>` | i | Completion: select next item                                                     | `select next`                            | `blink.cmp` | 🔸 |
 | `<C-p>` | i | Completion: select previous item                                                 | `select previous`                        | `blink.cmp` | 🔸 |
+| `<C-space>` | i | Completion: open menu or toggle docs                                             | `show / show_documentation / hide_docume…` | `blink.cmp` |  |
 | `<C-space>` | i | Completion: open menu or toggle docs                                             | `show menu / toggle docs`                | `blink.cmp` | 🔸 |
 | `<C-y>` | i | Completion: accept selected item                                                 | `accept item`                            | `blink.cmp` | 🔸 |
 | `<Down>` | i | Completion: select next item                                                     | `select next`                            | `blink.cmp` | 🔸 |
 | `<S-Tab>` | i | Completion: jump to previous snippet placeholder                                 | `prev snippet placeholder`               | `blink.cmp` | 🔸 |
 | `<Tab>` | i | Completion: jump to next snippet placeholder                                     | `next snippet placeholder`               | `blink.cmp` | 🔸 |
 | `<Up>` | i | Completion: select previous item                                                 | `select previous`                        | `blink.cmp` | 🔸 |
-| `C-s` | i | Completion: open menu or toggle docs (verbatim config key)                       | `show / show_documentation / hide_docume…` | `blink.cmp` |  |
-| `C-space` | i | Completion: open menu or toggle docs (verbatim config key)                       | `show / show_documentation / hide_docume…` | `blink.cmp` |  |
 
 ### Copilot <a id="group-copilot"></a>
 
@@ -1143,14 +1215,11 @@ plugin.
 | `<C-v>` | n | Trouble window: jump in vertical split                                           | `jump (vertical split)`                  | `trouble.nvim` | 🔸 |
 | `<CR>` | n | Trouble window: jump to item                                                     | `jump`                                   | `trouble.nvim` | 🔸 |
 | `<F14>` | n | Go to next diagnostic                                                            | `:Lspsaga diagnostic_jump_next<CR>`      | `lspsaga.nvim` |  |
-| `<F15>d` | n | Trouble: diagnostics                                                             | `<cmd>Trouble diagnostics toggle<cr>`    | `trouble.nvim` |  |
-| `<F15>D` | n | Trouble: buffer diagnostics                                                      | `<cmd>Trouble diagnostics toggle filter.…` | `trouble.nvim` |  |
-| `<F15>L` | n | Trouble: location list                                                           | `<cmd>Trouble loclist toggle<cr>`        | `trouble.nvim` |  |
-| `<F15>q` | n | Trouble: quickfix list                                                           | `<cmd>Trouble qflist toggle<cr>`         | `trouble.nvim` |  |
-| `<F15>t` | n | Toggle diagnostic virtual lines                                                  | `toggle diagnostic virtual_lines`        | `lspsaga.nvim` |  |
-| `<leader>cl` | n | Trigger linting (conflicts with LSP CodeLens)                                    | `lint.try_lint`                          | `nvim-lint` |  |
-| `<leader>l` | n | Trouble: LSP definitions/references                                              | `<cmd>Trouble lsp toggle focus=false win…` | `trouble.nvim` |  |
-| `<leader>s` | n | Trouble: document symbols                                                        | `<cmd>Trouble symbols toggle focus=false…` | `trouble.nvim` |  |
+| `<leader>cl` | n | Trigger linting                                                                  | `lint.try_lint`                          | `nvim-lint` |  |
+| `<leader>lo` | n | Trouble: location list                                                           | `<cmd>Trouble loclist toggle<cr>`        | `trouble.nvim` |  |
+| `<leader>lq` | n | Trouble: quickfix list                                                           | `<cmd>Trouble qflist toggle<cr>`         | `trouble.nvim` |  |
+| `<leader>ls` | n | Trouble: document symbols                                                        | `<cmd>Trouble symbols toggle focus=false…` | `trouble.nvim` |  |
+| `<leader>lSl` | n | Trouble: LSP definitions/references                                              | `<cmd>Trouble lsp toggle focus=false win…` | `trouble.nvim` |  |
 | `?` | n | Trouble window: show help                                                        | `help`                                   | `trouble.nvim` | 🔸 |
 | `o` | n | Trouble window: jump to item and close                                           | `jump + close`                           | `trouble.nvim` | 🔸 |
 | `p` | n | Trouble window: preview item                                                     | `preview`                                | `trouble.nvim` | 🔸 |
@@ -1159,6 +1228,32 @@ plugin.
 | `r` | n | Trouble window: refresh                                                          | `refresh`                                | `trouble.nvim` | 🔸 |
 | `{` | n | Trouble window: previous item                                                    | `previous item`                          | `trouble.nvim` | 🔸 |
 | `}` | n | Trouble window: next item                                                        | `next item`                              | `trouble.nvim` | 🔸 |
+
+### Diagnostics Hydra <a id="group-diagnostics-hydra"></a>
+
+| Key | Mode | Description                                                                      | Action                                   | Plugin | Implicit |
+| --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- | --- |
+| `<Esc>` | hydra(diagnostics) | Leave the hydra                                                                  | `exit hydra`                             | `hydra.nvim` |  |
+| `<leader>ld` | n → hydra(diagnostics) | Enter the red hydra "diagnostics"                                                | `enter hydra`                            | `hydra.nvim` |  |
+| `b` | hydra(diagnostics) | Toggle scope (buffer/project)                                                    | `toggle scope buffer/project`            | `hydra.nvim` |  |
+| `d` | hydra(diagnostics) | Next diagnostic                                                                  | `goto next diagnostic`                   | `hydra.nvim` |  |
+| `D` | hydra(diagnostics) | Previous diagnostic                                                              | `goto previous diagnostic`               | `hydra.nvim` |  |
+| `e` | hydra(diagnostics) | Next error                                                                       | `goto next ERROR diagnostic`             | `hydra.nvim` |  |
+| `E` | hydra(diagnostics) | Previous error                                                                   | `goto previous ERROR diagnostic`         | `hydra.nvim` |  |
+| `h` | hydra(diagnostics) | Next hint                                                                        | `goto next HINT diagnostic`              | `hydra.nvim` |  |
+| `H` | hydra(diagnostics) | Previous hint                                                                    | `goto previous HINT diagnostic`          | `hydra.nvim` |  |
+| `i` | hydra(diagnostics) | Next info                                                                        | `goto next INFO diagnostic`              | `hydra.nvim` |  |
+| `I` | hydra(diagnostics) | Previous info                                                                    | `goto previous INFO diagnostic`          | `hydra.nvim` |  |
+| `q` | hydra(diagnostics) | Leave the hydra                                                                  | `exit hydra`                             | `hydra.nvim` |  |
+| `tc` | hydra(diagnostics) | Toggle CodeLenses                                                                | `toggle codelens_enabled`                | `hydra.nvim` |  |
+| `ti` | hydra(diagnostics) | Toggle inlay hints                                                               | `toggle inlay hints`                     | `hydra.nvim` |  |
+| `tv` | hydra(diagnostics) | Toggle virtual_lines                                                             | `toggle diagnostic virtual_lines`        | `hydra.nvim` |  |
+| `w` | hydra(diagnostics) | Next warning                                                                     | `goto next WARN diagnostic`              | `hydra.nvim` |  |
+| `W` | hydra(diagnostics) | Previous warning                                                                 | `goto previous WARN diagnostic`          | `hydra.nvim` |  |
+| `x` | hydra(diagnostics) | Trouble diagnostics (workspace)                                                  | `<cmd>Trouble diagnostics toggle<cr>`    | `hydra.nvim` |  |
+| `X` | hydra(diagnostics) | Trouble diagnostics (buffer)                                                     | `<cmd>Trouble diagnostics toggle filter.…` | `hydra.nvim` |  |
+| `{` | hydra(diagnostics) | First diagnostic                                                                 | `goto first diagnostic`                  | `hydra.nvim` |  |
+| `}` | hydra(diagnostics) | Last diagnostic                                                                  | `goto last diagnostic`                   | `hydra.nvim` |  |
 
 ### Editing <a id="group-editing"></a>
 
@@ -1374,12 +1469,11 @@ plugin.
 
 | Key | Mode | Description                                                                      | Action                                   | Plugin | Implicit |
 | --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- | --- |
-| `<leader>ca` | n | LSP: code action (Lspsaga)                                                       | `:Lspsaga code_action<CR>`               | `lspsaga.nvim` |  |
-| `<leader>cl` | n | LSP: run CodeLens action (conflicts with nvim-lint)                              | `vim.lsp.codelens.run`                   | `nvim-lspconfig` |  |
-| `<leader>cL` | n | LSP: toggle CodeLenses                                                           | `toggle codelens_enabled`                | `nvim-lspconfig` |  |
-| `<leader>ih` | n | LSP: toggle inlay hints                                                          | `toggle inlay hints`                     | `nvim-lspconfig` |  |
-| `<leader>rr` | n | LSP: rename symbol                                                               | `vim.lsp.buf.rename`                     | `nvim-lspconfig` |  |
-| `<leader>rSS` | n | LSP: restart                                                                     | `<cmd>LspRestart<CR>`                    | `nvim-lspconfig` |  |
+| `<C-s>` | i | LSP: signature help                                                              | `vim.lsp.buf.signature_help`             | `nvim-lspconfig` |  |
+| `<leader>la` | n | LSP: code action (Lspsaga)                                                       | `:Lspsaga code_action<CR>`               | `lspsaga.nvim` |  |
+| `<leader>lc` | n | LSP: run CodeLens action                                                         | `vim.lsp.codelens.run`                   | `nvim-lspconfig` |  |
+| `<leader>lr` | n | LSP: rename symbol                                                               | `vim.lsp.buf.rename`                     | `nvim-lspconfig` |  |
+| `<leader>lSr` | n | LSP: restart                                                                     | `<cmd>lsp restart<CR>`                   | `nvim-lspconfig` |  |
 | `gD` | n | LSP: go to declaration                                                           | `vim.lsp.buf.declaration`                | `nvim-lspconfig` |  |
 | `gd` | n | LSP: definitions (Telescope)                                                     | `<cmd>Telescope lsp_definitions<CR>`     | `nvim-lspconfig` |  |
 | `gi` | n | LSP: implementations (Telescope)                                                 | `<cmd>Telescope lsp_implementations<CR>` | `nvim-lspconfig` |  |
@@ -1408,7 +1502,7 @@ plugin.
 | `<C-g>` | n | Show file name and status                                                        | `(misc)`                                 | _core_ | 🔹 |
 | `<C-l>` | n | Redraw screen                                                                    | `(misc)`                                 | _core_ | 🔹 |
 | `<leader><leader>sn` | n | Show notification history                                                        | `Snacks.notifier.show_history()`         | `snacks.nvim` |  |
-| `<leader>ll` | n | Open Lazy plugin manager                                                         | `<cmd>Lazy<CR>`                          | _core_ |  |
+| `<leader>L` | n | Open Lazy plugin manager                                                         | `<cmd>Lazy<CR>`                          | _core_ |  |
 | `ga` | n | Show character codes under cursor                                                | `(misc)`                                 | _core_ | 🔹 |
 | `ZQ` | n | Quit without writing                                                             | `(misc)`                                 | _core_ | 🔹 |
 | `ZZ` | n | Write file and quit                                                              | `(misc)`                                 | _core_ | 🔹 |
@@ -1614,30 +1708,46 @@ plugin.
 
 | Key | Mode | Description                                                                      | Action                                   | Plugin | Implicit |
 | --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- | --- |
-| `S` | n | Open treewalker hydra (also disables default S)                                  | `activate treewalker hydra`              | `hydra.nvim` |  |
-| `s =+ / s ++` | n | Hydra: previous assignment                                                       | `goto_prev_start @assignment.outer`      | `hydra.nvim` |  |
-| `s ==` | n | Hydra: next assignment                                                           | `goto_next_start @assignment.outer`      | `hydra.nvim` |  |
-| `s =l` | n | Hydra: next assignment LHS                                                       | `goto_next_start @assignment.lhs`        | `hydra.nvim` |  |
-| `s =L / s +L` | n | Hydra: previous assignment LHS                                                   | `goto_prev_start @assignment.lhs`        | `hydra.nvim` |  |
-| `s =r` | n | Hydra: next assignment RHS                                                       | `goto_next_start @assignment.rhs`        | `hydra.nvim` |  |
-| `s =R / s +R` | n | Hydra: previous assignment RHS                                                   | `goto_prev_start @assignment.rhs`        | `hydra.nvim` |  |
-| `s a / s A` | n | Hydra: next/previous parameter (outer)                                           | `goto next/prev @parameter.outer`        | `hydra.nvim` |  |
-| `s b / s B` | n | Hydra: next/previous block                                                       | `goto next/prev @block.outer`            | `hydra.nvim` |  |
-| `s c / s C` | n | Hydra: next/previous comment                                                     | `goto next/prev @comment.outer`          | `hydra.nvim` |  |
-| `s f / s F` | n | Hydra: next/previous call                                                        | `goto next/prev @call.outer`             | `hydra.nvim` |  |
-| `s h` | n | Treewalker: move left                                                            | `<cmd>Treewalker Left<cr>`               | `hydra.nvim` |  |
-| `s i / s I` | n | Hydra: next/previous conditional (outer)                                         | `goto next/prev @conditional.outer`      | `hydra.nvim` |  |
-| `s j` | n | Treewalker: move down                                                            | `<cmd>Treewalker Down<cr>`               | `hydra.nvim` |  |
-| `s k` | n | Treewalker: move up                                                              | `<cmd>Treewalker Up<cr>`                 | `hydra.nvim` |  |
-| `s l` | n | Treewalker: move right                                                           | `<cmd>Treewalker Right<cr>`              | `hydra.nvim` |  |
-| `s m / s M` | n | Hydra: next/previous function                                                    | `goto next/prev @function.outer`         | `hydra.nvim` |  |
-| `s n / s N` | n | Hydra: next/previous number                                                      | `goto next/prev @number.inner`           | `hydra.nvim` |  |
-| `s o / s O` | n | Hydra: next/previous conditional (inner)                                         | `goto next/prev @conditional.inner`      | `hydra.nvim` |  |
-| `s p / s P` | n | Hydra: next/previous parameter (inner)                                           | `goto next/prev @parameter.inner`        | `hydra.nvim` |  |
-| `s r / s R` | n | Hydra: next/previous return                                                      | `goto next/prev @return.outer`           | `hydra.nvim` |  |
-| `s t / s T` | n | Hydra: next/previous class                                                       | `goto next/prev @class.outer`            | `hydra.nvim` |  |
-| `s v / s V` | n | Hydra: next block (outer/inner)                                                  | `goto next @block.outer / @block.inner`  | `hydra.nvim` |  |
-| `s w / s W` | n | Hydra: next/previous loop                                                        | `goto next/prev @loop.outer`             | `hydra.nvim` |  |
+| `++` | hydra(treewalker) | Previous assignment (outer) (alias of =+)                                        | `goto_previous_start @assignment.outer`  | `hydra.nvim` |  |
+| `+L` | hydra(treewalker) | Previous assignment (lhs) (alias of =L)                                          | `goto_previous_start @assignment.lhs`    | `hydra.nvim` |  |
+| `+R` | hydra(treewalker) | Previous assignment (rhs) (alias of =R)                                          | `goto_previous_start @assignment.rhs`    | `hydra.nvim` |  |
+| `=+` | hydra(treewalker) | Previous assignment (outer)                                                      | `goto_previous_start @assignment.outer`  | `hydra.nvim` |  |
+| `==` | hydra(treewalker) | Next assignment (outer)                                                          | `goto_next_start @assignment.outer`      | `hydra.nvim` |  |
+| `=l` | hydra(treewalker) | Next assignment (lhs)                                                            | `goto_next_start @assignment.lhs`        | `hydra.nvim` |  |
+| `=L` | hydra(treewalker) | Previous assignment (lhs)                                                        | `goto_previous_start @assignment.lhs`    | `hydra.nvim` |  |
+| `=r` | hydra(treewalker) | Next assignment (rhs)                                                            | `goto_next_start @assignment.rhs`        | `hydra.nvim` |  |
+| `=R` | hydra(treewalker) | Previous assignment (rhs)                                                        | `goto_previous_start @assignment.rhs`    | `hydra.nvim` |  |
+| `a` | hydra(treewalker) | Next parameter (outer)                                                           | `goto_next_start @parameter.outer`       | `hydra.nvim` |  |
+| `A` | hydra(treewalker) | Previous parameter (outer)                                                       | `goto_previous_start @parameter.outer`   | `hydra.nvim` |  |
+| `b` | hydra(treewalker) | Next block (outer)                                                               | `goto_next_start @block.outer`           | `hydra.nvim` |  |
+| `B` | hydra(treewalker) | Previous block (outer)                                                           | `goto_previous_start @block.outer`       | `hydra.nvim` |  |
+| `c` | hydra(treewalker) | Next comment (outer)                                                             | `goto_next_start @comment.outer`         | `hydra.nvim` |  |
+| `C` | hydra(treewalker) | Previous comment (outer)                                                         | `goto_previous_start @comment.outer`     | `hydra.nvim` |  |
+| `f` | hydra(treewalker) | Next call (outer)                                                                | `goto_next_start @call.outer`            | `hydra.nvim` |  |
+| `F` | hydra(treewalker) | Previous call (outer)                                                            | `goto_previous_start @call.outer`        | `hydra.nvim` |  |
+| `h` | hydra(treewalker) | Move left / ascend                                                               | `<cmd>Treewalker Left<cr>`               | `hydra.nvim` |  |
+| `i` | hydra(treewalker) | Next conditional (outer)                                                         | `goto_next_start @conditional.outer`     | `hydra.nvim` |  |
+| `I` | hydra(treewalker) | Previous conditional (outer)                                                     | `goto_previous_start @conditional.outer` | `hydra.nvim` |  |
+| `j` | hydra(treewalker) | Move down a sibling node                                                         | `<cmd>Treewalker Down<cr>`               | `hydra.nvim` |  |
+| `k` | hydra(treewalker) | Move up a sibling node                                                           | `<cmd>Treewalker Up<cr>`                 | `hydra.nvim` |  |
+| `l` | hydra(treewalker) | Move right / descend                                                             | `<cmd>Treewalker Right<cr>`              | `hydra.nvim` |  |
+| `m` | hydra(treewalker) | Next function (outer)                                                            | `goto_next_start @function.outer`        | `hydra.nvim` |  |
+| `M` | hydra(treewalker) | Previous function (outer)                                                        | `goto_previous_start @function.outer`    | `hydra.nvim` |  |
+| `n` | hydra(treewalker) | Next number (inner)                                                              | `goto_next_start @number.inner`          | `hydra.nvim` |  |
+| `N` | hydra(treewalker) | Previous number (inner)                                                          | `goto_previous_start @number.inner`      | `hydra.nvim` |  |
+| `o` | hydra(treewalker) | Next conditional (inner)                                                         | `goto_next_start @conditional.inner`     | `hydra.nvim` |  |
+| `O` | hydra(treewalker) | Previous conditional (inner)                                                     | `goto_previous_start @conditional.inner` | `hydra.nvim` |  |
+| `p` | hydra(treewalker) | Next parameter (inner)                                                           | `goto_next_start @parameter.inner`       | `hydra.nvim` |  |
+| `P` | hydra(treewalker) | Previous parameter (inner)                                                       | `goto_previous_start @parameter.inner`   | `hydra.nvim` |  |
+| `r` | hydra(treewalker) | Next return (outer)                                                              | `goto_next_start @return.outer`          | `hydra.nvim` |  |
+| `R` | hydra(treewalker) | Previous return (outer)                                                          | `goto_previous_start @return.outer`      | `hydra.nvim` |  |
+| `S` | n → hydra(treewalker) | Enter the pink hydra "treewalker" (also unbinds the default S)                   | `enter hydra`                            | `hydra.nvim` |  |
+| `t` | hydra(treewalker) | Next class (outer)                                                               | `goto_next_start @class.outer`           | `hydra.nvim` |  |
+| `T` | hydra(treewalker) | Previous class (outer)                                                           | `goto_previous_start @class.outer`       | `hydra.nvim` |  |
+| `v` | hydra(treewalker) | Next block (outer)                                                               | `goto_next_start @block.outer`           | `hydra.nvim` |  |
+| `V` | hydra(treewalker) | Previous block (inner)                                                           | `goto_previous_start @block.inner`       | `hydra.nvim` |  |
+| `w` | hydra(treewalker) | Next loop (outer)                                                                | `goto_next_start @loop.outer`            | `hydra.nvim` |  |
+| `W` | hydra(treewalker) | Previous loop (outer)                                                            | `goto_previous_start @loop.outer`        | `hydra.nvim` |  |
 
 ### Visual <a id="group-visual"></a>
 
@@ -1695,6 +1805,9 @@ Every keybinding in one flat table, sorted by key then mode.
 | `)` | n,x,o | Forward one sentence                                                             | `(motion)`                               | _core_ | 🔹 |
 | `*` | n,x,o | Search forward for word under cursor                                             | `(search)`                               | _core_ | 🔹 |
 | `+` | n,x,o | Down to first non-blank of next line                                             | `(motion)`                               | _core_ | 🔹 |
+| `++` | hydra(treewalker) | Previous assignment (outer) (alias of =+)                                        | `goto_previous_start @assignment.outer`  | `hydra.nvim` |  |
+| `+L` | hydra(treewalker) | Previous assignment (lhs) (alias of =L)                                          | `goto_previous_start @assignment.lhs`    | `hydra.nvim` |  |
+| `+R` | hydra(treewalker) | Previous assignment (rhs) (alias of =R)                                          | `goto_previous_start @assignment.rhs`    | `hydra.nvim` |  |
 | `,` | n,x,o | Flash: repeat last char motion, opposite direction                               | `repeat f/t/F/T (opposite dir)`          | `flash.nvim` | 🔸 |
 | `,` | n,x,o | Repeat last f/F/t/T reversed                                                     | `(motion)`                               | _core_ | 🔹 |
 | `-` | n | Oil: go to parent directory                                                      | `actions.parent`                         | `oil.nvim` |  |
@@ -1765,9 +1878,11 @@ Every keybinding in one flat table, sorted by key then mode.
 | `<C-r>` | n | Redo                                                                             | `(edit)`                                 | _core_ | 🔹 |
 | `<C-Right>` | n | Decrease vertical split width                                                    | `:vertical resize -1<CR>`                | _core_ |  |
 | `<c-s>` | c | Toggle flash while searching                                                     | `require('flash').toggle()`              | `flash.nvim` |  |
+| `<C-s>` | i | LSP: signature help                                                              | `vim.lsp.buf.signature_help`             | `nvim-lspconfig` |  |
 | `<C-s>` | n | Trouble window: jump in horizontal split                                         | `jump (horizontal split)`                | `trouble.nvim` | 🔸 |
 | `<C-s>` | n,i | CodeCompanion chat: send message                                                 | `chat: send`                             | `codecompanion.nvim` | 🔸 |
 | `<C-s>` | n,v | Oil (default): open in vertical split                                            | `actions.select vertical`                | `oil.nvim` | 🔸 |
+| `<C-space>` | i | Completion: open menu or toggle docs                                             | `show / show_documentation / hide_docume…` | `blink.cmp` |  |
 | `<C-space>` | i | Completion: open menu or toggle docs                                             | `show menu / toggle docs`                | `blink.cmp` | 🔸 |
 | `<C-t>` | i | Indent current line                                                              | `(edit)`                                 | _core_ | 🔹 |
 | `<C-t>` | i,n | Telescope (default): open in new tab                                             | `select_tab`                             | `telescope.nvim` | 🔸 |
@@ -1809,15 +1924,11 @@ Every keybinding in one flat table, sorted by key then mode.
 | `<Down>` | i | Completion: select next item                                                     | `select next`                            | `blink.cmp` | 🔸 |
 | `<Down>` | i | Telescope (default): next result                                                 | `move_selection_next`                    | `telescope.nvim` | 🔸 |
 | `<end>` | n,x,o | Repeat last textobject move forward                                              | `repeat_last_move (forward)`             | `nvim-treesitter` |  |
+| `<Esc>` | hydra(diagnostics) | Leave the hydra                                                                  | `exit hydra`                             | `hydra.nvim` |  |
 | `<ESC>` | n | Clear search highlight                                                           | `:nohlsearch\|:echo<CR>`                 | _core_ |  |
 | `<Esc>` | n | Telescope (default): close picker                                                | `close`                                  | `telescope.nvim` | 🔸 |
 | `<Esc>` | t | Exit terminal insert mode                                                        | `<C-\><C-N>`                             | _core_ |  |
 | `<F14>` | n | Go to next diagnostic                                                            | `:Lspsaga diagnostic_jump_next<CR>`      | `lspsaga.nvim` |  |
-| `<F15>d` | n | Trouble: diagnostics                                                             | `<cmd>Trouble diagnostics toggle<cr>`    | `trouble.nvim` |  |
-| `<F15>D` | n | Trouble: buffer diagnostics                                                      | `<cmd>Trouble diagnostics toggle filter.…` | `trouble.nvim` |  |
-| `<F15>L` | n | Trouble: location list                                                           | `<cmd>Trouble loclist toggle<cr>`        | `trouble.nvim` |  |
-| `<F15>q` | n | Trouble: quickfix list                                                           | `<cmd>Trouble qflist toggle<cr>`         | `trouble.nvim` |  |
-| `<F15>t` | n | Toggle diagnostic virtual lines                                                  | `toggle diagnostic virtual_lines`        | `lspsaga.nvim` |  |
 | `<F17>` | n,x,o | Flash jump                                                                       | `require('flash').jump()`                | `flash.nvim` |  |
 | `<F18>` | n,x,o | Flash treesitter                                                                 | `require('flash').treesitter()`          | `flash.nvim` |  |
 | `<F3>b` | n | Debug: toggle breakpoint                                                         | `dap.toggle_breakpoint`                  | `nvim-dap-ui` |  |
@@ -1848,14 +1959,11 @@ Every keybinding in one flat table, sorted by key then mode.
 | `<leader>A` | n | Swap parameter with previous                                                     | `swap_previous @parameter.inner`         | `nvim-treesitter` |  |
 | `<leader>b` | n | Diffview: toggle the file panel                                                  | `toggle file panel`                      | `diffview.nvim` | 🔸 |
 | `<leader>c` | n | Change (yank into default register)                                              | `c`                                      | _core_ |  |
-| `<leader>ca` | n | LSP: code action (Lspsaga)                                                       | `:Lspsaga code_action<CR>`               | `lspsaga.nvim` |  |
 | `<leader>cb` | n | Diffview merge: choose BASE                                                      | `conflict: choose base`                  | `diffview.nvim` | 🔸 |
 | `<leader>cd` | n | Open Diffview                                                                    | `:DiffviewOpen<cr>`                      | `diffview.nvim` |  |
 | `<leader>cD` | n | Toggle difftastic diff view                                                      | `toggle Difft diff`                      | `difft.nvim` |  |
 | `<leader>cf` | n,v | Format file or range                                                             | `conform.format`                         | `conform.nvim` |  |
-| `<leader>cl` | n | LSP: run CodeLens action (conflicts with nvim-lint)                              | `vim.lsp.codelens.run`                   | `nvim-lspconfig` |  |
-| `<leader>cL` | n | LSP: toggle CodeLenses                                                           | `toggle codelens_enabled`                | `nvim-lspconfig` |  |
-| `<leader>cl` | n | Trigger linting (conflicts with LSP CodeLens)                                    | `lint.try_lint`                          | `nvim-lint` |  |
+| `<leader>cl` | n | Trigger linting                                                                  | `lint.try_lint`                          | `nvim-lint` |  |
 | `<leader>co` | n | Diffview merge: choose OURS                                                      | `conflict: choose ours`                  | `diffview.nvim` | 🔸 |
 | `<leader>ct` | n | Diffview merge: choose THEIRS                                                    | `conflict: choose theirs`                | `diffview.nvim` | 🔸 |
 | `<leader>d` | n | Delete (yank into default register)                                              | `d`                                      | _core_ |  |
@@ -1880,14 +1988,18 @@ Every keybinding in one flat table, sorted by key then mode.
 | `<leader>gu` | n | Gitsigns: undo stage hunk                                                        | `<cmd>Gitsigns undo_stage_hunk<cr>`      | `gitsigns.nvim` |  |
 | `<leader>ha` | n | Harpoon: add current file                                                        | `harpoon.mark.add_file`                  | `harpoon` |  |
 | `<leader>hh` | n | Harpoon: toggle quick menu                                                       | `harpoon.ui.toggle_quick_menu`           | `harpoon` |  |
-| `<leader>ih` | n | LSP: toggle inlay hints                                                          | `toggle inlay hints`                     | `nvim-lspconfig` |  |
-| `<leader>l` | n | Trouble: LSP definitions/references                                              | `<cmd>Trouble lsp toggle focus=false win…` | `trouble.nvim` |  |
-| `<leader>ll` | n | Open Lazy plugin manager                                                         | `<cmd>Lazy<CR>`                          | _core_ |  |
+| `<leader>L` | n | Open Lazy plugin manager                                                         | `<cmd>Lazy<CR>`                          | _core_ |  |
+| `<leader>la` | n | LSP: code action (Lspsaga)                                                       | `:Lspsaga code_action<CR>`               | `lspsaga.nvim` |  |
+| `<leader>lc` | n | LSP: run CodeLens action                                                         | `vim.lsp.codelens.run`                   | `nvim-lspconfig` |  |
+| `<leader>ld` | n → hydra(diagnostics) | Enter the red hydra "diagnostics"                                                | `enter hydra`                            | `hydra.nvim` |  |
+| `<leader>lo` | n | Trouble: location list                                                           | `<cmd>Trouble loclist toggle<cr>`        | `trouble.nvim` |  |
+| `<leader>lq` | n | Trouble: quickfix list                                                           | `<cmd>Trouble qflist toggle<cr>`         | `trouble.nvim` |  |
+| `<leader>lr` | n | LSP: rename symbol                                                               | `vim.lsp.buf.rename`                     | `nvim-lspconfig` |  |
+| `<leader>ls` | n | Trouble: document symbols                                                        | `<cmd>Trouble symbols toggle focus=false…` | `trouble.nvim` |  |
+| `<leader>lSl` | n | Trouble: LSP definitions/references                                              | `<cmd>Trouble lsp toggle focus=false win…` | `trouble.nvim` |  |
+| `<leader>lSr` | n | LSP: restart                                                                     | `<cmd>lsp restart<CR>`                   | `nvim-lspconfig` |  |
 | `<leader>p` | n | Paste from system clipboard                                                      | `"+p`                                    | _core_ |  |
 | `<leader>p` | v | Paste over selection without yanking                                             | `"_dP`                                   | _core_ |  |
-| `<leader>rr` | n | LSP: rename symbol                                                               | `vim.lsp.buf.rename`                     | `nvim-lspconfig` |  |
-| `<leader>rSS` | n | LSP: restart                                                                     | `<cmd>LspRestart<CR>`                    | `nvim-lspconfig` |  |
-| `<leader>s` | n | Trouble: document symbols                                                        | `<cmd>Trouble symbols toggle focus=false…` | `trouble.nvim` |  |
 | `<leader>se` | n | Equalize split sizes                                                             | `<C-w>=`                                 | _core_ |  |
 | `<leader>sh` | n | Split window horizontally                                                        | `<cmd>split<CR>`                         | _core_ |  |
 | `<leader>sm` | n | Toggle split maximize                                                            | `<cmd>MaximizerToggle<CR>`               | `vim-maximizer` |  |
@@ -1914,9 +2026,15 @@ Every keybinding in one flat table, sorted by key then mode.
 | `<Up>` | i | Completion: select previous item                                                 | `select previous`                        | `blink.cmp` | 🔸 |
 | `<Up>` | i | Telescope (default): previous result                                             | `move_selection_previous`                | `telescope.nvim` | 🔸 |
 | `=` | n,x | Auto-indent {motion}/selection                                                   | `(operator)`                             | _core_ | 🔹 |
+| `=+` | hydra(treewalker) | Previous assignment (outer)                                                      | `goto_previous_start @assignment.outer`  | `hydra.nvim` |  |
+| `==` | hydra(treewalker) | Next assignment (outer)                                                          | `goto_next_start @assignment.outer`      | `hydra.nvim` |  |
 | `==` | n | Auto-indent current line                                                         | `(operator)`                             | _core_ | 🔹 |
 | `==` | x,o | Textobject: assignment (outer)                                                   | `@assignment.outer`                      | `nvim-treesitter` |  |
+| `=l` | hydra(treewalker) | Next assignment (lhs)                                                            | `goto_next_start @assignment.lhs`        | `hydra.nvim` |  |
+| `=L` | hydra(treewalker) | Previous assignment (lhs)                                                        | `goto_previous_start @assignment.lhs`    | `hydra.nvim` |  |
 | `=l` | x,o | Textobject: assignment left-hand side                                            | `@assignment.lhs`                        | `nvim-treesitter` |  |
+| `=r` | hydra(treewalker) | Next assignment (rhs)                                                            | `goto_next_start @assignment.rhs`        | `hydra.nvim` |  |
+| `=R` | hydra(treewalker) | Previous assignment (rhs)                                                        | `goto_previous_start @assignment.rhs`    | `hydra.nvim` |  |
 | `=r` | x,o | Textobject: assignment right-hand side                                           | `@assignment.rhs`                        | `nvim-treesitter` |  |
 | `>` | n | Indent line right                                                                | `>>`                                     | _core_ |  |
 | `>` | v | Indent right, keep selection                                                     | `>gv`                                    | _core_ |  |
@@ -1926,6 +2044,8 @@ Every keybinding in one flat table, sorted by key then mode.
 | `?` | n,x,o | Search backward                                                                  | `(search)`                               | _core_ | 🔹 |
 | `@@` | n | Repeat last played macro                                                         | `(macro)`                                | _core_ | 🔹 |
 | `@{reg}` | n | Play back macro from register                                                    | `(macro)`                                | _core_ | 🔹 |
+| `a` | hydra(treewalker) | Next parameter (outer)                                                           | `goto_next_start @parameter.outer`       | `hydra.nvim` |  |
+| `A` | hydra(treewalker) | Previous parameter (outer)                                                       | `goto_previous_start @parameter.outer`   | `hydra.nvim` |  |
 | `a` | n | Insert after cursor                                                              | `(edit)`                                 | _core_ | 🔹 |
 | `A` | n | Insert at end of line                                                            | `(edit)`                                 | _core_ | 🔹 |
 | `A` | x | Append at end of block (blockwise)                                               | `(edit)`                                 | _core_ | 🔹 |
@@ -1940,23 +2060,32 @@ Every keybinding in one flat table, sorted by key then mode.
 | `ar` | x,o | Textobject: return (outer)                                                       | `@return.outer`                          | `nvim-treesitter` |  |
 | `at` | x,o | Textobject: class (outer)                                                        | `@class.outer`                           | `nvim-treesitter` |  |
 | `a{id}` | x,o | mini.ai: select 'around' textobject {id}                                         | `select around textobject`               | `mini.ai` | 🔸 |
+| `b` | hydra(diagnostics) | Toggle scope (buffer/project)                                                    | `toggle scope buffer/project`            | `hydra.nvim` |  |
+| `b` | hydra(treewalker) | Next block (outer)                                                               | `goto_next_start @block.outer`           | `hydra.nvim` |  |
+| `B` | hydra(treewalker) | Previous block (outer)                                                           | `goto_previous_start @block.outer`       | `hydra.nvim` |  |
 | `b` | n,x,o | Back to start of word                                                            | `(motion)`                               | _core_ | 🔹 |
 | `B` | n,x,o | Back to start of WORD                                                            | `(motion)`                               | _core_ | 🔹 |
+| `c` | hydra(treewalker) | Next comment (outer)                                                             | `goto_next_start @comment.outer`         | `hydra.nvim` |  |
+| `C` | hydra(treewalker) | Previous comment (outer)                                                         | `goto_previous_start @comment.outer`     | `hydra.nvim` |  |
 | `c` | n | Change into black-hole register                                                  | `"_c`                                    | _core_ |  |
 | `C` | n | Change to end of line                                                            | `(operator)`                             | _core_ | 🔹 |
 | `c` | x | Change {motion}/selection                                                        | `(operator)`                             | _core_ | 🔹 |
-| `C-s` | i | Completion: open menu or toggle docs (verbatim config key)                       | `show / show_documentation / hide_docume…` | `blink.cmp` |  |
-| `C-space` | i | Completion: open menu or toggle docs (verbatim config key)                       | `show / show_documentation / hide_docume…` | `blink.cmp` |  |
 | `cc` | n | Change line                                                                      | `(operator)`                             | _core_ | 🔹 |
 | `cS` | n | Surround: change a pair onto new lines                                           | `change surround (new lines)`            | `nvim-surround` | 🔸 |
 | `cs{target}{replacement}` | n | Surround: change a surrounding pair                                              | `change surround`                        | `nvim-surround` | 🔸 |
+| `d` | hydra(diagnostics) | Next diagnostic                                                                  | `goto next diagnostic`                   | `hydra.nvim` |  |
+| `D` | hydra(diagnostics) | Previous diagnostic                                                              | `goto previous diagnostic`               | `hydra.nvim` |  |
 | `d` | n | Delete into black-hole register                                                  | `"_d`                                    | _core_ |  |
 | `D` | n | Delete to end of line                                                            | `(operator)`                             | _core_ | 🔹 |
 | `d` | x | Delete {motion}/selection                                                        | `(operator)`                             | _core_ | 🔹 |
 | `dd` | n | Delete line                                                                      | `(operator)`                             | _core_ | 🔹 |
 | `ds{char}` | n | Surround: delete a surrounding pair                                              | `delete surround`                        | `nvim-surround` | 🔸 |
+| `e` | hydra(diagnostics) | Next error                                                                       | `goto next ERROR diagnostic`             | `hydra.nvim` |  |
+| `E` | hydra(diagnostics) | Previous error                                                                   | `goto previous ERROR diagnostic`         | `hydra.nvim` |  |
 | `e` | n,x,o | Forward to end of word                                                           | `(motion)`                               | _core_ | 🔹 |
 | `E` | n,x,o | Forward to end of WORD                                                           | `(motion)`                               | _core_ | 🔹 |
+| `f` | hydra(treewalker) | Next call (outer)                                                                | `goto_next_start @call.outer`            | `hydra.nvim` |  |
+| `F` | hydra(treewalker) | Previous call (outer)                                                            | `goto_previous_start @call.outer`        | `hydra.nvim` |  |
 | `f` | n,x,o | Flash: enhanced f, jump to char (dot-repeat)                                     | `enhanced f (flash char)`                | `flash.nvim` | 🔸 |
 | `F` | n,x,o | Flash: enhanced F, backward jump to char                                         | `enhanced F (flash char back)`           | `flash.nvim` | 🔸 |
 | `f{char}` | n,x,o | To next occurrence of {char}                                                     | `(motion)`                               | _core_ | 🔹 |
@@ -2040,9 +2169,16 @@ Every keybinding in one flat table, sorted by key then mode.
 | `g_` | n,x,o | To last non-blank character of line                                              | `(motion)`                               | _core_ | 🔹 |
 | `g~` | n | Oil (default): :tcd to directory                                                 | `actions.cd scope=tab`                   | `oil.nvim` | 🔸 |
 | `g~` | n,x | Toggle case of {motion}/selection                                                | `(operator)`                             | _core_ | 🔹 |
+| `h` | hydra(diagnostics) | Next hint                                                                        | `goto next HINT diagnostic`              | `hydra.nvim` |  |
+| `H` | hydra(diagnostics) | Previous hint                                                                    | `goto previous HINT diagnostic`          | `hydra.nvim` |  |
+| `h` | hydra(treewalker) | Move left / ascend                                                               | `<cmd>Treewalker Left<cr>`               | `hydra.nvim` |  |
 | `h` | n | Origami: fold when at/before first non-blank, else h                             | `fold or normal h`                       | `nvim-origami` | 🔸 |
 | `h` | n,x,o | Left one character                                                               | `(motion)`                               | _core_ | 🔹 |
 | `H` | n,x,o | To top of window                                                                 | `(motion)`                               | _core_ | 🔹 |
+| `i` | hydra(diagnostics) | Next info                                                                        | `goto next INFO diagnostic`              | `hydra.nvim` |  |
+| `I` | hydra(diagnostics) | Previous info                                                                    | `goto previous INFO diagnostic`          | `hydra.nvim` |  |
+| `i` | hydra(treewalker) | Next conditional (outer)                                                         | `goto_next_start @conditional.outer`     | `hydra.nvim` |  |
+| `I` | hydra(treewalker) | Previous conditional (outer)                                                     | `goto_previous_start @conditional.outer` | `hydra.nvim` |  |
 | `i` | n | Insert before cursor                                                             | `(edit)`                                 | _core_ | 🔹 |
 | `I` | n | Insert at first non-blank                                                        | `(edit)`                                 | _core_ | 🔹 |
 | `I` | x | Insert at start of block (blockwise)                                             | `(edit)`                                 | _core_ | 🔹 |
@@ -2057,76 +2193,80 @@ Every keybinding in one flat table, sorted by key then mode.
 | `ir` | x,o | Textobject: return (inner)                                                       | `@return.inner`                          | `nvim-treesitter` |  |
 | `it` | x,o | Textobject: class (inner)                                                        | `@class.inner`                           | `nvim-treesitter` |  |
 | `i{id}` | x,o | mini.ai: select 'inside' textobject {id}                                         | `select inside textobject`               | `mini.ai` | 🔸 |
+| `j` | hydra(treewalker) | Move down a sibling node                                                         | `<cmd>Treewalker Down<cr>`               | `hydra.nvim` |  |
 | `J` | n | Join line below with a space                                                     | `(edit)`                                 | _core_ | 🔹 |
 | `j` | n,x,o | Down one line                                                                    | `(motion)`                               | _core_ | 🔹 |
 | `J` | x | Move selected block down                                                         | `:move '>+1<CR>gv=gv`                    | _core_ |  |
+| `k` | hydra(treewalker) | Move up a sibling node                                                           | `<cmd>Treewalker Up<cr>`                 | `hydra.nvim` |  |
 | `K` | n | LSP: hover documentation                                                         | `vim.lsp.buf.hover`                      | `nvim-lspconfig` |  |
 | `k` | n,x,o | Up one line                                                                      | `(motion)`                               | _core_ | 🔹 |
 | `K` | x | Move selected block up                                                           | `:move '<-2<CR>gv=gv`                    | _core_ |  |
+| `l` | hydra(treewalker) | Move right / descend                                                             | `<cmd>Treewalker Right<cr>`              | `hydra.nvim` |  |
 | `l` | n | Origami: unfold folded line, else l                                              | `unfold or normal l`                     | `nvim-origami` | 🔸 |
 | `l` | n,x,o | Right one character                                                              | `(motion)`                               | _core_ | 🔹 |
 | `L` | n,x,o | To bottom of window                                                              | `(motion)`                               | _core_ | 🔹 |
+| `m` | hydra(treewalker) | Next function (outer)                                                            | `goto_next_start @function.outer`        | `hydra.nvim` |  |
+| `M` | hydra(treewalker) | Previous function (outer)                                                        | `goto_previous_start @function.outer`    | `hydra.nvim` |  |
 | `M` | n,x,o | To middle of window                                                              | `(motion)`                               | _core_ | 🔹 |
 | `m{a-zA-Z}` | n | Set mark at cursor                                                               | `(mark)`                                 | _core_ | 🔹 |
+| `n` | hydra(treewalker) | Next number (inner)                                                              | `goto_next_start @number.inner`          | `hydra.nvim` |  |
+| `N` | hydra(treewalker) | Previous number (inner)                                                          | `goto_previous_start @number.inner`      | `hydra.nvim` |  |
 | `n` | n,x,o | Repeat last search                                                               | `(search)`                               | _core_ | 🔹 |
 | `N` | n,x,o | Repeat last search, opposite direction                                           | `(search)`                               | _core_ | 🔹 |
+| `o` | hydra(treewalker) | Next conditional (inner)                                                         | `goto_next_start @conditional.inner`     | `hydra.nvim` |  |
+| `O` | hydra(treewalker) | Previous conditional (inner)                                                     | `goto_previous_start @conditional.inner` | `hydra.nvim` |  |
 | `o` | n | Trouble window: jump to item and close                                           | `jump + close`                           | `trouble.nvim` | 🔸 |
 | `o` | n | Open new line below and insert                                                   | `(edit)`                                 | _core_ | 🔹 |
 | `O` | n | Open new line above and insert                                                   | `(edit)`                                 | _core_ | 🔹 |
 | `o` | x | Move to other end of selection                                                   | `(visual)`                               | _core_ | 🔹 |
 | `O` | x | Move to other corner (blockwise)                                                 | `(visual)`                               | _core_ | 🔹 |
+| `p` | hydra(treewalker) | Next parameter (inner)                                                           | `goto_next_start @parameter.inner`       | `hydra.nvim` |  |
+| `P` | hydra(treewalker) | Previous parameter (inner)                                                       | `goto_previous_start @parameter.inner`   | `hydra.nvim` |  |
 | `p` | n | Trouble window: preview item                                                     | `preview`                                | `trouble.nvim` | 🔸 |
 | `P` | n | Trouble window: toggle auto preview                                              | `toggle preview`                         | `trouble.nvim` | 🔸 |
 | `p` | n | Paste after cursor                                                               | `(edit)`                                 | _core_ | 🔹 |
 | `P` | n | Paste before cursor                                                              | `(edit)`                                 | _core_ | 🔹 |
+| `q` | hydra(diagnostics) | Leave the hydra                                                                  | `exit hydra`                             | `hydra.nvim` |  |
 | `Q` | n | Disable Ex mode                                                                  | `<nop>`                                  | _core_ |  |
 | `q` | n | CodeCompanion chat: stop current request                                         | `chat: stop request`                     | `codecompanion.nvim` | 🔸 |
 | `q` | n | Trouble window: close                                                            | `close`                                  | `trouble.nvim` | 🔸 |
 | `q{a-z}` | n | Record macro into register                                                       | `(macro)`                                | _core_ | 🔹 |
+| `r` | hydra(treewalker) | Next return (outer)                                                              | `goto_next_start @return.outer`          | `hydra.nvim` |  |
+| `R` | hydra(treewalker) | Previous return (outer)                                                          | `goto_previous_start @return.outer`      | `hydra.nvim` |  |
 | `r` | n | Trouble window: refresh                                                          | `refresh`                                | `trouble.nvim` | 🔸 |
 | `r` | n | Replace single character                                                         | `(edit)`                                 | _core_ | 🔹 |
 | `R` | n | Enter Replace mode                                                               | `(edit)`                                 | _core_ | 🔹 |
 | `r` | o | Remote flash (operator pending)                                                  | `require('flash').remote()`              | `flash.nvim` |  |
 | `R` | o,x | Treesitter search                                                                | `require('flash').treesitter_search()`   | `flash.nvim` |  |
-| `S` | n | Open treewalker hydra (also disables default S)                                  | `activate treewalker hydra`              | `hydra.nvim` |  |
+| `S` | n → hydra(treewalker) | Enter the pink hydra "treewalker" (also unbinds the default S)                   | `enter hydra`                            | `hydra.nvim` |  |
 | `s` | n | Flash jump                                                                       | `require('flash').jump()`                | `flash.nvim` |  |
 | `S` | n | Diffview file panel: stage all entries                                           | `stage all (file panel)`                 | `diffview.nvim` | 🔸 |
 | `S` | x | Surround: add pair around visual selection                                       | `surround selection`                     | `nvim-surround` | 🔸 |
-| `s =+ / s ++` | n | Hydra: previous assignment                                                       | `goto_prev_start @assignment.outer`      | `hydra.nvim` |  |
-| `s ==` | n | Hydra: next assignment                                                           | `goto_next_start @assignment.outer`      | `hydra.nvim` |  |
-| `s =l` | n | Hydra: next assignment LHS                                                       | `goto_next_start @assignment.lhs`        | `hydra.nvim` |  |
-| `s =L / s +L` | n | Hydra: previous assignment LHS                                                   | `goto_prev_start @assignment.lhs`        | `hydra.nvim` |  |
-| `s =r` | n | Hydra: next assignment RHS                                                       | `goto_next_start @assignment.rhs`        | `hydra.nvim` |  |
-| `s =R / s +R` | n | Hydra: previous assignment RHS                                                   | `goto_prev_start @assignment.rhs`        | `hydra.nvim` |  |
-| `s a / s A` | n | Hydra: next/previous parameter (outer)                                           | `goto next/prev @parameter.outer`        | `hydra.nvim` |  |
-| `s b / s B` | n | Hydra: next/previous block                                                       | `goto next/prev @block.outer`            | `hydra.nvim` |  |
-| `s c / s C` | n | Hydra: next/previous comment                                                     | `goto next/prev @comment.outer`          | `hydra.nvim` |  |
-| `s f / s F` | n | Hydra: next/previous call                                                        | `goto next/prev @call.outer`             | `hydra.nvim` |  |
-| `s h` | n | Treewalker: move left                                                            | `<cmd>Treewalker Left<cr>`               | `hydra.nvim` |  |
-| `s i / s I` | n | Hydra: next/previous conditional (outer)                                         | `goto next/prev @conditional.outer`      | `hydra.nvim` |  |
-| `s j` | n | Treewalker: move down                                                            | `<cmd>Treewalker Down<cr>`               | `hydra.nvim` |  |
-| `s k` | n | Treewalker: move up                                                              | `<cmd>Treewalker Up<cr>`                 | `hydra.nvim` |  |
-| `s l` | n | Treewalker: move right                                                           | `<cmd>Treewalker Right<cr>`              | `hydra.nvim` |  |
-| `s m / s M` | n | Hydra: next/previous function                                                    | `goto next/prev @function.outer`         | `hydra.nvim` |  |
-| `s n / s N` | n | Hydra: next/previous number                                                      | `goto next/prev @number.inner`           | `hydra.nvim` |  |
-| `s o / s O` | n | Hydra: next/previous conditional (inner)                                         | `goto next/prev @conditional.inner`      | `hydra.nvim` |  |
-| `s p / s P` | n | Hydra: next/previous parameter (inner)                                           | `goto next/prev @parameter.inner`        | `hydra.nvim` |  |
-| `s r / s R` | n | Hydra: next/previous return                                                      | `goto next/prev @return.outer`           | `hydra.nvim` |  |
-| `s t / s T` | n | Hydra: next/previous class                                                       | `goto next/prev @class.outer`            | `hydra.nvim` |  |
-| `s v / s V` | n | Hydra: next block (outer/inner)                                                  | `goto next @block.outer / @block.inner`  | `hydra.nvim` |  |
-| `s w / s W` | n | Hydra: next/previous loop                                                        | `goto next/prev @loop.outer`             | `hydra.nvim` |  |
+| `t` | hydra(treewalker) | Next class (outer)                                                               | `goto_next_start @class.outer`           | `hydra.nvim` |  |
+| `T` | hydra(treewalker) | Previous class (outer)                                                           | `goto_previous_start @class.outer`       | `hydra.nvim` |  |
 | `t` | n,x,o | Flash: enhanced t, jump till char                                                | `enhanced t (flash till)`                | `flash.nvim` | 🔸 |
 | `T` | n,x,o | Flash: enhanced T, backward jump till char                                       | `enhanced T (flash till back)`           | `flash.nvim` | 🔸 |
+| `tc` | hydra(diagnostics) | Toggle CodeLenses                                                                | `toggle codelens_enabled`                | `hydra.nvim` |  |
+| `ti` | hydra(diagnostics) | Toggle inlay hints                                                               | `toggle inlay hints`                     | `hydra.nvim` |  |
+| `tv` | hydra(diagnostics) | Toggle virtual_lines                                                             | `toggle diagnostic virtual_lines`        | `hydra.nvim` |  |
 | `t{char}` | n,x,o | Till before next {char}                                                          | `(motion)`                               | _core_ | 🔹 |
 | `T{char}` | n,x,o | Till after previous {char}                                                       | `(motion)`                               | _core_ | 🔹 |
 | `U` | n | Diffview file panel: unstage all entries                                         | `unstage all (file panel)`               | `diffview.nvim` | 🔸 |
 | `u` | n | Undo                                                                             | `(edit)`                                 | _core_ | 🔹 |
 | `u` | x | Lowercase selection                                                              | `(edit)`                                 | _core_ | 🔹 |
 | `U` | x | Uppercase selection                                                              | `(edit)`                                 | _core_ | 🔹 |
+| `v` | hydra(treewalker) | Next block (outer)                                                               | `goto_next_start @block.outer`           | `hydra.nvim` |  |
+| `V` | hydra(treewalker) | Previous block (inner)                                                           | `goto_previous_start @block.inner`       | `hydra.nvim` |  |
 | `v` | n | Start charwise Visual mode                                                       | `(visual)`                               | _core_ | 🔹 |
 | `V` | n | Start linewise Visual mode                                                       | `(visual)`                               | _core_ | 🔹 |
+| `w` | hydra(diagnostics) | Next warning                                                                     | `goto next WARN diagnostic`              | `hydra.nvim` |  |
+| `W` | hydra(diagnostics) | Previous warning                                                                 | `goto previous WARN diagnostic`          | `hydra.nvim` |  |
+| `w` | hydra(treewalker) | Next loop (outer)                                                                | `goto_next_start @loop.outer`            | `hydra.nvim` |  |
+| `W` | hydra(treewalker) | Previous loop (outer)                                                            | `goto_previous_start @loop.outer`        | `hydra.nvim` |  |
 | `w` | n,x,o | Forward to start of next word                                                    | `(motion)`                               | _core_ | 🔹 |
 | `W` | n,x,o | Forward to start of next WORD                                                    | `(motion)`                               | _core_ | 🔹 |
+| `x` | hydra(diagnostics) | Trouble diagnostics (workspace)                                                  | `<cmd>Trouble diagnostics toggle<cr>`    | `hydra.nvim` |  |
+| `X` | hydra(diagnostics) | Trouble diagnostics (buffer)                                                     | `<cmd>Trouble diagnostics toggle filter.…` | `hydra.nvim` |  |
 | `x` | n | Delete char without yanking                                                      | `"_x`                                    | _core_ |  |
 | `X` | n | Diffview file panel: revert file to left state                                   | `restore entry (file panel)`             | `diffview.nvim` | 🔸 |
 | `X` | n | Delete character before cursor                                                   | `(edit)`                                 | _core_ | 🔹 |
@@ -2165,10 +2305,12 @@ Every keybinding in one flat table, sorted by key then mode.
 | `_` | n | Oil (default): open current working directory                                    | `actions.open_cwd`                       | `oil.nvim` | 🔸 |
 | `'` | n | Oil: :cd to directory                                                            | `actions.cd`                             | `oil.nvim` |  |
 | `'` | n | Oil (default): :cd to directory                                                  | `actions.cd`                             | `oil.nvim` | 🔸 |
+| `{` | hydra(diagnostics) | First diagnostic                                                                 | `goto first diagnostic`                  | `hydra.nvim` |  |
 | `{` | n | CodeCompanion chat: open previous chat                                           | `chat: previous chat`                    | `codecompanion.nvim` | 🔸 |
 | `{` | n | Trouble window: previous item                                                    | `previous item`                          | `trouble.nvim` | 🔸 |
 | `{` | n,x,o | Backward one paragraph                                                           | `(motion)`                               | _core_ | 🔹 |
 | `\|` | n,x,o | To column [count]                                                                | `(motion)`                               | _core_ | 🔹 |
+| `}` | hydra(diagnostics) | Last diagnostic                                                                  | `goto last diagnostic`                   | `hydra.nvim` |  |
 | `}` | n | CodeCompanion chat: open next chat                                               | `chat: next chat`                        | `codecompanion.nvim` | 🔸 |
 | `}` | n | Trouble window: next item                                                        | `next item`                              | `trouble.nvim` | 🔸 |
 | `}` | n,x,o | Forward one paragraph                                                            | `(motion)`                               | _core_ | 🔹 |

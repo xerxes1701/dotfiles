@@ -9,6 +9,11 @@ return {
 	event = "VeryLazy",
 	opts = {
 		delay = 1000,
+		spec = {
+			{ "<leader>l", group = "lsp" },
+			{ "<leader>lS", group = "server" },
+			{ "<leader>ld", desc = "diagnostics hydra" },
+		},
 	},
 	keys = {
 		{

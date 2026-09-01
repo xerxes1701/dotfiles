@@ -11,7 +11,8 @@
 #
 # Filters (all optional, all combinable with logical AND):
 #   * key      positional, case-insensitive, angle brackets optional
-#   * mode     -m/--mode      repeatable; matches the compound `mode` field
+#   * mode     -m/--mode      repeatable; matches any element of the `mode`
+#                             list, including the `hydra(<name>)` pseudo-mode
 #   * type     -t/--type      repeatable; binding type / source value
 #   * plugin   -p/--plugin    repeatable; exact (case-insensitive) plugin
 #   * group    -g/--group     repeatable; exact (case-insensitive) group
@@ -43,7 +44,10 @@ SCRIPT_NAME="$(basename "$0")"
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 YAML_FILE="${SCRIPT_DIR}/keybindings.yaml"
 
-# Valid Vim modes and binding types recognised in keybindings.yaml.
+# Valid Vim modes and binding types recognised in keybindings.yaml. Besides the
+# real Vim modes, `mode` may hold the pseudo-mode `hydra(<name>)`, marking a key
+# as a head of that hydra (live only while the hydra is open). `-m hydra` is
+# accepted as a wildcard matching the heads of any hydra.
 VALID_MODES=(n i c v x o t)
 VALID_TYPES=(explicit default builtin)
 
@@ -65,9 +69,11 @@ Arguments:
                         If omitted, keys are not filtered. See REGEX below.
 
 Options:
-  -m, --mode <mode>     Restrict to a Vim mode. Repeatable (any-of). The stored
-                        compound mode field (e.g. "n,x,o") is treated as a list.
-                        Valid modes: ${VALID_MODES[*]}.
+  -m, --mode <mode>     Restrict to a mode. Repeatable (any-of); matches if any
+                        element of the entry's \`mode\` list matches.
+                        Valid modes: ${VALID_MODES[*]}, plus the hydra
+                        pseudo-modes -- \`hydra(<name>)\` for the heads of one
+                        named hydra, or bare \`hydra\` for the heads of any.
   -t, --type <type>     Restrict to a binding type (the \`source\` field).
       --source <type>   Alias of --type. Repeatable (any-of).
                         Valid types: ${VALID_TYPES[*]}.
@@ -80,9 +86,9 @@ Options:
                         Repeatable (any-of).
   -r, --regex           Treat the positional <key> as a regex (unanchored,
                         case-insensitive). Same effect as wrapping it in \\re\\.
-  -c, --case-sensitive  Make regex matching case-sensitive (default: insensitive).
-                        Affects regex matches only; literal/exact/glob stay
-                        insensitive.
+  -c, --case-sensitive  Make key matching case-sensitive, literal and regex
+                        alike (default: insensitive). Needed to tell hydra
+                        heads apart -- \`i\` and \`I\` are different bindings.
       --input <path>    keybindings YAML file to read
                         (default: ${YAML_FILE}).
   -h, --help            Show this help and exit.
@@ -106,6 +112,7 @@ Examples:
   ${SCRIPT_NAME} '\\<leader>t.\\'               # inline key regex (\\re\\ form)
   ${SCRIPT_NAME} -p '\\.*cmp\\'                 # plugin regex: any *cmp* plugin
   ${SCRIPT_NAME} -r -c 'K'                     # case-sensitive: K but not k
+  ${SCRIPT_NAME} -c i -m 'hydra(diagnostics)'  # the diagnostics hydra's 'i' head
 
 Exit status:
   0  one or more matching entries were found
@@ -125,6 +132,24 @@ in_list() {
   local x
   for x in "$@"; do [[ "${needle}" == "${x}" ]] && return 0; done
   return 1
+}
+
+# A --mode value is valid if it is a real Vim mode, the bare wildcard `hydra`,
+# or a concrete `hydra(<name>)` pseudo-mode.
+valid_mode() {
+  in_list "$1" "${VALID_MODES[@]}" && return 0
+  [[ "$1" == "hydra" ]] && return 0
+  [[ "$1" =~ ^hydra\([A-Za-z0-9_-]+\)$ ]] && return 0
+  return 1
+}
+
+# jq condition matching one --mode value against a single element of `.mode`.
+mode_cond() {
+  if [[ "$1" == "hydra" ]]; then
+    printf 'startswith("hydra(")'
+  else
+    printf '. == "%s"' "$(jq_escape "$1")"
+  fi
 }
 
 lower() { printf '%s' "$1" | tr '[:upper:]' '[:lower:]'; }
@@ -176,10 +201,10 @@ main() {
       -c|--case-sensitive) CASE_SENSITIVE=1; shift ;;
       -m|--mode)
         [[ $# -ge 2 ]] || die "option '$1' requires an argument"
-        in_list "$2" "${VALID_MODES[@]}" || die "invalid mode '$2' (valid: ${VALID_MODES[*]})"
+        valid_mode "$2" || die "invalid mode '$2' (valid: ${VALID_MODES[*]}, hydra, hydra(<name>))"
         modes+=("$2"); shift 2 ;;
       --mode=*)
-        local v="${1#*=}"; in_list "${v}" "${VALID_MODES[@]}" || die "invalid mode '${v}' (valid: ${VALID_MODES[*]})"
+        local v="${1#*=}"; valid_mode "${v}" || die "invalid mode '${v}' (valid: ${VALID_MODES[*]}, hydra, hydra(<name>))"
         modes+=("${v}"); shift ;;
       -t|--type|--source)
         [[ $# -ge 2 ]] || die "option '$1' requires an argument"
@@ -244,14 +269,14 @@ main() {
     else
       local bare="${key#<}"; bare="${bare%>}"
       local esc; esc="$(printf '%s' "${bare}" | sed -E 's/[][(){}.^$*+?|\\]/\\&/g')"
-      conds+=("(.key | test(\"(?i)^<?$(jq_escape "${esc}")>?\$\"))")
+      conds+=("(.key | test(\"$(regex_prefix)^<?$(jq_escape "${esc}")>?\$\"))")
     fi
   fi
 
   if [[ ${#modes[@]} -gt 0 ]]; then
     local c="" m
-    for m in "${modes[@]}"; do [[ -n "${c}" ]] && c+=" or "; c+=". == \"${m}\""; done
-    conds+=("(.mode | split(\",\") | any(${c}))")
+    for m in "${modes[@]}"; do [[ -n "${c}" ]] && c+=" or "; c+="$(mode_cond "${m}")"; done
+    conds+=("(.mode | any(${c}))")
   fi
 
   if [[ ${#types[@]} -gt 0 ]]; then

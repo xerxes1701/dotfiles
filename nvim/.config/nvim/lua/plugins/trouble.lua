@@ -12,32 +12,22 @@ return {
 	opts = {},
 	keys = {
 		{
-			"<F15>d",
-			"<cmd>Trouble diagnostics toggle<cr>",
-			desc = "Diagnostics (Trouble)",
-		},
-		{
-			"<F15>D",
-			"<cmd>Trouble diagnostics toggle filter.buf=0<cr>",
-			desc = "Buffer Diagnostics (Trouble)",
-		},
-		{
-			"<leader>s",
+			"<leader>ls",
 			"<cmd>Trouble symbols toggle focus=false<cr>",
 			desc = "Symbols (Trouble)",
 		},
 		{
-			"<leader>l",
+			"<leader>lSl",
 			"<cmd>Trouble lsp toggle focus=false win.position=right<cr>",
 			desc = "LSP Definitions / references / ... (Trouble)",
 		},
 		{
-			"<F15>L",
+			"<leader>lo",
 			"<cmd>Trouble loclist toggle<cr>",
 			desc = "Location List (Trouble)",
 		},
 		{
-			"<F15>q",
+			"<leader>lq",
 			"<cmd>Trouble qflist toggle<cr>",
 			desc = "Quickfix List (Trouble)",
 		},

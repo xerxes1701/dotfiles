@@ -23,7 +23,12 @@ return {
 
 				-- Show inlay hints for any server that provides them.
 				if client and client:supports_method("textDocument/inlayHint") then
-					vim.lsp.inlay_hint.enable(true, { bufnr = ev.buf })
+					if vim.g.inlay_hints_enabled == nil then
+						vim.g.inlay_hints_enabled = true
+					end
+					if vim.g.inlay_hints_enabled then
+						vim.lsp.inlay_hint.enable(true, { bufnr = ev.buf })
+					end
 				end
 
 				-- Render and keep CodeLenses up to date for servers that provide them.
@@ -55,26 +60,18 @@ return {
 					{ desc = "fuzzy find LSP type definitions" }
 				)
 
-				keymap("n", "<leader>rr", vim.lsp.buf.rename, { desc = "refactor rename" })
+				keymap("n", "<leader>lr", vim.lsp.buf.rename, { desc = "refactor rename" })
 
 				keymap("n", "K", vim.lsp.buf.hover, { desc = "show lsp documentation" })
 
-				keymap("n", "<leader>rSS", "<cmd>LspRestart<CR>", { desc = "restart LSP" })
+				-- Builtin (:h :lsp-restart). Restarts every client attached to this buffer and
+				-- reattaches all of their buffers; nvim-lspconfig does not define :LspRestart
+				-- here because it bails out early when the builtin :lsp command exists.
+				keymap("n", "<leader>lSr", "<cmd>lsp restart<CR>", { desc = "restart LSP" })
 
-				keymap("n", "<leader>cl", vim.lsp.codelens.run, { desc = "run CodeLens action" })
+				keymap("n", "<leader>lc", vim.lsp.codelens.run, { desc = "run CodeLens action" })
 
-				keymap("n", "<leader>cL", function()
-					vim.g.codelens_enabled = not vim.g.codelens_enabled
-					if vim.g.codelens_enabled then
-						vim.lsp.codelens.enable(true, { bufnr = ev.buf })
-					else
-						vim.lsp.codelens.enable(false, { bufnr = ev.buf })
-					end
-				end, { desc = "toggle CodeLenses" })
-
-				keymap("n", "<leader>ih", function()
-					vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = ev.buf }), { bufnr = ev.buf })
-				end, { desc = "toggle inlay hints" })
+				keymap("i", "<C-s>", vim.lsp.buf.signature_help, { desc = "signature help" })
 			end,
 		})
 	end,

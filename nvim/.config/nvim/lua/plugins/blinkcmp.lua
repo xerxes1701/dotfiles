@@ -28,8 +28,7 @@ return {
 		-- See :h blink-cmp-config-keymap for defining your own keymap
 		keymap = {
 			preset = "default",
-			["C-space"] = { "show", "show_documentation", "hide_documentation" },
-			["C-s"] = { "show", "show_documentation", "hide_documentation" },
+			["<C-space>"] = { "show", "show_documentation", "hide_documentation" },
 			["<C-b>"] = { "scroll_documentation_up", "fallback" },
 			["<C-f>"] = { "scroll_documentation_down", "fallback" },
 		},

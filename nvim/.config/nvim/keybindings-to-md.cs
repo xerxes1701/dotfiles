@@ -143,7 +143,7 @@ class Root
 class Binding
 {
     [YamlMember(Alias = "key")] public string Key { get; set; } = "";
-    [YamlMember(Alias = "mode")] public string Mode { get; set; } = "";
+    [YamlMember(Alias = "mode")] public List<string> Mode { get; set; } = new();
     [YamlMember(Alias = "action")] public string Action { get; set; } = "";
     [YamlMember(Alias = "description")] public string Description { get; set; } = "";
     [YamlMember(Alias = "file")] public string File { get; set; } = "";
@@ -151,13 +151,21 @@ class Binding
     [YamlMember(Alias = "group")] public string Group { get; set; } = "";
     [YamlMember(Alias = "source")] public string Source { get; set; } = "explicit";
 
+    // Set only on a hydra *body* -- the real mapping that opens the hydra. Its
+    // heads carry `mode: ["hydra(<name>)"]` instead and have no `hydra` field.
+    [YamlMember(Alias = "hydra")] public HydraRef? Hydra { get; set; }
+
+    // `mode` is a list; this is its rendering/sorting key.
+    public string ModeText => string.Join(",", Mode);
+
     public bool IsDefault => string.Equals(Source, "default", StringComparison.OrdinalIgnoreCase);
     public bool IsBuiltin => string.Equals(Source, "builtin", StringComparison.OrdinalIgnoreCase);
 
     public void Normalize()
     {
         Key = (Key ?? "").Trim();
-        Mode = (Mode ?? "").Trim();
+        Mode = (Mode ?? new()).Select(m => (m ?? "").Trim())
+                                .Where(m => m.Length > 0).ToList();
         Action = (Action ?? "").Trim();
         Description = (Description ?? "").Trim();
         File = (File ?? "").Trim();
@@ -165,6 +173,12 @@ class Binding
         Group = string.IsNullOrWhiteSpace(Group) ? "Uncategorized" : Group.Trim();
         Source = string.IsNullOrWhiteSpace(Source) ? "explicit" : Source.Trim();
     }
+}
+
+class HydraRef
+{
+    [YamlMember(Alias = "name")] public string Name { get; set; } = "";
+    [YamlMember(Alias = "color")] public string Color { get; set; } = "";
 }
 
 // --------------------------------------------------------------------------
@@ -343,7 +357,7 @@ class MarkdownBuilder
         {
             var rows = _all.Where(b => b.Group == group)
                            .OrderBy(b => b.Key, StringComparer.OrdinalIgnoreCase)
-                           .ThenBy(b => b.Mode, StringComparer.OrdinalIgnoreCase)
+                           .ThenBy(b => b.ModeText, StringComparer.OrdinalIgnoreCase)
                            .ToList();
 
             Heading3(group, IdForGroup(group));
@@ -358,7 +372,7 @@ class MarkdownBuilder
         Line();
 
         var rows = _all.OrderBy(b => b.Key, StringComparer.OrdinalIgnoreCase)
-                       .ThenBy(b => b.Mode, StringComparer.OrdinalIgnoreCase)
+                       .ThenBy(b => b.ModeText, StringComparer.OrdinalIgnoreCase)
                        .ToList();
         Table(rows, includePlugin: true);
     }
@@ -402,17 +416,24 @@ class MarkdownBuilder
             Line($"| Key | Mode | {descHead} | {actHead} | Plugin | Implicit |");
             Line($"| --- | --- | {descRule} | {actRule} | --- | --- |");
             foreach (var r in rows)
-                Line($"| {Code(r.Key)} | {Cell(r.Mode)} | {DescCell(r.Description)} | {CodeCell(r.Action, _actionWidth)} | {PluginCell(r)} | {ImplicitCell(r)} |");
+                Line($"| {Code(r.Key)} | {ModeCell(r)} | {DescCell(r.Description)} | {CodeCell(r.Action, _actionWidth)} | {PluginCell(r)} | {ImplicitCell(r)} |");
         }
         else
         {
             Line($"| Key | Mode | {descHead} | {actHead} | Implicit |");
             Line($"| --- | --- | {descRule} | {actRule} | --- |");
             foreach (var r in rows)
-                Line($"| {Code(r.Key)} | {Cell(r.Mode)} | {DescCell(r.Description)} | {CodeCell(r.Action, _actionWidth)} | {ImplicitCell(r)} |");
+                Line($"| {Code(r.Key)} | {ModeCell(r)} | {DescCell(r.Description)} | {CodeCell(r.Action, _actionWidth)} | {ImplicitCell(r)} |");
         }
         Line();
     }
+
+    // A hydra body is a real mapping in its own mode that *puts you into* the
+    // hydra, so show the transition; its heads render as plain `hydra(<name>)`.
+    private static string ModeCell(Binding b) =>
+        b.Hydra is { Name.Length: > 0 }
+            ? $"{Cell(b.ModeText)} \u2192 hydra({b.Hydra.Name})"
+            : Cell(b.ModeText);
 
     private static string PluginCell(Binding b) =>
         string.IsNullOrEmpty(b.Plugin) ? "_core_" : Code(b.Plugin);

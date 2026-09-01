@@ -39,7 +39,7 @@ keymap("n", "<", "<<", { noremap = true, silent = true })
 keymap("n", ">", ">>", { noremap = true, silent = true })
 
 -- open Lazy plugin manager
-keymap("n", "<leader>ll", "<cmd>Lazy<CR>", { noremap = true, silent = true })
+keymap("n", "<leader>L", "<cmd>Lazy<CR>", { noremap = true, silent = true })
 
 -- split management
 keymap("n", "<leader>sv", "<cmd>vsplit<CR>", { desc = "split vertical", noremap = true, silent = true })

@@ -6,3 +6,7 @@ shell-integration = nushell
 # Matches Alacritty's opacity = 0.8, so the semitransparent terminal
 # stays readable over a maximized window (Mod+F / Mod+Ctrl+M).
 background-opacity = 0.8
+
+# The close-confirmation dialog defaults to "Cancel" and that isn't
+# configurable, so closing via keyboard is awkward. Skip the dialog.
+confirm-close-surface = false

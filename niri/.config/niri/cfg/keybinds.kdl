@@ -110,6 +110,8 @@ binds {
     // ─── Layout Controls ───
     Mod+CTRL+F                          { expand-column-to-available-width; }
     Mod+Equal                           { set-column-width "50%"; }
+    Mod+Shift+M                         { set-column-width "50%"; }
+    Mod+M                               { set-column-width "100%"; }
     Mod+CTRL+Equal                      { set-window-height "100%"; }
     Mod+C                               { center-column; }
     Mod+CTRL+C                          { center-visible-columns; }

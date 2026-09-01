@@ -62,7 +62,9 @@ see `.zshrc_fzf`
 cat with syntax highlighting
 [bat github page](https://github.com/sharkdp/bat)
 
-note: binary is named batcat. aliased as `bat` in `.zshrc`
+note: on Debian/Ubuntu the binary is named `batcat`; on Arch it is `bat`.
+each shell config bridges the name only when that is actually the case
+(`bat` absent, `batcat` present), so the alias never shadows a working `bat`.
 
 ## tree
 
@@ -242,3 +244,40 @@ configure tmux sessions (intial windows, panes, commands)
 install
 
 > gem install tmuxinator
+
+## shells
+
+fish, nushell and zsh are configured to behave the same way. each config is
+split into the same labeled sections in the same order:
+
+    env / path / tool init / aliases: listing / aliases: navigation /
+    aliases: tools / aliases: system / functions / shell-specific
+
+only the last section may differ between shells.
+
+    fish/.config/fish/config.fish
+    nushell/.config/nushell/env.nu      env + path (loaded first)
+    nushell/.config/nushell/config.nu   everything else
+    zsh/.zshrc
+
+to check they have not drifted apart:
+
+> scripts/shell-parity.sh
+
+it asks each shell to enumerate its own aliases, functions, env vars and PATH
+in a clean environment, then reports anything defined in one shell but not the
+others. intentional differences are listed with a reason in
+`scripts/shell-parity.allow`; it exits non-zero on anything else.
+
+nushell needs one extra step, because it cannot `source` a pipeline the way
+`zoxide init fish | source` does. run this once per machine, and again after
+upgrading zoxide or starship:
+
+> nu scripts/nu-regen-init.nu
+
+that writes starship's init into `~/.config/nushell/autoload/` (picked up
+automatically) and zoxide's into `~/.config/nushell/zoxide.nu` (sourced by
+name from config.nu -- zoxide's defs and PWD hook do not take effect from an
+autoload dir). both are generated and machine-local, deliberately not tracked
+here: the previous setup committed a `zoxide init` dump that went stale
+whenever zoxide was upgraded.

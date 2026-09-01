@@ -1,0 +1,64 @@
+# Intentional divergences between fish / nushell / zsh.
+#
+# Format: <shell>:<name>   -- "it is OK for <shell> NOT to have <name>"
+#         *:<name>         -- exempt <name> in every shell
+# <shell> is one of fish, nu, zsh.
+
+# --- CachyOS extras -------------------------------------------------------
+# fish inherits these from /usr/share/cachyos-fish-config/cachyos-config.fish.
+# Deliberately not ported to nushell/zsh: trivially replaceable, tied to GNU
+# coreutils, or meaningless in a structured shell.
+*:apt
+*:apt-get
+*:big
+*:dir
+*:egrep
+*:fgrep
+*:fixpacman
+*:gitpkg
+*:grep
+*:hw
+*:l.
+*:psmem
+*:psmem10
+*:rip
+*:tarnow
+*:tb
+*:untar
+*:vdir
+*:wget
+*:history
+*:backup
+*:copy
+*:fish_greeting
+
+# --- nushell keeps its structured builtins --------------------------------
+# nushell's `ls` returns structured data, which is the entire point of the
+# shell; shadowing it with eza (text) would break every `ls | where ...`
+# pipeline. So nu keeps builtin ls/ll/la/lt and gets the eza variants under
+# lz* names, which fish and zsh have no reason to duplicate.
+nu:ls
+nu:ll
+nu:la
+nu:lt
+*:lz
+*:lza
+*:lzl
+*:lzt
+
+# --- shell-provided defaults ----------------------------------------------
+# zsh ships these aliases itself.
+*:run-help
+*:which-command
+
+# zoxide defines these in every shell; expansions differ by design.
+*:z
+*:zi
+*:za
+*:zq
+*:zqi
+*:zr
+*:zri
+
+# nushell has no `fzf --nu` integration upstream, so it gets the shared FZF_*
+# settings but not the keybindings fish and zsh install.

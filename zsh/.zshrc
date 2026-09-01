@@ -1,126 +1,105 @@
-path+=("$HOME/.local/bin")
+# Sections below mirror fish/.config/fish/config.fish and
+# nushell/.config/nushell/{env,config}.nu. Keep them in the same order with the
+# same contents; scripts/shell-parity.sh reports any drift.
 
-alias bat=batcat
+# ===== env =====
+
+export EDITOR=nvim
+export VISUAL=nvim
+export BAT_THEME="Catppuccin Macchiato"
+export MANROFFOPT="-c"
+export MANPAGER="sh -c 'col -bx | bat -l man -p'"
+export BUN_INSTALL="$HOME/.bun"
+
+# fzf. Moved here out of .zshrc_fzf so fish and nushell can share them; the
+# zsh-only keybindings and completion helpers stay in that file.
+export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
+export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+export FZF_ALT_C_COMMAND='fd --type d --hidden --follow --exclude .git'
+export FZF_DEFAULT_OPTS="--height=40% --layout=reverse --preview-window=right:60% --preview '[ -f {} ] && bat --style=numbers --color=always {} || eza --tree --color=always --icons=always {} | head -200'"
+
+# ===== path =====
+
+# `typeset -U` keeps $path deduplicated, so re-sourcing never grows it.
+typeset -U path
+path=("$HOME/.local/bin" "$HOME/.cargo/bin" "$HOME/.dotnet/tools" "$BUN_INSTALL/bin" $path)
+
+# ===== tool init =====
+
+eval "$(zoxide init zsh)"
+eval "$(starship init zsh)"
+
+# ===== aliases: listing =====
+
+alias ls='eza --color=always --icons=always'
+alias ll='eza -al --group-directories-first --icons=always'
+alias la='eza -a --color=always --group-directories-first --icons=always'
+alias lf='eza -lf --color=always --icons=always | grep -v /'
+alias lh='eza -dl .* --group-directories-first --icons=always'
+alias lt='eza -al --sort=modified --icons=always'
+alias ld='eza -lD --icons=always'
+alias tree='eza --tree --color=always --icons=always'
+
+# ===== aliases: navigation =====
+
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+alias .....='cd ../../../..'
+alias ......='cd ../../../../..'
+
+# ===== aliases: tools =====
+
+alias g='git'
+alias v='nvim'
+alias vim='nvim'
+alias vid='neovide'
+alias code='code --password-store="gnome-libsecret"'
+alias c='code'
+alias y='yazi'
+alias f='fzf --preview "bat {} --force-colorization"'
+alias neogit='nvim -c :Neogit'
+alias conf='tmuxinator start conf'
+alias cls='clear'
+
+# Debian/Ubuntu ship bat as batcat. On Arch the real binary is `bat`, so only
+# bridge the name when that is actually the situation. (The old unconditional
+# `alias bat=batcat` shadowed a working bat with a command that does not exist.)
+if ! command -v bat >/dev/null && command -v batcat >/dev/null; then
+  alias bat='batcat'
+fi
+
+# ===== aliases: system =====
+
+alias update='sudo cachyos-rate-mirrors && sudo pacman -Syu'
+alias mirror='sudo cachyos-rate-mirrors'
+alias cleanup='sudo pacman -Rns $(pacman -Qtdq)'
+alias jctl='journalctl -p 3 -xb'
+alias grubup='sudo grub-mkconfig -o /boot/grub/grub.cfg'
+
+# ===== functions =====
+
+ssh-agent-start() {
+  eval "$(ssh-agent -s)"
+  ssh-add "$HOME/.ssh/id_rsa"
+}
+
+# ===== shell-specific =====
 
 bindkey -s '\e' '^U'
 
-function ssh-agent-start(){
-  eval "$(ssh-agent -s)"
-  ssh-add /home/xerxes/.ssh/id_ed25519
-}
+# fzf keybindings, completion and preview settings.
+# Sourced by absolute path -- the old relative `source .zshrc_fzf` only resolved
+# when $PWD happened to be $HOME, so it failed on every other startup.
+[ -f "$HOME/.zshrc_fzf" ] && source "$HOME/.zshrc_fzf"
 
-eval "$(zoxide init zsh)"
+# oh-my-zsh and zgen are optional: neither is installed here right now, and
+# sourcing them unguarded printed "no such file or directory" on every startup.
+if [ -d "$HOME/.oh-my-zsh" ]; then
+  export ZSH="$HOME/.oh-my-zsh"
+  ZSH_THEME=""   # starship draws the prompt
+  plugins=(git zsh-autosuggestions zsh-syntax-highlighting)
+  source "$ZSH/oh-my-zsh.sh"
+fi
 
-# If you come from bash you might have to change your $PATH.
-# export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH
-
-# Path to your Oh My Zsh installation.
-export ZSH="$HOME/.oh-my-zsh"
-
-# Set name of the theme to load --- if set to "random", it will
-# load a random theme each time Oh My Zsh is loaded, in which case,
-# to know which specific one was loaded, run: echo $RANDOM_THEME
-# See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
-ZSH_THEME="jonathan"
-
-# Set list of themes to pick from when loading at random
-# Setting this variable when ZSH_THEME=random will cause zsh to load
-# a theme from this variable instead of looking in $ZSH/themes/
-# If set to an empty array, this variable will have no effect.
-# ZSH_THEME_RANDOM_CANDIDATES=( "robbyrussell" "agnoster" )
-
-# Uncomment the following line to use case-sensitive completion.
-# CASE_SENSITIVE="true"
-
-# Uncomment the following line to use hyphen-insensitive completion.
-# Case-sensitive completion must be off. _ and - will be interchangeable.
-# HYPHEN_INSENSITIVE="true"
-
-# Uncomment one of the following lines to change the auto-update behavior
-# zstyle ':omz:update' mode disabled  # disable automatic updates
-# zstyle ':omz:update' mode auto      # update automatically without asking
-# zstyle ':omz:update' mode reminder  # just remind me to update when it's time
-
-# Uncomment the following line to change how often to auto-update (in days).
-# zstyle ':omz:update' frequency 13
-
-# Uncomment the following line if pasting URLs and other text is messed up.
-# DISABLE_MAGIC_FUNCTIONS="true"
-
-# Uncomment the following line to disable colors in ls.
-# DISABLE_LS_COLORS="true"
-
-# Uncomment the following line to disable auto-setting terminal title.
-# DISABLE_AUTO_TITLE="true"
-
-# Uncomment the following line to enable command auto-correction.
-# ENABLE_CORRECTION="true"
-
-# Uncomment the following line to display red dots whilst waiting for completion.
-# You can also set it to another string to have that shown instead of the default red dots.
-# e.g. COMPLETION_WAITING_DOTS="%F{yellow}waiting...%f"
-# Caution: this setting can cause issues with multiline prompts in zsh < 5.7.1 (see #5765)
-# COMPLETION_WAITING_DOTS="true"
-
-# Uncomment the following line if you want to disable marking untracked files
-# under VCS as dirty. This makes repository status check for large repositories
-# much, much faster.
-# DISABLE_UNTRACKED_FILES_DIRTY="true"
-
-# Uncomment the following line if you want to change the command execution time
-# stamp shown in the history command output.
-# You can set one of the optional three formats:
-# "mm/dd/yyyy"|"dd.mm.yyyy"|"yyyy-mm-dd"
-# or set a custom format using the strftime function format specifications,
-# see 'man strftime' for details.
-# HIST_STAMPS="mm/dd/yyyy"
-
-# Would you like to use another custom folder than $ZSH/custom?
-# ZSH_CUSTOM=/path/to/new-custom-folder
-
-# Which plugins would you like to load?
-# Standard plugins can be found in $ZSH/plugins/
-# Custom plugins may be added to $ZSH_CUSTOM/plugins/
-# Example format: plugins=(rails git textmate ruby lighthouse)
-# Add wisely, as too many plugins slow down shell startup.
-plugins=(git zsh-autosuggestions zsh-syntax-highlighting)
-
-source $ZSH/oh-my-zsh.sh
-eval "$(starship init zsh)"
-
-# User configuration
-
-# export MANPATH="/usr/local/man:$MANPATH"
-
-# You may need to manually set your language environment
-# export LANG=en_US.UTF-8
-
-# Preferred editor for local and remote sessions
-# if [[ -n $SSH_CONNECTION ]]; then
-#   export EDITOR='vim'
-# else
-#   export EDITOR='mvim'
-# fi
-
-# Compilation flags
-# export ARCHFLAGS="-arch x86_64"
-
-# Set personal aliases, overriding those provided by Oh My Zsh libs,
-# plugins, and themes. Aliases can be placed here, though Oh My Zsh
-# users are encouraged to define aliases within a top-level file in
-# the $ZSH_CUSTOM folder, with .zsh extension. Examples:
-# - $ZSH_CUSTOM/aliases.zsh
-# - $ZSH_CUSTOM/macos.zsh
-# For a full list of active aliases, run `alias`.
-#
-# Example aliases
-# alias zshconfig="mate ~/.zshrc"
-# alias ohmyzsh="mate ~/.oh-my-zsh"
-
-source .zshrc_fzf
-source .zshrc_ls
-source .zshrc_zgen
-
-alias neogit='nvim -c :Neogit'
-
-export EDITOR='nvim'
+[ -f "$HOME/.zgen/zgen.zsh" ] && source "$HOME/.zshrc_zgen"

@@ -1,0 +1,7 @@
+# Fixture crate for verify.sh. Real crate so rust-analyzer attaches.
+[package]
+name = "nvim-verify-fixture"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]

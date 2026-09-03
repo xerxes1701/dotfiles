@@ -11,7 +11,7 @@ return {
 			transparent_background = true,
 			term_colors = true,
 			integrations = {
-				cmp = true,
+				blink_cmp = true,
 				gitsigns = true,
 				mason = true,
 				notify = true,

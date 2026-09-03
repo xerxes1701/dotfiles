@@ -42,13 +42,79 @@ Select the target commit with this procedure:
    `~/.local/share/nvim/lazy/<plugin>/`. The suffix `^{commit}` gives the
    commit behind an annotated tag.
 5. Write `commit` in the spec. Run `:Lazy restore`.
-   Commit the spec and `lazy-lock.json` together.
+6. Run `./verify/verify.sh --sync`. See "Verifying changes" below. Update
+   one plugin at a time and verify each, so a finding names the plugin
+   that caused it.
+7. Commit the spec and `lazy-lock.json` together.
 
 Why 14 days: a malicious or broken commit is usually found and reverted in
 days. The delay lets upstream and other users find it first.
 
 The update is complete when the spec `commit`, the `lazy-lock.json` commit,
-and the HEAD of the installed clone are the same SHA.
+and the HEAD of the installed clone are the same SHA, and `verify.sh`
+passes.
+
+Matching SHAs are not enough on their own. A major release may rename a
+module this config calls by name, which no pin check catches. Upgrading
+catppuccin to v2.0.0 moved
+`catppuccin.groups.integrations.bufferline` to `catppuccin.special.bufferline`
+and renamed the lualine theme `catppuccin` to `catppuccin-nvim`, and both
+broke this config. After a major version bump, grep this directory for the
+plugin's name and check every hit against the new tree.
+
+## Verifying changes
+
+Run `verify/verify.sh` after any change to this configuration. It checks
+the config in a sandbox profile and exits non-zero on any finding.
+
+```sh
+./verify/verify.sh            # check the config as lazy-lock.json pins it
+./verify/verify.sh --sync     # move clones to the specs' commits first
+./verify/verify.sh --clean    # discard the sandbox and install from scratch
+```
+
+Use `--sync` to check a pin you have written into a spec but not yet
+synced. The sandbox keeps its own XDG directories, so it never touches
+the plugins or state of the profile you use. Its config directory is a
+symlink to this one, so an edit here takes effect on the next run with no
+copy step. Plugin clones persist between runs under
+`$XDG_CACHE_HOME/nvim-config-verify`; the first run installs them and
+takes a few minutes, later runs take about a minute.
+
+Do not check a config change by starting Neovim and watching it. Three
+failures pass that way, and each one has already shipped a broken config
+here:
+
+1. lazy.nvim catches an error thrown by a plugin's `config` and reports it
+   through `vim.notify`. A `pcall` around `lazy.load()` returns success.
+   `check.lua` intercepts `vim.notify` instead and treats any ERROR or
+   WARN as a finding.
+2. A lazy-loaded plugin never runs its `config` until its trigger fires,
+   so opening one file exercises almost nothing. `check.lua` forces every
+   plugin through `lazy.load()`, then opens both a Lua file and a Rust
+   file, because a Lua-only check misses everything behind `BufReadPre`
+   for other filetypes.
+3. A plugin may defer its complaint. lualine waits two seconds after
+   `VimEnter` before warning that its theme was not found. `check.lua`
+   waits that out before it summarizes.
+
+`verify/fixture/` is a real crate, committed so that no one has to build
+one, and so rust-analyzer has a `Cargo.toml` to attach to. `check.lua`
+requires rust-analyzer to attach only when it is on `PATH`. The Lua
+probes expect no client, because the servers come from mason and the
+sandbox does not install them.
+
+`verify.sh` restores `lazy-lock.json` after every run and says so when it
+had to. The sandbox bootstraps its own lazy.nvim and resolves branch
+names itself, so a run that wrote the lockfile would change pins that no
+one reviewed. Update the lockfile only through the procedure above, in
+the profile you use.
+
+When you change `check.lua`, prove the new check fails. Break the thing
+it looks for, run `verify.sh`, confirm it reports the finding, then put
+the config back. A check that has never failed is not known to work: the
+first `lualine` check written here passed against a config whose theme
+was already broken.
 
 ## Keybindings
 
@@ -144,6 +210,9 @@ Tags: `entry` `options` `keymaps` `plugin-spec` `generated` `inventory`
 | `keybindings.md`                   | Reference generated from the inventory. Do not edit.                                              | generated      |
 | `keybindings-to-md.cs`             | .NET 10 script that generates the reference from the inventory.                                   | script         |
 | `find-keybind.sh`                  | Bash and yq query tool for the inventory.                                                         | script         |
+| `verify/verify.sh`                 | Sandbox check of the whole config. Run it after any change. Exits non-zero on a finding.          | script         |
+| `verify/check.lua`                 | The checks `verify.sh` runs inside the sandbox profile.                                           | script         |
+| `verify/fixture/`                  | Committed Rust crate the check opens, so rust-analyzer and the Rust parser get exercised.         | script         |
 | `lua/defaults.lua`                 | Core options, leader keys and the statuscolumn setup.                                             | options        |
 | `lua/keymaps.lua`                  | Global keymaps that belong to no plugin.                                                          | keymaps        |
 | `lua/keymap_registry.lua`          | Wraps the keymap functions before plugins load and records which file owns each map.              | keymaps        |

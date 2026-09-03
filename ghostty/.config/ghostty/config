@@ -10,3 +10,10 @@ background-opacity = 0.8
 # The close-confirmation dialog defaults to "Cancel" and that isn't
 # configurable, so closing via keyboard is awkward. Skip the dialog.
 confirm-close-surface = false
+
+# The Logitech mouse has a high-resolution wheel, so Ghostty treats it as a
+# "precision" device and scrolls by pixels — much faster than Alacritty, which
+# scrolls a fixed 3 lines per notch (scrolling.multiplier = 3). Damping the
+# precision multiplier brings it back in line; discrete stays at Ghostty's
+# default of 3, which already matches Alacritty.
+mouse-scroll-multiplier = precision:0.05,discrete:1

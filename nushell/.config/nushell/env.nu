@@ -20,6 +20,14 @@ $env.FZF_CTRL_T_COMMAND = $env.FZF_DEFAULT_COMMAND
 $env.FZF_ALT_C_COMMAND = "fd --type d --hidden --follow --exclude .git"
 $env.FZF_DEFAULT_OPTS = "--height=40% --layout=reverse --preview-window=right:60% --preview '[ -f {} ] && bat --style=numbers --color=always {} || eza --tree --color=always --icons=always {} | head -200'"
 
+# Ollama. Server-side settings: they apply to an `ollama serve` started from a
+# shell, not to the systemd unit, which needs its own drop-in. Quoted as strings
+# -- nushell only exports string-valued env vars to external commands, so a bare
+# 16384 would not reach the server.
+$env.OLLAMA_CONTEXT_LENGTH = "16384"
+$env.OLLAMA_KV_CACHE_TYPE = "q8_0"
+$env.OLLAMA_KEEP_ALIVE = "30m"
+
 # ===== path =====
 
 # Built with `path join` rather than a literal "~/..." string: nushell does not

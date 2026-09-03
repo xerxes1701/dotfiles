@@ -23,6 +23,16 @@ set -gx FZF_CTRL_T_COMMAND "$FZF_DEFAULT_COMMAND"
 set -gx FZF_ALT_C_COMMAND 'fd --type d --hidden --follow --exclude .git'
 set -gx FZF_DEFAULT_OPTS "--height=40% --layout=reverse --preview-window=right:60% --preview '[ -f {} ] && bat --style=numbers --color=always {} || eza --tree --color=always --icons=always {} | head -200'"
 
+# Ollama. Read by the ollama *server*, not the client, so these apply only to an
+# `ollama serve` started from a shell -- the systemd unit needs the same values
+# in a `systemctl edit ollama` drop-in. Sized for the 8 GB RTX 4060: qwen3.5:9b
+# is 6.14 GiB of weights, leaving ~1.5 GiB, so the q8_0 KV cache (1 byte per
+# element against f16's 2) is what keeps 16k context on the GPU. Verify with
+# `ollama ps` -- PROCESSOR must read 100% GPU.
+set -gx OLLAMA_CONTEXT_LENGTH 16384
+set -gx OLLAMA_KV_CACHE_TYPE q8_0
+set -gx OLLAMA_KEEP_ALIVE 30m
+
 # ===== path =====
 
 # fish_add_path skips entries already in $PATH, so this is idempotent -- unlike

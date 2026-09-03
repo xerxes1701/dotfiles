@@ -18,6 +18,14 @@ export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 export FZF_ALT_C_COMMAND='fd --type d --hidden --follow --exclude .git'
 export FZF_DEFAULT_OPTS="--height=40% --layout=reverse --preview-window=right:60% --preview '[ -f {} ] && bat --style=numbers --color=always {} || eza --tree --color=always --icons=always {} | head -200'"
 
+# Ollama. Server-side settings: they apply to an `ollama serve` started from a
+# shell, not to the systemd unit, which needs its own drop-in. q8_0 halves the
+# KV cache against the f16 default, which is what fits 16k context alongside
+# qwen3.5:9b's 6.14 GiB of weights on an 8 GB card.
+export OLLAMA_CONTEXT_LENGTH=16384
+export OLLAMA_KV_CACHE_TYPE=q8_0
+export OLLAMA_KEEP_ALIVE=30m
+
 # ===== path =====
 
 # `typeset -U` keeps $path deduplicated, so re-sourcing never grows it.

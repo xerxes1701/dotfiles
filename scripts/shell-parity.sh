@@ -31,7 +31,8 @@ FUNCS=(ssh-agent-start)
 
 # Environment variables expected to agree across every shell.
 ENVVARS=(EDITOR VISUAL BAT_THEME MANPAGER MANROFFOPT BUN_INSTALL
-         FZF_DEFAULT_COMMAND FZF_CTRL_T_COMMAND FZF_ALT_C_COMMAND FZF_DEFAULT_OPTS)
+         FZF_DEFAULT_COMMAND FZF_CTRL_T_COMMAND FZF_ALT_C_COMMAND FZF_DEFAULT_OPTS
+         OLLAMA_CONTEXT_LENGTH OLLAMA_KV_CACHE_TYPE OLLAMA_KEEP_ALIVE)
 
 # PATH entries expected in every shell.
 PATHENTRIES=("$HOME/.local/bin" "$HOME/.cargo/bin" "$HOME/.dotnet/tools" "$HOME/.bun/bin")

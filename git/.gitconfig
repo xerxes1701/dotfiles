@@ -1,13 +1,19 @@
 [user]
-	email = michaelgawlik1983@gmail.com
+  email = micahelgawlik1983@gmail.com
 	name = Michael Gawlik
 
 [core]
 	pager = delta
+	longpaths = true
+
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
 
 [push]
-  autoSetupRemote = true
-  conflictstyle = zdiff3
+	autoSetupRemote = true
 
 [interactive]
 	diffFilter = delta --color-only
@@ -15,49 +21,92 @@
 [delta]
 	navigate = true # use n and N to move between diff sections
 	side-by-side = true
-	#dark = true
-	#light = true
-	
-[merge]
-	conflictstyle = zdiff3
-
-[rebase]
-	updateRefs = true
 
 [diff]
 	colorMoved = default
 
+[merge]
+	conflictStyle = zdiff3
+
+[rebase]
+	updateRefs = true
+
 [alias]
-  b = branch
-  bn = branch --show-current
-  c = commit
-  cm = commit -m
-  ca = commit --amend -m
-  cl = clone
-  co = checkout
-  d = diff
-  f = fetch
-  l = log
-  lg = log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(auto)%d%C(reset)'
-  lga = lg --all
-  lgm = "!f() { d=$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null); if [ -z \"$d\" ]; then for b in main master; do git show-ref --verify --quiet refs/remotes/origin/$b && d=origin/$b && break; done; fi; git lg $d~1..$(git bn); }; f"
-  m = merge
-  p = pull
-  r = reset
-  s = status
-  st = stash
-  sw = switch
-  root = rev-parse --show-toplevel
-  af = "!f() { cd \"$(git root)\" && git status --porcelain | rg '^( |\\?\\?)' | cut -c4- | fzf -m --preview-window 'up,70%' --bind 'ctrl-u:preview-half-page-up,ctrl-d:preview-half-page-down,ctrl-f:preview-page-down,ctrl-b:preview-page-up' --preview 'git diff -- {} | delta --width $FZF_PREVIEW_COLUMNS; git diff --no-index -- /dev/null {} 2>/dev/null | delta --width $FZF_PREVIEW_COLUMNS' | xargs -r git add; }; f"
-  x = "!git status --porcelain | rg '^( |\\?\\?)'"
-  ffiles = "!f() { cd \"$(git root)\" && git status --porcelain | rg '^( |\\?\\?)' | cut -c4- | fzf -m --preview 'git diff --color=always {}'; }; f"
-  undo = "!f() { cd \"$(git root)\" && git status --porcelain | rg '^( |\\?\\?)' | cut -c4- | fzf -m --preview 'git diff --color=always {}' | xargs -r git checkout; }; f"
-  incoming-first-pretty = !git log -1 --oneline --decorate $(git rev-list --reverse HEAD..@{u} | head -n1)
-  incoming-first-hash = !git log -1 --format=%h $(git rev-list --reverse HEAD..@{u} | head -n1)
-  check-ff = merge-base --is-ancestor HEAD 
-  ddiff = -c diff.external=difft diff
-  dshow = -c diff.external=difft show --ext-diff
-  dlog = -c diff.external=difft log --ext-diff
-  dd = ddiff
-  ds = dshow
-  dl = dlog
+	# --- default-branch helper: origin/HEAD, else origin/main, else origin/master ---
+	main-branch = "!f() { d=$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null); if [ -z \"$d\" ]; then for b in main master; do git show-ref --verify --quiet refs/remotes/origin/$b && d=origin/$b && break; done; fi; echo \"$d\"; }; f"
+
+	# --- branch / commit ---
+	b    = branch
+	bn   = branch --show-current
+	c    = commit
+	cm   = commit -m
+	ca   = commit --amend
+	cam  = commit --amend -m
+	cl   = clone
+	co   = checkout
+	cp   = cherry-pick
+	sw   = switch
+	s    = status
+	root = rev-parse --show-toplevel
+
+	# --- diff ---
+	d     = diff
+	dw    = diff --ignore-all-space
+	ddiff = -c diff.external=difft diff
+	dshow = -c diff.external=difft show --ext-diff
+	dlog  = -c diff.external=difft log --ext-diff
+	dd    = ddiff
+	ds    = dshow
+	dl    = dlog
+	dmm   = "!git d $(git merge-base $(git main-branch) HEAD) HEAD"
+	dmmf  = "!f() { git dmm --name-only | fzf -m --preview 'git dmm -- {} | delta --width $FZF_PREVIEW_COLUMNS' --preview-window 'up,80%'; }; f"
+
+	# --- log ---
+	l   = log
+	lg  = log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(auto)%d%C(reset)'
+	lga = lg --all
+	lgm = "!git lg $(git main-branch)~1..$(git bn)"
+	ls  = log --decorate --pretty=format:'%C(yellow)%h %Cblue[%cn] %Creset%s %Cred%d'
+	ll  = ls --numstat
+	lf  = "!f() { git ls --color=always | fzf --ansi --preview 'git show --name-only --color=always {1}'; }; f"
+	la  = "!git config -l | grep alias | cut -c 7- | sort | bat --color=always --language=ini"
+
+	# --- fetch / pull / push ---
+	f   = fetch
+	pl  = pull
+	ph  = push
+	phf = push --force-with-lease
+
+	# --- merge / rebase / reset ---
+	m   = merge
+	mc  = merge --continue
+	ma  = merge --abort
+	mm  = "!f() { m=$(git main-branch); git fetch && git merge \"$m\" --message \"Merge branch '${m#origin/}' into $(git bn)\"; }; f"
+	rb  = rebase
+	rbc = rebase --continue
+	rba = rebase --abort
+	rbm = "!git rebase $(git main-branch) -i"
+	rs  = reset
+
+	# --- stash / worktree ---
+	st  = stash
+	stm = stash push --message
+	stp = stash pop
+	w   = worktree
+	wl  = worktree list
+
+	# --- working-tree pickers ---
+	x        = "!git status --porcelain | rg '^( |\\?\\?)'"
+	unstaged = "!git status --porcelain | rg '^( |\\?\\?)' | cut -c4-"
+	af       = "!f() { cd \"$(git root)\" && git status --porcelain | rg '^( |\\?\\?)' | cut -c4- | fzf -m --preview-window 'up,70%' --bind 'ctrl-u:preview-half-page-up,ctrl-d:preview-half-page-down,ctrl-f:preview-page-down,ctrl-b:preview-page-up' --preview 'git diff -- {} | delta --width $FZF_PREVIEW_COLUMNS; git diff --no-index -- /dev/null {} 2>/dev/null | delta --width $FZF_PREVIEW_COLUMNS' | xargs -r git add; }; f"
+	ffiles   = "!f() { cd \"$(git root)\" && git status --porcelain | rg '^( |\\?\\?)' | cut -c4- | fzf -m --preview 'git diff --color=always {}'; }; f"
+	undo     = "!f() { cd \"$(git root)\" && git status --porcelain | rg '^( |\\?\\?)' | cut -c4- | fzf -m --preview 'git diff --color=always {}' | xargs -r git checkout; }; f"
+
+	# --- upstream inspection ---
+	incoming-first-pretty = !git log -1 --oneline --decorate $(git rev-list --reverse HEAD..@{u} | head -n1)
+	incoming-first-hash = !git log -1 --format=%h $(git rev-list --reverse HEAD..@{u} | head -n1)
+	check-ff = merge-base --is-ancestor HEAD 
+
+# Machine-local: user.email and the platform-specific `fh`. Kept last so it wins.
+[include]
+	path = ~/.gitconfig.local

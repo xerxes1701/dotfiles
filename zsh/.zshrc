@@ -101,13 +101,12 @@ bindkey -s '\e' '^U'
 # when $PWD happened to be $HOME, so it failed on every other startup.
 [ -f "$HOME/.zshrc_fzf" ] && source "$HOME/.zshrc_fzf"
 
-# oh-my-zsh and zgen are optional: neither is installed here right now, and
-# sourcing them unguarded printed "no such file or directory" on every startup.
-if [ -d "$HOME/.oh-my-zsh" ]; then
-  export ZSH="$HOME/.oh-my-zsh"
-  ZSH_THEME=""   # starship draws the prompt
-  plugins=(git zsh-autosuggestions zsh-syntax-highlighting)
-  source "$ZSH/oh-my-zsh.sh"
-fi
-
+# zgen is optional: it is not installed everywhere, and sourcing it unguarded
+# printed "no such file or directory" on every startup.
+#
+# oh-my-zsh used to be picked up here the same way. It is gone on purpose: it
+# gets sourced at the very bottom, after the alias sections above, and its
+# lib/theme-and-appearance.zsh and lib/directories.zsh redefine ls, l, ll and
+# la -- silently replacing the eza aliases with plain `ls` on any machine that
+# happens to have oh-my-zsh installed (a devcontainer base image, for one).
 [ -f "$HOME/.zgen/zgen.zsh" ] && source "$HOME/.zshrc_zgen"

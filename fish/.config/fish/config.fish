@@ -106,3 +106,18 @@ end
 
 # functions/fzf.fish  -- wrapper disabling the kitty keyboard protocol
 # fish_plugins        -- fisher-managed plugins
+
+# Colour theme, from the catppuccin/fish fisher plugin. `theme choose` sets the
+# fish_color_* variables globally for this session; global beats universal in
+# fish's scope lookup, so this wins over whatever a machine happens to have in
+# its fish_variables. That is the point: unlike `fish_config theme save`, which
+# the README used to tell you to run by hand, nothing machine-local has to stay
+# in sync -- the theme lives in this file and travels with the repository.
+#
+# The name is the file name the plugin installs. Upstream renamed the themes to
+# lower case with a hyphen; the old "Catppuccin Mocha" now fails with
+# "No such theme". Guarded, so a checkout without the plugin installed does not
+# error on every prompt.
+if status is-interactive; and test -f $__fish_config_dir/themes/catppuccin-mocha.theme
+  fish_config theme choose catppuccin-mocha
+end

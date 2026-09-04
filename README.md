@@ -158,7 +158,14 @@ a fish shell color scheme
 install
 
 > fisher install catppuccin/fish
-> fish_config theme save "Catppuccin Mocha"
+
+no `fish_config theme save` step: `fish/.config/fish/config.fish` selects the
+theme itself with `fish_config theme choose catppuccin-mocha`, so the choice
+lives in this repository instead of in each machine's `fish_variables`.
+
+the name is the file name the plugin installs. upstream renamed the themes to
+lower case with a hyphen, so the `"Catppuccin Mocha"` this README used to name
+now fails with `No such theme`.
 
 ## tmux
 

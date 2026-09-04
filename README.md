@@ -291,25 +291,38 @@ whenever zoxide was upgraded.
 
 # devcontainer
 
-the devcontainers of the projects here stow this repo and install neovim, so
-the editor inside a container is the same one as on the host. to open it:
+the devcontainers of the projects here stow this repo and install neovim and
+herdr, so both tools inside a container are the ones configured here. to open
+one of them in the container:
 
 > scripts/devcontainer-nvim.sh [options] [--] [nvim args...]
+> scripts/devcontainer-herdr.sh [options] [--] [herdr args...]
 
-it picks the container, the remote user (`remoteUser` from the container's
-devcontainer metadata), and the `/workspaces` folder by itself. if several
-devcontainers are running it lists them and asks, offering the one whose
-workspace holds the current directory as the default. `--container` names one
-outright, `--dir` overrides the start directory, `--list` shows what is
-running, `--help` explains the rest.
+herdr keeps a persistent server of its own, so where it is started matters:
+run in the container, its session, its agents and its worktrees all live next
+to the code they work on, inside the sandbox the devcontainer sets up.
+
+both launchers only name their tool. everything they share lives in
+`scripts/devcontainer-lib.sh`, which is sourced, not run: it picks the
+container, the remote user (`remoteUser` from the container's devcontainer
+metadata) and the `/workspaces` folder. if several devcontainers are running
+it lists them and asks, offering the one whose workspace holds the current
+directory as the default. `--container` names one outright, `--dir` overrides
+the start directory, `--list` shows what is running, `--help` explains the
+rest.
 
 it also checks that the container's terminfo knows `$TERM` and falls back to
 `xterm-256color` if it does not: a ghostty or wezterm `$TERM` reaches a plain
-ubuntu image as an unknown terminal, and the display neovim then draws is
-broken in ways whose message never mentions `$TERM`.
+ubuntu image as an unknown terminal, and the display a full-screen tool then
+draws is broken in ways whose message never mentions `$TERM`.
 
-nvim arguments are passed through unchanged and resolved inside the container,
+arguments are passed through unchanged and resolved inside the container,
 relative to the start directory -- a host path is not translated. anything
-starting with a dash needs a `--` first:
+starting with a dash needs a `--` first, so the launcher does not read it as
+one of its own:
 
 > scripts/devcontainer-nvim.sh -- --headless +qa
+> scripts/devcontainer-herdr.sh -- --session firstx
+
+to add a third tool, copy a launcher: source the library, set `dc_tool`, its
+`dc_tool_hint` and a few `dc_examples`, then call `dc_main "$@"`.

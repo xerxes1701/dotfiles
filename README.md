@@ -288,3 +288,28 @@ name from config.nu -- zoxide's defs and PWD hook do not take effect from an
 autoload dir). both are generated and machine-local, deliberately not tracked
 here: the previous setup committed a `zoxide init` dump that went stale
 whenever zoxide was upgraded.
+
+# devcontainer
+
+the devcontainers of the projects here stow this repo and install neovim, so
+the editor inside a container is the same one as on the host. to open it:
+
+> scripts/devcontainer-nvim.sh [options] [--] [nvim args...]
+
+it picks the container, the remote user (`remoteUser` from the container's
+devcontainer metadata), and the `/workspaces` folder by itself. if several
+devcontainers are running it lists them and asks, offering the one whose
+workspace holds the current directory as the default. `--container` names one
+outright, `--dir` overrides the start directory, `--list` shows what is
+running, `--help` explains the rest.
+
+it also checks that the container's terminfo knows `$TERM` and falls back to
+`xterm-256color` if it does not: a ghostty or wezterm `$TERM` reaches a plain
+ubuntu image as an unknown terminal, and the display neovim then draws is
+broken in ways whose message never mentions `$TERM`.
+
+nvim arguments are passed through unchanged and resolved inside the container,
+relative to the start directory -- a host path is not translated. anything
+starting with a dash needs a `--` first:
+
+> scripts/devcontainer-nvim.sh -- --headless +qa

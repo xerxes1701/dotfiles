@@ -55,11 +55,15 @@ local function open(path, filetype, want_lsp)
 		table.insert(errs, ("%s: filetype is %q, expected %q"):format(path, vim.bo.filetype, filetype))
 	end
 
-	local ok, parser = pcall(vim.treesitter.get_parser, 0, filetype)
+	-- The parser is named after the language, which is not always the filetype:
+	-- C# is filetype `cs` and language `c_sharp`. Resolve it the same way the
+	-- FileType autocmd in the treesitter spec does.
+	local lang = vim.treesitter.language.get_lang(filetype) or filetype
+	local ok, parser = pcall(vim.treesitter.get_parser, 0, lang)
 	if not (ok and parser and pcall(function()
 		parser:parse()
 	end)) then
-		table.insert(errs, ("%s: no %s treesitter parse"):format(path, filetype))
+		table.insert(errs, ("%s: no %s treesitter parse"):format(path, lang))
 	end
 
 	-- rustaceanvim names its client "rust-analyzer"; mason-started servers
@@ -89,6 +93,14 @@ local config = vim.fn.stdpath("config")
 -- installed, so the check still runs on a machine without a Rust toolchain.
 local rust_lsp = vim.fn.executable("rust-analyzer") == 1 and "rust_analyzer" or nil
 open(config .. "/verify/fixture/src/main.rs", "rust", rust_lsp)
+
+-- C#: the fixture project. roslyn.nvim names its client "roslyn", not
+-- "roslyn_ls" as nvim-lspconfig does, and the name comparison in `open` only
+-- folds - and _, so the spelling here has to be the plugin's. Required only
+-- when the server is on PATH; it comes from mason, which the sandbox does not
+-- install, so normally this probe checks the filetype and the parser.
+local cs_lsp = vim.fn.executable("roslyn-language-server") == 1 and "roslyn" or nil
+open(config .. "/verify/fixture-cs/Program.cs", "cs", cs_lsp)
 
 -- Lua: this config's own files. Servers here come from mason, which the
 -- sandbox does not install, so no client is required.

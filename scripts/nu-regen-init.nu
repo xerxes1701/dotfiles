@@ -25,6 +25,6 @@ print $"wrote ($autoload)/starship.nu"
 # it goes next to config.nu, which sources it by name.
 # NOT `$nu.config-path | path dirname`: config.nu is a stow symlink, so that
 # resolves back into the dotfiles repo and would commit generated output.
-let cfgdir = ($nu.home-dir | path join ".config" "nushell")
+let cfgdir = ($nu.home-path | path join ".config" "nushell")
 zoxide init nushell | save -f ($cfgdir | path join "zoxide.nu")
 print $"wrote ($cfgdir)/zoxide.nu"

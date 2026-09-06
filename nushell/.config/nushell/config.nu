@@ -63,9 +63,15 @@ alias cls = clear
 
 # ===== aliases: system =====
 
+# Named `sysupdate`, not `update`: `update` is a nushell builtin, and a `def`
+# of that name shadows it for the whole file -- including anything `source`d
+# here, which is what broke zoxide.nu (its init calls `update hooks ...`).
+# Same reasoning as the ls/lz* split above. fish and zsh keep `update`; the
+# divergence is recorded in scripts/shell-parity.allow.
+#
 # nushell has no `&&`, and `;` would run the upgrade even if the mirror
 # refresh failed, so gate it on the exit code to match fish/zsh.
-def update [] {
+def sysupdate [] {
     sudo cachyos-rate-mirrors
     if $env.LAST_EXIT_CODE == 0 { sudo pacman -Syu }
 }
@@ -83,7 +89,7 @@ def --env ssh-agent-start [] {
     | parse "setenv {name} {value};"
     | reduce --fold {} {|it, acc| $acc | upsert $it.name $it.value }
     | load-env
-    ssh-add ($nu.home-dir | path join ".ssh" "id_rsa")
+    ssh-add ($nu.home-path | path join ".ssh" "id_rsa")
 }
 
 # ===== shell-specific =====

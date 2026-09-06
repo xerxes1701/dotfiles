@@ -10,7 +10,7 @@ $env.VISUAL = "nvim"
 $env.BAT_THEME = "Catppuccin Macchiato"
 $env.MANROFFOPT = "-c"
 $env.MANPAGER = "sh -c 'col -bx | bat -l man -p'"
-$env.BUN_INSTALL = ($nu.home-dir | path join ".bun")
+$env.BUN_INSTALL = ($nu.home-path | path join ".bun")
 
 # fzf. Previously zsh-only (in .zshrc_fzf); plain env vars, so all three shells
 # share them. nushell has no `fzf --nu` integration upstream, so unlike fish and
@@ -37,9 +37,9 @@ $env.PATH = (
     $env.PATH
     | split row (char esep)
     | prepend [
-        ($nu.home-dir | path join ".local" "bin")
-        ($nu.home-dir | path join ".cargo" "bin")
-        ($nu.home-dir | path join ".dotnet" "tools")
+        ($nu.home-path | path join ".local" "bin")
+        ($nu.home-path | path join ".cargo" "bin")
+        ($nu.home-path | path join ".dotnet" "tools")
         ($env.BUN_INSTALL | path join "bin")
     ]
     | uniq

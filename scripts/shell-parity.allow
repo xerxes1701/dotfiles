@@ -62,3 +62,11 @@ nu:lt
 
 # nushell has no `fzf --nu` integration upstream, so it gets the shared FZF_*
 # settings but not the keybindings fish and zsh install.
+
+# --- nushell keeps its structured builtins (cont.) -------------------------
+# `update` is a nushell builtin. Defining `def update` shadows it for the
+# entire config.nu parse scope, including sourced files -- it broke zoxide's
+# generated init, which calls `update hooks ...`. So nu gets the pacman
+# helper under `sysupdate` instead; fish and zsh keep plain `update`.
+nu:update
+*:sysupdate

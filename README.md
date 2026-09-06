@@ -4,7 +4,9 @@ contains verisioned dotfiles. files can be mirrored under ~ via `gnu stow`
 
 # usage
 
-create all sym links
+each top level directory is one `gnu stow` package holding the paths it owns
+relative to `~`, so `nvim/.config/nvim/init.lua` is linked as
+`~/.config/nvim/init.lua`. deploy them with:
 
 > scripts/stow-deploy.sh
 
@@ -23,7 +25,22 @@ replaces them with.
 `-n` shows what would happen and changes nothing, `--list` the packages a
 script deploys, `-R` re-creates the links after a package lost a file, `-D`
 removes them, `--target` deploys somewhere other than `~`, `--help` explains
-the rest. either script refuses to run in the other's environment.
+the rest. either script refuses to run in the other's environment. naming
+packages deploys only those:
+
+> scripts/stow-deploy.sh nvim tmux
+
+nushell needs `nu scripts/nu-regen-init.nu` once per machine afterwards, see
+[shells](#shells).
+
+## restowing after a move
+
+when a file moves between packages here, the links on a machine still point at
+the old path and go dangling. `stow` recognises them as its own and repairs
+them in place, so re-running the deploy script is enough. links whose source
+was deleted outright are not repaired -- find those with:
+
+> find ~ -xtype l ! -path "$HOME/dotfiles/*" -printf '%p -> %l\n' | grep dotfiles
 
 # dependencies
 

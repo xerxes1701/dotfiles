@@ -70,6 +70,11 @@ alias neogit='nvim -c :Neogit'
 alias conf='tmuxinator start conf'
 alias cls='clear'
 
+# RDP to the Windows box. The password is piped in from 1Password rather than
+# passed as /p:, which would leave it in shell history and in
+# /proc/<pid>/cmdline for anything that can run ps.
+alias rdp='op read "op://Personal/My Microsoft Account/password" | xfreerdp3 /v:192.168.178.22 /d:MicrosoftAccount /u:michael-gawlik@outlook.com /from-stdin +dynamic-resolution +clipboard /cert:ignore'
+
 # Debian/Ubuntu ship bat as batcat. On Arch the real binary is `bat`, so only
 # bridge the name when that is actually the situation. (The old unconditional
 # `alias bat=batcat` shadowed a working bat with a command that does not exist.)

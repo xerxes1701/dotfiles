@@ -57,6 +57,12 @@ alias neogit = nvim -c :Neogit
 alias conf = tmuxinator start conf
 alias cls = clear
 
+# RDP to the Windows box. A `def` rather than an alias: nushell mis-parses an
+# alias whose body contains a pipe. The password is piped in from 1Password
+# rather than passed as /p:, which would leave it in shell history and in
+# /proc/<pid>/cmdline for anything that can run ps.
+def rdp [] { op read "op://Personal/My Microsoft Account/password" | xfreerdp3 /v:192.168.178.22 /d:MicrosoftAccount /u:michael-gawlik@outlook.com /from-stdin +dynamic-resolution +clipboard /cert:ignore }
+
 # No `alias bat = batcat` here: on Arch the binary IS `bat`, so that aliased a
 # working command to a missing one. fish bridges the name only when `bat` is
 # genuinely absent and `batcat` present (Debian/Ubuntu).

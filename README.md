@@ -252,6 +252,42 @@ install
 
 > gem install tmuxinator
 
+## freerdp
+
+rdp client, used to reach the windows machine on the lan
+[freerdp github page](https://github.com/FreeRDP/FreeRDP)
+
+install
+
+> yay -S freerdp 1password-cli
+
+the package installs one binary per display backend, and every name carries the
+major version -- there is no plain `freerdp3`:
+
+    xfreerdp3       x11
+    wlfreerdp3      wayland
+    sdl-freerdp3    sdl
+
+the `rdp` alias in all three shells wraps the connection. the password is piped
+in from 1password rather than passed as `/p:`, which would leave it in shell
+history and, for as long as the session lives, in `/proc/<pid>/cmdline`:
+
+> op read "op://<vault>/<item>/password" | xfreerdp3 /v:<host> /d:MicrosoftAccount /u:<user> /from-stdin +dynamic-resolution +clipboard /cert:ignore
+
+nushell gets a `def` rather than an alias, because it mis-parses an alias whose
+body contains a pipe. `scripts/shell-parity.sh` knows about that case.
+
+`op` needs the desktop app's cli integration enabled (settings > developer >
+integrate with 1password cli), or it cannot unlock non-interactively -- and
+since its stdout is already piped into freerdp, a missed unlock prompt looks
+like an rdp hang rather than an auth error.
+
+a microsoft account signs in as the full email address under the
+`MicrosoftAccount` pseudo-domain, using the account password -- not the windows
+hello pin, which is device-local and cannot travel over rdp. an account set to
+passwordless has no credential nla can send and must have a password restored
+before it will connect at all.
+
 ## shells
 
 fish, nushell and zsh are configured to behave the same way. each config is

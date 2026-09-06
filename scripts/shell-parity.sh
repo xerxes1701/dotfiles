@@ -18,11 +18,39 @@ trap 'rm -rf "$tmp"' EXIT
 SHELLS=(fish nu zsh)
 status=0
 
+# Resolve each shell here, in our own environment, before the PATH below is
+# narrowed. A shell installed outside /usr/bin -- nushell from snap or cargo,
+# say -- is otherwise not found in the clean environment, and every one of its
+# probes fails silently into 2>/dev/null, which reads as "this shell defines
+# nothing" rather than "this shell was never run".
+declare -A BIN=()
+absent_shells=()
+for s in "${SHELLS[@]}"; do
+    if b=$(command -v "$s" 2>/dev/null); then BIN["$s"]=$b; else absent_shells+=("$s"); fi
+done
+if [ ${#absent_shells[@]} -gt 0 ]; then
+    printf 'not installed: %s\n' "${absent_shells[*]}" >&2
+    printf 'a shell that cannot be run cannot be compared -- install it, or drop\n' >&2
+    printf 'it from SHELLS in %s.\n' "${BASH_SOURCE[0]}" >&2
+    exit 2
+fi
+
 # Child shells inherit our environment, which would make every env/PATH check
 # falsely report agreement. Run them with a clean slate instead, so we measure
 # what each config actually sets.
+#
+# Each shell's own directory joins that slate, and the same set is given to all
+# three, so a shell living in /snap/bin cannot show up as a PATH difference
+# between them. Invocations still name the binary by absolute path: PATH here
+# is what we are measuring, not how we find the shell.
+CLEAN_PATH=/usr/local/bin:/usr/bin:/bin
+for s in "${SHELLS[@]}"; do
+    d=$(dirname -- "${BIN[$s]}")
+    case ":$CLEAN_PATH:" in *":$d:"*) ;; *) CLEAN_PATH="$CLEAN_PATH:$d" ;; esac
+done
+
 clean() { env -i HOME="$HOME" TERM="${TERM:-xterm}" USER="${USER:-$(id -un)}" \
-               PATH=/usr/local/bin:/usr/bin:/bin "$@"; }
+               PATH="$CLEAN_PATH" "$@"; }
 
 NUCFG=(--config "$HOME/.config/nushell/config.nu" --env-config "$HOME/.config/nushell/env.nu")
 
@@ -57,22 +85,22 @@ normalize() {
 
 collect_fish() {
     # `alias` prints: alias NAME 'BODY'
-    clean fish -i -c 'alias' 2>/dev/null |
+    clean "${BIN[fish]}" -i -c 'alias' 2>/dev/null |
         sed -n "s/^alias \([^ ]*\) \(.*\)$/\1\t\2/p"
 }
 
 collect_nu() {
     # nu -c does not load config.nu on its own, so point it at the file.
-    clean nu "${NUCFG[@]}" -c 'scope aliases | each {|a| $"($a.name)(char tab)($a.expansion)" } | to text' 2>/dev/null
+    clean "${BIN[nu]}" "${NUCFG[@]}" -c 'scope aliases | each {|a| $"($a.name)(char tab)($a.expansion)" } | to text' 2>/dev/null
     # `..`-style helpers must be `def`s in nu, not aliases -- include them too,
     # minus nushell'\''s own internals and zoxide'\''s private commands.
-    clean nu "${NUCFG[@]}" -c 'scope commands | where type == "custom" | get name | to text' 2>/dev/null |
+    clean "${BIN[nu]}" "${NUCFG[@]}" -c 'scope commands | where type == "custom" | get name | to text' 2>/dev/null |
         grep -v '^__' | grep -vx -e banner -e pwd | sed 's/$/\t<def>/'
 }
 
 collect_zsh() {
     # `alias` prints: NAME=BODY
-    clean zsh -i -c 'alias' 2>/dev/null |
+    clean "${BIN[zsh]}" -i -c 'alias' 2>/dev/null |
         sed -n "s/^\([^=]*\)=\(.*\)$/\1\t\2/p"
 }
 
@@ -164,11 +192,11 @@ fi
 printf '\n== functions ==\n'
 for fn in "${FUNCS[@]}"; do
     absent=()
-    clean fish -i -c "functions -q $fn" 2>/dev/null || absent+=(fish)
-    clean nu "${NUCFG[@]}" \
+    clean "${BIN[fish]}" -i -c "functions -q $fn" 2>/dev/null || absent+=(fish)
+    clean "${BIN[nu]}" "${NUCFG[@]}" \
        -c "if (scope commands | where name == '$fn' | is-empty) { exit 1 }" \
        >/dev/null 2>&1 || absent+=(nu)
-    clean zsh -i -c "typeset -f $fn" >/dev/null 2>&1 || absent+=(zsh)
+    clean "${BIN[zsh]}" -i -c "typeset -f $fn" >/dev/null 2>&1 || absent+=(zsh)
     if [ ${#absent[@]} -eq 0 ]; then
         printf '  %-16s ok\n' "$fn"
     else
@@ -181,9 +209,9 @@ done
 
 printf '\n== env ==\n'
 for var in "${ENVVARS[@]}"; do
-    fv=$(clean fish -i -c "echo \$$var" 2>/dev/null | normalize)
-    nv=$(clean nu "${NUCFG[@]}" -c "\$env.$var? | default ''" 2>/dev/null | normalize)
-    zv=$(clean zsh -i -c "echo \$$var" 2>/dev/null | normalize)
+    fv=$(clean "${BIN[fish]}" -i -c "echo \$$var" 2>/dev/null | normalize)
+    nv=$(clean "${BIN[nu]}" "${NUCFG[@]}" -c "\$env.$var? | default ''" 2>/dev/null | normalize)
+    zv=$(clean "${BIN[zsh]}" -i -c "echo \$$var" 2>/dev/null | normalize)
     if [ "$fv" = "$nv" ] && [ "$nv" = "$zv" ] && [ -n "$fv" ]; then
         printf '  %-12s ok  (%s)\n' "$var" "$fv"
     else
@@ -196,11 +224,18 @@ done
 # --- 5. PATH ----------------------------------------------------------------
 
 printf '\n== path ==\n'
-clean fish -i -c 'for p in $PATH; echo $p; end' 2>/dev/null >"$tmp/path.fish"
-clean nu "${NUCFG[@]}" -c '$env.PATH | to text'  2>/dev/null >"$tmp/path.nu"
-clean zsh -i -c 'print -l $path'                 2>/dev/null >"$tmp/path.zsh"
+clean "${BIN[fish]}" -i -c 'for p in $PATH; echo $p; end' 2>/dev/null >"$tmp/path.fish"
+clean "${BIN[nu]}" "${NUCFG[@]}" -c '$env.PATH | to text'  2>/dev/null >"$tmp/path.nu"
+clean "${BIN[zsh]}" -i -c 'print -l $path'                 2>/dev/null >"$tmp/path.zsh"
 
 for entry in "${PATHENTRIES[@]}"; do
+    # fish_add_path drops directories that do not exist, while zsh and nushell
+    # append blindly. On a machine where the tool is simply not installed that
+    # is a difference in the machine, not in the configs, so do not measure it.
+    if [ ! -d "$entry" ]; then
+        printf '  %-28s skipped (not present on this machine)\n' "$entry"
+        continue
+    fi
     absent=()
     for s in "${SHELLS[@]}"; do
         grep -qxF "$entry" "$tmp/path.$s" || absent+=("$s")

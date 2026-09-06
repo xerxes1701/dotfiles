@@ -70,3 +70,11 @@ nu:lt
 # helper under `sysupdate` instead; fish and zsh keep plain `update`.
 nu:update
 *:sysupdate
+
+# --- the bat/batcat bridge is fish- and zsh-only --------------------------
+# On Debian/Ubuntu, where the binary is `batcat`, fish and zsh alias `bat` to
+# it behind a runtime check. nushell aliases are resolved at parse time, so it
+# cannot make the same alias conditional, and defining it unconditionally
+# would break Arch, where `bat` is the real binary. See the comment in
+# nushell/.config/nushell/config.nu.
+nu:bat

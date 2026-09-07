@@ -6,7 +6,24 @@ contains verisioned dotfiles. files can be mirrored under ~ via `gnu stow`
 
 create all sym links
 
-> stow \*/
+> scripts/stow-deploy.sh
+
+and inside a devcontainer, which replaces two of the packages with its own:
+
+> scripts/stow-deploy-devcontainer.sh
+
+both are `stow */` with the two things that instruction gets wrong. stow folds
+a package into a single symlink when its target directory does not exist yet,
+so `~/.config/fish` and `~/.config/herdr` become links into this repository
+and everything those tools write there -- fisher's plug-ins, herdr's socket,
+logs and session -- lands in the working tree; the scripts stow both unfolded.
+and a container leaves `git` and `herdr` out, in favour of the packages it
+replaces them with.
+
+`-n` shows what would happen and changes nothing, `--list` the packages a
+script deploys, `-R` re-creates the links after a package lost a file, `-D`
+removes them, `--target` deploys somewhere other than `~`, `--help` explains
+the rest. either script refuses to run in the other's environment.
 
 # dependencies
 
@@ -376,6 +393,8 @@ from its stow list (`DOTFILES_STOW_EXCLUDE` in its Dockerfile) and stows
 `.herdr-devcontainer` by name, unfolded: herdr writes its socket, its logs
 and `session.json` into `~/.config/herdr`, and with the directory folded
 into a symlink those writes would land in this repo.
+`scripts/stow-deploy-devcontainer.sh` deploys exactly that set, for a
+container whose `~/dotfiles` has moved on since the image was built.
 
 to add a third tool, copy a launcher: source the library, set `dc_tool`, its
 `dc_tool_hint` and a few `dc_examples`, then call `dc_main "$@"`.

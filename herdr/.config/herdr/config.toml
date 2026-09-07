@@ -1,4 +1,24 @@
+onboarding = false
 [ui]
 host_cursor = "native"
 
 agent_panel_sort = "spaces"
+
+[theme]
+# Explicit, even though it is the default: the devcontainer config
+# (../../../.herdr-devcontainer/.config/herdr/config.toml) deliberately runs a
+# different theme, and the two are only comparable if both name their own.
+name = "catppuccin"
+
+[theme.custom]
+# The grey this machine already shows, pinned rather than inherited. These are
+# catppuccin mocha's own base (#1e1e2e) and mantle (#181825) -- the same values
+# wezterm paints as its background here -- so nothing changes visually; the
+# point is that the devcontainer's warm tint is now a diff against a stated
+# colour instead of against a default.
+panel_bg = "#1e1e2e"
+sidebar_bg = "#181825"
+
+[terminal]
+# Executable used for new interactive panes (tabs, workspaces, splits).
+default_shell = "/usr/bin/fish"

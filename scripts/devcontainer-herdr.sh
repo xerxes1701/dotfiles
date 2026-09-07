@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# Open herdr inside a running devcontainer, in its /workspaces folder.
+# Open herdr in a devcontainer, in its /workspaces folder -- starting the
+# container first if it is not up, or building one from the project's image if
+# there is no container at all.
 #
 # herdr is a terminal workspace manager for AI coding agents, and it keeps a
 # persistent server of its own. Started in here it would manage panes on the

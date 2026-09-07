@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# Open Neovim inside a running devcontainer, in its /workspaces folder.
+# Open Neovim in a devcontainer, in its /workspaces folder -- starting the
+# container first if it is not up, or building one from the project's image if
+# there is no container at all.
 #
 # The devcontainer image carries nvim and stows this dotfiles repo (see the
 # README section "devcontainer"), so the editor in there is the same one as on

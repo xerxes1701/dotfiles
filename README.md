@@ -358,11 +358,44 @@ to the code they work on, inside the sandbox the devcontainer sets up.
 both launchers only name their tool. everything they share lives in
 `scripts/devcontainer-lib.sh`, which is sourced, not run: it picks the
 container, the remote user (`remoteUser` from the container's devcontainer
-metadata) and the `/workspaces` folder. if several devcontainers are running
-it lists them and asks, offering the one whose workspace holds the current
-directory as the default. `--container` names one outright, `--dir` overrides
-the start directory, `--list` shows what is running, `--help` explains the
-rest.
+metadata) and the `/workspaces` folder. if several devcontainers are there to
+choose from it lists them and asks, offering the one whose workspace holds the
+current directory as the default. `--container` names one outright, `--dir`
+overrides the start directory, `--list` shows what there is, `--help` explains
+the rest.
+
+stopped containers count. vs code shuts a devcontainer down with the last
+window on it and a reboot leaves every one of them behind, so a container that
+is merely not running is started rather than refused -- and one running
+container is still picked silently, because stopped leftovers should not turn
+that into a question. what `docker start` does not bring back are the
+devcontainer.json lifecycle hooks (`postStartCommand` and friends): those
+belong to vs code and the devcontainer cli, so the launcher says so when it
+starts one. if a workspace needs them, open it in vs code or run
+`devcontainer up` instead.
+
+images count too. with no container for a project -- the first checkout of a
+worktree, or a container removed after its config changed -- the `vsc-*`
+images are offered next to the containers, and choosing one builds a container
+from it. that build is `devcontainer up`, never a hand-written `docker run`:
+the workspace mount, the sibling `firstx_` repository, the ssh directory, the
+named volumes, the remote user and the lifecycle hooks are all in
+devcontainer.json and nowhere else, and a container missing them would look
+almost right, which is the worst way to be wrong.
+
+the one thing an image cannot say is where its workspace is:
+`devcontainer.local_folder` is a label on containers, never on images, and the
+image name gives only the folder's *name*. so the launcher writes down every
+workspace folder it sees, in
+`${XDG_STATE_HOME:-~/.local/state}/devcontainer-launcher/workspaces`, and
+resolves an image against that list -- exact match first, then a sibling of a
+remembered folder, since worktrees sit next to each other. `--workspace PATH`
+says it outright and it asks if it still cannot tell.
+
+a container built in here is labelled with the *wsl* path of the workspace
+while vs code labels its own with the *windows* path, so vs code will not adopt
+it and would build a second one alongside. the launcher warns before it does
+this. when vs code is going to open the project anyway, let vs code build it.
 
 it also checks that the container's terminfo knows `$TERM` and falls back to
 `xterm-256color` if it does not: a ghostty or wezterm `$TERM` reaches a plain

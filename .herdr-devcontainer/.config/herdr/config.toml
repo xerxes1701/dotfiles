@@ -23,3 +23,12 @@ tab_bar_right = [{ type = "text", text = " DEVCONTAINER " }, { type = "hostname"
 [theme]
 # Deliberately not the default catppuccin the host runs.
 name = "gruvbox"
+
+[theme.custom]
+# The glance-level tell, next to the tab-bar badge above: a subtle dark pastel
+# yellow ground instead of the host's cool grey (#1e1e2e / #181825, stated
+# explicitly in the host config so this stays a comparison between two named
+# colours). Warm enough to register when both sessions are side by side, dark
+# and desaturated enough not to fight gruvbox's own foreground.
+panel_bg = "#2c2a20"
+sidebar_bg = "#252319"

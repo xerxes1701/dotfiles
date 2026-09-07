@@ -1,3 +1,4 @@
 [ui]
 host_cursor = "native"
 
+agent_panel_sort = "spaces"

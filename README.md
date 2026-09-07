@@ -360,5 +360,22 @@ one of its own:
 > scripts/devcontainer-nvim.sh -- --headless +qa
 > scripts/devcontainer-herdr.sh -- --session firstx
 
+`herdr/` is the herdr config for this machine, `.herdr-devcontainer/` the
+one for a container: a different theme, a different accent and a
+`DEVCONTAINER` badge in the tab bar, so the two instances are never mistaken
+for each other. a second config is the only way to get that -- herdr reads
+only `~/.config/herdr/config.toml`, with no include mechanism, no
+config-path variable and no project-local file.
+
+that second package has to be a *hidden* directory. `stow */` matches no
+dot-directory, so this machine deploys `herdr/` and ignores it; two visible
+packages both providing `.config/herdr/config.toml` would instead make stow
+abort the whole run -- every package, not just herdr -- with "existing
+target is stowed to a different package". the container excludes `herdr`
+from its stow list (`DOTFILES_STOW_EXCLUDE` in its Dockerfile) and stows
+`.herdr-devcontainer` by name, unfolded: herdr writes its socket, its logs
+and `session.json` into `~/.config/herdr`, and with the directory folded
+into a symlink those writes would land in this repo.
+
 to add a third tool, copy a launcher: source the library, set `dc_tool`, its
 `dc_tool_hint` and a few `dc_examples`, then call `dc_main "$@"`.

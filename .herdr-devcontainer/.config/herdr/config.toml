@@ -1,0 +1,25 @@
+# herdr inside a devcontainer.
+#
+# The config for this machine is ../../../herdr/.config/herdr/config.toml.
+# This file exists so the two are never mistaken for each other: herdr reads
+# only ~/.config/herdr/config.toml -- no include mechanism, no config-path
+# variable, no project-local file -- so a second config is the only way to
+# tell the instances apart. See the "devcontainer" section of the README for
+# why this package is a hidden directory.
+
+[ui]
+# The container shares the WSL kernel, and herdr's "auto" cursor mode reads
+# /proc/version, /proc/sys/kernel/osrelease and WSL_*, so it very likely
+# classifies the container as WSL too and draws its own cursor. Same reason
+# as on the host: let the outer terminal own the cursor.
+host_cursor = "native"
+accent = "#fe8019"
+window_title = "[devcontainer] {workspace}"
+# The badge is the marker that survives a glance. `text` is the field name --
+# `value` is rejected with "unknown field `value`, expected `text`", which the
+# commented default config does not say.
+tab_bar_right = [{ type = "text", text = " DEVCONTAINER " }, { type = "hostname" }]
+
+[theme]
+# Deliberately not the default catppuccin the host runs.
+name = "gruvbox"

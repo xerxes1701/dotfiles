@@ -95,7 +95,7 @@ def --env ssh-agent-start [] {
     | parse "setenv {name} {value};"
     | reduce --fold {} {|it, acc| $acc | upsert $it.name $it.value }
     | load-env
-    ssh-add ($nu.home-path | path join ".ssh" "id_rsa")
+    ssh-add ($nu.home-dir | path join ".ssh" "id_rsa")
 }
 
 # ===== shell-specific =====

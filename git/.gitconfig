@@ -5,6 +5,10 @@
 [core]
 	pager = delta
 	longpaths = true
+	checkStat = minimal
+	trustctime = false
+	untrackedCache = true
+	preloadIndex = true
 
 [filter "lfs"]
 	clean = git-lfs clean -- %f
@@ -110,3 +114,5 @@
 # Machine-local: user.email and the platform-specific `fh`. Kept last so it wins.
 [include]
 	path = ~/.gitconfig.local
+[gc]
+	auto = 0

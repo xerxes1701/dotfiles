@@ -33,10 +33,31 @@ return {
 		-- bootstrap itself on a fresh profile.
 		local tinymist = vim.fn.exepath("tinymist")
 
-		return {
+		local opts = {
 			dependencies_bin = {
 				tinymist = tinymist ~= "" and tinymist or nil,
 			},
 		}
+
+		-- On WSL the plugin hands the preview URL to a bare `explorer.exe`. That
+		-- name only resolves when the Windows PATH is appended to $PATH, and
+		-- /etc/wsl.conf here sets `appendWindowsPath = false`, so the spawn dies
+		-- with ENOENT and no preview ever opens. Interop itself is fine -- the
+		-- binary only has to be named in full. There is no Linux browser in this
+		-- WSL image either (`www-browser` is lynx), so handing the URL to Windows
+		-- is the right call, not a workaround.
+		--
+		-- `open_cmd` is a format string: `%s` is the URL, and a string command
+		-- goes through the shell, hence the quotes. explorer.exe exits 1 even on
+		-- success, which is harmless -- the plugin reports stderr, not the exit
+		-- code, and explorer writes nothing there.
+		if vim.fn.has("wsl") == 1 then
+			local explorer = "/mnt/c/Windows/explorer.exe"
+			if vim.fn.executable(explorer) == 1 then
+				opts.open_cmd = explorer .. ' "%s"'
+			end
+		end
+
+		return opts
 	end,
 }

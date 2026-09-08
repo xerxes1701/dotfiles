@@ -15,7 +15,7 @@ _Generated from `keybindings.yaml` by `keybindings-to-md.cs`._
 > 🔹 marks a **Neovim built-in** default — a core editor command that is
 > not defined via a keymap (it never appears in `:map`/`nvim_get_keymap`).
 >
-> Totals: **520** keybindings — **233** explicit, **146** implicit defaults (🔸), **141** built-ins (🔹).
+> Totals: **523** keybindings — **236** explicit, **146** implicit defaults (🔸), **141** built-ins (🔹).
 
 ## Table of Contents
 
@@ -44,6 +44,7 @@ _Generated from `keybindings.yaml` by `keybindings-to-md.cs`._
    - [lua/plugins/tmux-naivation.lua](#file-luapluginstmux-naivationlua)
    - [lua/plugins/treesitter.lua](#file-luapluginstreesitterlua)
    - [lua/plugins/trouble.lua](#file-luapluginstroublelua)
+   - [lua/plugins/typst-preview.lua](#file-luapluginstypst-previewlua)
    - [lua/plugins/whichkey.lua](#file-luapluginswhichkeylua)
 2. [Grouped by Plugin](#sec-by-plugin)
    - [blink.cmp](#plugin-blinkcmp)
@@ -74,6 +75,7 @@ _Generated from `keybindings.yaml` by `keybindings-to-md.cs`._
    - [telescope-undo.nvim](#plugin-telescope-undonvim)
    - [telescope.nvim](#plugin-telescopenvim)
    - [trouble.nvim](#plugin-troublenvim)
+   - [typst-preview.nvim](#plugin-typst-previewnvim)
    - [vim-maximizer](#plugin-vim-maximizer)
    - [vim-tmux-navigator](#plugin-vim-tmux-navigator)
    - [which-key.nvim](#plugin-which-keynvim)
@@ -110,6 +112,7 @@ _Generated from `keybindings.yaml` by `keybindings-to-md.cs`._
    - [Terminal](#group-terminal)
    - [Text Objects](#group-text-objects)
    - [Treewalker Hydra](#group-treewalker-hydra)
+   - [Typst](#group-typst)
    - [Visual](#group-visual)
    - [Windows](#group-windows)
 4. [All Keybindings (sorted)](#sec-all)
@@ -519,6 +522,16 @@ Configures: `trouble.nvim`
 | `<leader>lq` | n | Trouble: quickfix list                                                           | `<cmd>Trouble qflist toggle<cr>`         |  |
 | `<leader>ls` | n | Trouble: document symbols                                                        | `<cmd>Trouble symbols toggle focus=false…` |  |
 | `<leader>lSl` | n | Trouble: LSP definitions/references                                              | `<cmd>Trouble lsp toggle focus=false win…` |  |
+
+### lua/plugins/typst-preview.lua <a id="file-luapluginstypst-previewlua"></a>
+
+Configures: `typst-preview.nvim`
+
+| Key | Mode | Description                                                                      | Action                                   | Implicit |
+| --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- |
+| `<leader>Tf` | n | Typst: toggle preview follow cursor                                              | `<cmd>TypstPreviewFollowCursorToggle<CR>` |  |
+| `<leader>Tp` | n | Typst: toggle live preview                                                       | `<cmd>TypstPreviewToggle<CR>`            |  |
+| `<leader>Ts` | n | Typst: scroll preview to cursor                                                  | `<cmd>TypstPreviewSyncCursor<CR>`        |  |
 
 ### lua/plugins/whichkey.lua <a id="file-luapluginswhichkeylua"></a>
 
@@ -1065,6 +1078,16 @@ Defined in: `lua/plugins/trouble.lua`; includes 11 implicit default(s) 🔸
 | `r` | n | Trouble window: refresh                                                          | `refresh`                                | 🔸 |
 | `{` | n | Trouble window: previous item                                                    | `previous item`                          | 🔸 |
 | `}` | n | Trouble window: next item                                                        | `next item`                              | 🔸 |
+
+### typst-preview.nvim <a id="plugin-typst-previewnvim"></a>
+
+Defined in: `lua/plugins/typst-preview.lua`
+
+| Key | Mode | Description                                                                      | Action                                   | Implicit |
+| --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- |
+| `<leader>Tf` | n | Typst: toggle preview follow cursor                                              | `<cmd>TypstPreviewFollowCursorToggle<CR>` |  |
+| `<leader>Tp` | n | Typst: toggle live preview                                                       | `<cmd>TypstPreviewToggle<CR>`            |  |
+| `<leader>Ts` | n | Typst: scroll preview to cursor                                                  | `<cmd>TypstPreviewSyncCursor<CR>`        |  |
 
 ### vim-maximizer <a id="plugin-vim-maximizer"></a>
 
@@ -1749,6 +1772,14 @@ plugin.
 | `w` | hydra(treewalker) | Next loop (outer)                                                                | `goto_next_start @loop.outer`            | `hydra.nvim` |  |
 | `W` | hydra(treewalker) | Previous loop (outer)                                                            | `goto_previous_start @loop.outer`        | `hydra.nvim` |  |
 
+### Typst <a id="group-typst"></a>
+
+| Key | Mode | Description                                                                      | Action                                   | Plugin | Implicit |
+| --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- | --- |
+| `<leader>Tf` | n | Typst: toggle preview follow cursor                                              | `<cmd>TypstPreviewFollowCursorToggle<CR>` | `typst-preview.nvim` |  |
+| `<leader>Tp` | n | Typst: toggle live preview                                                       | `<cmd>TypstPreviewToggle<CR>`            | `typst-preview.nvim` |  |
+| `<leader>Ts` | n | Typst: scroll preview to cursor                                                  | `<cmd>TypstPreviewSyncCursor<CR>`        | `typst-preview.nvim` |  |
+
 ### Visual <a id="group-visual"></a>
 
 | Key | Mode | Description                                                                      | Action                                   | Plugin | Implicit |
@@ -2006,10 +2037,13 @@ Every keybinding in one flat table, sorted by key then mode.
 | `<leader>sq` | n | Close current split                                                              | `<cmd>close<CR>`                         | _core_ |  |
 | `<leader>sv` | n | Split window vertically                                                          | `<cmd>vsplit<CR>`                        | _core_ |  |
 | `<leader>tf` | n | Open current file in new tab                                                     | `<cmd>tabnew %<CR>`                      | _core_ |  |
+| `<leader>Tf` | n | Typst: toggle preview follow cursor                                              | `<cmd>TypstPreviewFollowCursorToggle<CR>` | `typst-preview.nvim` |  |
 | `<leader>tn` | n | Go to next tab                                                                   | `<cmd>tabn<CR>`                          | _core_ |  |
 | `<leader>to` | n | Open new tab                                                                     | `<cmd>tabnew<CR>`                        | _core_ |  |
 | `<leader>tp` | n | Go to previous tab                                                               | `<cmd>tabp<CR>`                          | _core_ |  |
+| `<leader>Tp` | n | Typst: toggle live preview                                                       | `<cmd>TypstPreviewToggle<CR>`            | `typst-preview.nvim` |  |
 | `<leader>tq` | n | Close current tab                                                                | `<cmd>tabclose<CR>`                      | _core_ |  |
+| `<leader>Ts` | n | Typst: scroll preview to cursor                                                  | `<cmd>TypstPreviewSyncCursor<CR>`        | `typst-preview.nvim` |  |
 | `<leader>u` | n | Browse undo history                                                              | `<cmd>Telescope undo<cr>`                | `telescope-undo.nvim` |  |
 | `<leader>y` | n | Yank to system clipboard                                                         | `"+y`                                    | _core_ |  |
 | `<leader>y` | v | Yank selection to system clipboard                                               | `"+y`                                    | _core_ |  |

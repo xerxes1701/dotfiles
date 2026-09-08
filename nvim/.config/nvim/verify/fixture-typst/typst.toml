@@ -1,0 +1,11 @@
+# Committed so tinymist and typst-preview.nvim have a project root to attach to,
+# the way verify/fixture/Cargo.toml gives rust-analyzer one. Both treat
+# `typst.toml` as a root marker, so the fixture resolves to this directory
+# instead of walking up to the dotfiles repository.
+[package]
+name = "nvim-config-verify-fixture"
+version = "0.1.0"
+entrypoint = "main.typ"
+authors = ["nvim config verify"]
+license = "MIT"
+description = "Minimal Typst project opened by verify/check.lua."

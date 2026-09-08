@@ -29,6 +29,7 @@ return {
 				"ts_ls", -- typescript
 				"markdown_oxide", -- markdown
 				"rust_analyzer", -- rust
+				"tinymist", -- typst
 			},
 			-- rustaceanvim owns the rust-analyzer client (clippy-on-save, debugging,
 			-- code lens, macro expand) and roslyn.nvim owns the C# client. Excluding

@@ -100,10 +100,11 @@ here:
 
 `verify/fixture/` is a real crate, committed so that no one has to build
 one, and so rust-analyzer has a `Cargo.toml` to attach to.
-`verify/fixture-cs/` is the same idea for C#: a real project, so roslyn has
-a `.csproj` to attach to. `check.lua` requires rust-analyzer and roslyn to
-attach only when they are on `PATH`. The Lua probes expect no client,
-because the servers come from mason and the sandbox does not install them.
+`verify/fixture-cs/` is the same idea for C#, so roslyn has a `.csproj`,
+and `verify/fixture-typst/` for Typst, so tinymist has a `typst.toml`.
+`check.lua` requires rust-analyzer, roslyn and tinymist to attach only when
+they are on `PATH`. The Lua probes expect no client, because the servers
+come from mason and the sandbox does not install them.
 
 `verify.sh` restores `lazy-lock.json` after every run and says so when it
 had to. The sandbox bootstraps its own lazy.nvim and resolves branch
@@ -145,7 +146,7 @@ rules. Two rules are easy to get wrong:
 
 ## Inventory queries
 
-The inventory has 759 lines and the reference has 2318 lines. Query them.
+The inventory has 766 lines and the reference has 2352 lines. Query them.
 Do not read them fully. Both options below return only the matching entries.
 
 ### Option A: find-keybind.sh
@@ -215,6 +216,7 @@ Tags: `entry` `options` `keymaps` `plugin-spec` `generated` `inventory`
 | `verify/check.lua`                 | The checks `verify.sh` runs inside the sandbox profile.                                           | script         |
 | `verify/fixture/`                  | Committed Rust crate the check opens, so rust-analyzer and the Rust parser get exercised.         | script         |
 | `verify/fixture-cs/`               | Committed .NET project the check opens, so roslyn and the C# parser get exercised.                | script         |
+| `verify/fixture-typst/`            | Committed Typst project the check opens, so tinymist and the Typst parser get exercised.          | script         |
 | `lua/defaults.lua`                 | Core options, leader keys and the statuscolumn setup.                                             | options        |
 | `lua/keymaps.lua`                  | Global keymaps that belong to no plugin.                                                          | keymaps        |
 | `lua/keymap_registry.lua`          | Wraps the keymap functions before plugins load and records which file owns each map.              | keymaps        |
@@ -225,4 +227,4 @@ Tags: `entry` `options` `keymaps` `plugin-spec` `generated` `inventory`
 | `lua/config/lazy.lua`              | lazy.nvim bootstrap and setup. Imports `lua/plugins/`.                                            | plugin-spec    |
 | `lua/config/hydra-codenav.lua`     | Treesitter code-navigation hydra. Body key `S`.                                                   | hydra, keymaps |
 | `lua/config/hydra-diagnostics.lua` | Diagnostics hydra. Body key `<leader>ld`.                                                         | hydra, keymaps |
-| `lua/plugins/`                     | One lazy.nvim spec per plugin, 55 files. Each starts with a purpose comment and the upstream URL. | plugin-spec    |
+| `lua/plugins/`                     | One lazy.nvim spec per plugin, 56 files. Each starts with a purpose comment and the upstream URL. | plugin-spec    |

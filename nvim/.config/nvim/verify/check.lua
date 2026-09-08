@@ -37,8 +37,11 @@ for _, plugin in ipairs(lazy.plugins()) do
 end
 
 local function open(path, filetype, want_lsp)
-	if not pcall(vim.cmd, "edit " .. vim.fn.fnameescape(path)) then
-		table.insert(errs, "cannot open " .. path)
+	local opened, open_err = pcall(vim.cmd, "edit " .. vim.fn.fnameescape(path))
+	if not opened then
+		-- Carry the message: an autocmd of some plugin failing on this filetype
+		-- lands here too, and "cannot open" alone does not say which one.
+		table.insert(errs, ("cannot open %s: %s"):format(path, tostring(open_err):gsub("\n.*", "")))
 		return
 	end
 
@@ -59,8 +62,19 @@ local function open(path, filetype, want_lsp)
 	-- C# is filetype `cs` and language `c_sharp`. Resolve it the same way the
 	-- FileType autocmd in the treesitter spec does.
 	local lang = vim.treesitter.language.get_lang(filetype) or filetype
-	local ok, parser = pcall(vim.treesitter.get_parser, 0, lang)
-	if not (ok and parser and pcall(function()
+
+	-- nvim-treesitter `main` installs parsers asynchronously, so the first run
+	-- after a language joins `ensure_installed` reaches this line before the
+	-- parser is on disk. Waiting turns that into a slow pass instead of a
+	-- spurious finding; a language that never installs still fails.
+	local parser
+	vim.wait(120000, function()
+		local got, p = pcall(vim.treesitter.get_parser, 0, lang)
+		parser = got and p or nil
+		return parser ~= nil
+	end, 200)
+
+	if not (parser and pcall(function()
 		parser:parse()
 	end)) then
 		table.insert(errs, ("%s: no %s treesitter parse"):format(path, lang))
@@ -101,6 +115,14 @@ open(config .. "/verify/fixture/src/main.rs", "rust", rust_lsp)
 -- install, so normally this probe checks the filetype and the parser.
 local cs_lsp = vim.fn.executable("roslyn-language-server") == 1 and "roslyn" or nil
 open(config .. "/verify/fixture-cs/Program.cs", "cs", cs_lsp)
+
+-- Typst: the fixture project. Its `typst.toml` is the root marker both
+-- tinymist and typst-preview.nvim look for, and main.typ imports chapter.typ,
+-- so an attached client has a cross-file reference to resolve. tinymist comes
+-- from mason, which the sandbox does not install, so it is required only when
+-- some other install already put it on PATH.
+local typst_lsp = vim.fn.executable("tinymist") == 1 and "tinymist" or nil
+open(config .. "/verify/fixture-typst/main.typ", "typst", typst_lsp)
 
 -- Lua: this config's own files. Servers here come from mason, which the
 -- sandbox does not install, so no client is required.

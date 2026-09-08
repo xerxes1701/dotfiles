@@ -23,6 +23,7 @@ local ensure_installed = {
 	"c_sharp",
 	"markdown",
 	"markdown_inline",
+	"typst",
 }
 
 return {

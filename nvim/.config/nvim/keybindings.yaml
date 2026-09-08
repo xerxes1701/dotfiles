@@ -385,6 +385,13 @@ keybindings:
   - { key: "<C-b>",        mode: ["i"],           action: "scroll_documentation_up / fallback", description: "Completion: scroll documentation up",     file: "lua/plugins/blinkcmp.lua", plugin: "blink.cmp", group: "Completion", source: "explicit" }
   - { key: "<C-f>",        mode: ["i"],           action: "scroll_documentation_down / fallback", description: "Completion: scroll documentation down",  file: "lua/plugins/blinkcmp.lua", plugin: "blink.cmp", group: "Completion", source: "explicit" }
 
+  # ------------------------------------------------------------------ #
+  # typst-preview.nvim - lua/plugins/typst-preview.lua                  #
+  # ------------------------------------------------------------------ #
+  - { key: "<leader>Tp",   mode: ["n"],           action: "<cmd>TypstPreviewToggle<CR>",      description: "Typst: toggle live preview",              file: "lua/plugins/typst-preview.lua", plugin: "typst-preview.nvim", group: "Typst", source: "explicit" }
+  - { key: "<leader>Tf",   mode: ["n"],           action: "<cmd>TypstPreviewFollowCursorToggle<CR>", description: "Typst: toggle preview follow cursor", file: "lua/plugins/typst-preview.lua", plugin: "typst-preview.nvim", group: "Typst", source: "explicit" }
+  - { key: "<leader>Ts",   mode: ["n"],           action: "<cmd>TypstPreviewSyncCursor<CR>",  description: "Typst: scroll preview to cursor",         file: "lua/plugins/typst-preview.lua", plugin: "typst-preview.nvim", group: "Typst", source: "explicit" }
+
 # ==================================================================== #
 # default_bindings                                                     #
 #                                                                      #

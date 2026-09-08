@@ -4,7 +4,6 @@
 return {
 	"folke/which-key.nvim",
 	commit = "6c1584e",
-	tag = "v3.13.2",
 	dependencies = { "nvim-web-devicons" },
 	event = "VeryLazy",
 	opts = {
@@ -13,6 +12,7 @@ return {
 			{ "<leader>l", group = "lsp" },
 			{ "<leader>lS", group = "server" },
 			{ "<leader>ld", desc = "diagnostics hydra" },
+			{ "<leader>T", group = "typst" },
 		},
 	},
 	keys = {

@@ -15,6 +15,33 @@ return {
 		local lspconfig = require("lspconfig")
 		local mason_lspconfig = require("mason-lspconfig")
 
+		-- tinymist (typst). The defaults -- cmd, filetypes, root markers -- come from
+		-- nvim-lspconfig's own `lsp/tinymist.lua`; only the server settings below are
+		-- ours. Formatting is reached through conform's `lsp_fallback`, so typst
+		-- files format on save without a `formatters_by_ft` entry of their own.
+		vim.lsp.config("tinymist", {
+			settings = {
+				-- typstyle ships inside tinymist, so nothing extra to install.
+				formatterMode = "typstyle",
+				-- Live preview is typst-preview.nvim's job (<leader>Tp). Writing a PDF
+				-- on every save or keystroke would only litter the project directory.
+				exportPdf = "never",
+				-- Treesitter already highlights typst here, and the two disagree about
+				-- where a token ends -- which shows up as flickering markup.
+				semanticTokens = "disable",
+			},
+		})
+
+		-- mason-lspconfig's `automatic_enable` only enables what mason installed, so
+		-- a tinymist that came from the system package manager or `cargo install`
+		-- would never start. Enabling it here covers that case too. `vim.lsp.enable`
+		-- is keyed by name, so the two paths do not start a second client -- but a
+		-- missing binary would make Neovim report an unstartable client, hence the
+		-- guard.
+		if vim.fn.executable("tinymist") == 1 then
+			vim.lsp.enable("tinymist")
+		end
+
 		-- define keybinding that will be avaiable if a LSP Server is attached to the current buffer
 		vim.api.nvim_create_autocmd("LspAttach", {
 			group = vim.api.nvim_create_augroup("UserLspConfig", {}),

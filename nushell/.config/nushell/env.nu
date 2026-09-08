@@ -1,7 +1,7 @@
 # env.nu -- loaded before config.nu.
 #
 # Sections mirror fish/.config/fish/config.fish and zsh/.zshrc; keep them in
-# the same order with the same contents. scripts/shell-parity.sh reports drift.
+# the same order with the same contents. shell-parity.sh reports drift.
 
 # ===== env =====
 

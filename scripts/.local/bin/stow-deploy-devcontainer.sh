@@ -12,8 +12,8 @@
 set -uo pipefail
 
 # readlink -f, so this still finds the library when the launcher is reached
-# through the symlink that stowing `scripts` puts in ~.
-. "$(dirname -- "$(readlink -f -- "$0")")/stow-lib.sh" || exit 1
+# through the symlink that stowing `scripts` puts in ~/.local/bin.
+. "$(dirname -- "$(readlink -f -- "$0")")/../lib/dotfiles/stow-lib.sh" || exit 1
 
 sd_where=devcontainer
 #   git    the container runs `git config --global`, which would follow a
@@ -27,7 +27,7 @@ sd_exclude=(git herdr)
 sd_extra=(.herdr-devcontainer)
 # See stow-deploy.sh for what folding costs. herdr's package is not deployed
 # here, but the container's replacement for it needs the same treatment.
-sd_unfolded=(fish .herdr-devcontainer)
+sd_unfolded=(fish .herdr-devcontainer scripts)
 sd_examples=(
     "$self"
     "$self -n"

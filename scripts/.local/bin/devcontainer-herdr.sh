@@ -16,7 +16,7 @@ set -uo pipefail
 
 # readlink -f, so this still finds the library when the launcher is reached
 # through a symlink in ~/.local/bin.
-. "$(dirname -- "$(readlink -f -- "$0")")/devcontainer-lib.sh" || exit 1
+. "$(dirname -- "$(readlink -f -- "$0")")/../lib/dotfiles/devcontainer-lib.sh" || exit 1
 
 dc_tool=herdr
 dc_tool_hint='the devcontainer image has to install it -- see .devcontainer/Dockerfile'

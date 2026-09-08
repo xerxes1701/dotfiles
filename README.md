@@ -8,11 +8,16 @@ each top level directory is one `gnu stow` package holding the paths it owns
 relative to `~`, so `nvim/.config/nvim/init.lua` is linked as
 `~/.config/nvim/init.lua`. deploy them with:
 
-> scripts/stow-deploy.sh
+> scripts/.local/bin/stow-deploy.sh
 
 and inside a devcontainer, which replaces two of the packages with its own:
 
-> scripts/stow-deploy-devcontainer.sh
+> scripts/.local/bin/stow-deploy-devcontainer.sh
+
+`scripts/` is a package like the others: its executables live in `.local/bin`
+and the libraries they source in `.local/lib/dotfiles`, so after the first
+deploy every script here is on `PATH` under its bare name and the rest of this
+file calls them that way.
 
 both are `stow */` with the two things that instruction gets wrong. stow folds
 a package into a single symlink when its target directory does not exist yet,
@@ -28,9 +33,9 @@ removes them, `--target` deploys somewhere other than `~`, `--help` explains
 the rest. either script refuses to run in the other's environment. naming
 packages deploys only those:
 
-> scripts/stow-deploy.sh nvim tmux
+> stow-deploy.sh nvim tmux
 
-nushell needs `nu scripts/nu-regen-init.nu` once per machine afterwards, see
+nushell needs `nu-regen-init.nu` once per machine afterwards, see
 [shells](#shells).
 
 ## restowing after a move
@@ -309,7 +314,7 @@ history and, for as long as the session lives, in `/proc/<pid>/cmdline`:
 > op read "op://<vault>/<item>/password" | xfreerdp3 /v:<host> /d:MicrosoftAccount /u:<user> /from-stdin +dynamic-resolution +clipboard /cert:ignore
 
 nushell gets a `def` rather than an alias, because it mis-parses an alias whose
-body contains a pipe. `scripts/shell-parity.sh` knows about that case.
+body contains a pipe. `shell-parity.sh` knows about that case.
 
 `op` needs the desktop app's cli integration enabled (settings > developer >
 integrate with 1password cli), or it cannot unlock non-interactively -- and
@@ -339,18 +344,19 @@ only the last section may differ between shells.
 
 to check they have not drifted apart:
 
-> scripts/shell-parity.sh
+> shell-parity.sh
 
 it asks each shell to enumerate its own aliases, functions, env vars and PATH
 in a clean environment, then reports anything defined in one shell but not the
 others. intentional differences are listed with a reason in
-`scripts/shell-parity.allow`; it exits non-zero on anything else.
+`scripts/.local/lib/dotfiles/shell-parity.allow`; it exits non-zero on
+anything else.
 
 nushell needs one extra step, because it cannot `source` a pipeline the way
 `zoxide init fish | source` does. run this once per machine, and again after
 upgrading zoxide or starship:
 
-> nu scripts/nu-regen-init.nu
+> nu-regen-init.nu
 
 that writes starship's init into `~/.config/nushell/autoload/` (picked up
 automatically) and zoxide's into `~/.config/nushell/zoxide.nu` (sourced by
@@ -365,15 +371,16 @@ the devcontainers of the projects here stow this repo and install neovim and
 herdr, so both tools inside a container are the ones configured here. to open
 one of them in the container:
 
-> scripts/devcontainer-nvim.sh [options] [--] [nvim args...]
-> scripts/devcontainer-herdr.sh [options] [--] [herdr args...]
+> devcontainer-nvim.sh [options] [--] [nvim args...]
+> devcontainer-herdr.sh [options] [--] [herdr args...]
 
 herdr keeps a persistent server of its own, so where it is started matters:
 run in the container, its session, its agents and its worktrees all live next
 to the code they work on, inside the sandbox the devcontainer sets up.
 
 both launchers only name their tool. everything they share lives in
-`scripts/devcontainer-lib.sh`, which is sourced, not run: it picks the
+`scripts/.local/lib/dotfiles/devcontainer-lib.sh`, which is sourced, not run:
+it picks the
 container, the remote user (`remoteUser` from the container's devcontainer
 metadata) and the `/workspaces` folder. if several devcontainers are there to
 choose from it lists them and asks, offering the one whose workspace holds the
@@ -424,8 +431,8 @@ relative to the start directory -- a host path is not translated. anything
 starting with a dash needs a `--` first, so the launcher does not read it as
 one of its own:
 
-> scripts/devcontainer-nvim.sh -- --headless +qa
-> scripts/devcontainer-herdr.sh -- --session firstx
+> devcontainer-nvim.sh -- --headless +qa
+> devcontainer-herdr.sh -- --session firstx
 
 `herdr/` is the herdr config for this machine, `.herdr-devcontainer/` the
 one for a container: a different theme, a different accent and a
@@ -443,7 +450,7 @@ from its stow list (`DOTFILES_STOW_EXCLUDE` in its Dockerfile) and stows
 `.herdr-devcontainer` by name, unfolded: herdr writes its socket, its logs
 and `session.json` into `~/.config/herdr`, and with the directory folded
 into a symlink those writes would land in this repo.
-`scripts/stow-deploy-devcontainer.sh` deploys exactly that set, for a
+`stow-deploy-devcontainer.sh` deploys exactly that set, for a
 container whose `~/dotfiles` has moved on since the image was built.
 
 to add a third tool, copy a launcher: source the library, set `dc_tool`, its

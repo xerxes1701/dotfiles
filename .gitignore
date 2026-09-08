@@ -1,8 +1,8 @@
 nvim/.config/nvim/pending-updates/
 
 # nushell: machine-local generated init + state. ~/.config/nushell is a symlink
-# into this repo, so these land here even though scripts/nu-regen-init.nu
-# writes them via $nu.home-dir. Regenerate with `nu scripts/nu-regen-init.nu`.
+# into this repo, so these land here even though nu-regen-init.nu
+# writes them via $nu.home-dir. Regenerate with `nu nu-regen-init.nu`.
 nushell/.config/nushell/zoxide.nu
 nushell/.config/nushell/autoload/
 nushell/.config/nushell/history.txt

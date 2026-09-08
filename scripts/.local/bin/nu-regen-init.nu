@@ -12,7 +12,7 @@
 # .zoxide.nu, which silently went stale whenever zoxide was upgraded.
 #
 # Run this after installing or upgrading zoxide or starship:
-#     nu scripts/nu-regen-init.nu
+#     nu-regen-init.nu            (in ~/.local/bin once scripts is deployed)
 
 # starship only sets $env.PROMPT_COMMAND, which an autoload dir handles fine.
 let autoload = ($nu.user-autoload-dirs | first)

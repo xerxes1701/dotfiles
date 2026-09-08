@@ -2,7 +2,7 @@
 #
 # A launcher names the environment it belongs to and hands over:
 #
-#   . "$(dirname -- "$(readlink -f -- "$0")")/stow-lib.sh"
+#   . "$(dirname -- "$(readlink -f -- "$0")")/../lib/dotfiles/stow-lib.sh"
 #   sd_where=host                     # or devcontainer
 #   sd_exclude=(git herdr)            # packages this environment replaces
 #   sd_extra=(.herdr-devcontainer)    # hidden packages, which */ never matches
@@ -27,9 +27,10 @@ fi
 self=$(basename -- "$0")
 
 # This file's own directory, not the launcher's: `scripts` is itself a stowed
-# package, so a launcher is usually reached through a symlink in ~. The
-# repository is the directory above the one holding this library.
-sd_root=$(cd -- "$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")/.." && pwd) \
+# package, so a launcher is usually reached through a symlink in ~/.local/bin.
+# This library lives in scripts/.local/lib/dotfiles, four levels below the
+# repository.
+sd_root=$(cd -- "$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")/../../../.." && pwd) \
     || exit 1
 
 # --- output ----------------------------------------------------------------
@@ -282,6 +283,6 @@ sd_main() {
         && sd_contains nushell ${sd_folded[@]+"${sd_folded[@]}"} ${sd_nofold[@]+"${sd_nofold[@]}"} \
         && command -v nu >/dev/null
     then
-        note "nushell's starship and zoxide inits are generated: nu $sd_root/scripts/nu-regen-init.nu"
+        note "nushell's starship and zoxide inits are generated: nu-regen-init.nu (in ~/.local/bin once scripts is deployed)"
     fi
 }

@@ -1,6 +1,6 @@
 # Sections below mirror fish/.config/fish/config.fish and
 # nushell/.config/nushell/{env,config}.nu. Keep them in the same order with the
-# same contents; scripts/shell-parity.sh reports any drift.
+# same contents; shell-parity.sh reports any drift.
 
 # ===== env =====
 

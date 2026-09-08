@@ -8,8 +8,8 @@
 set -uo pipefail
 
 # readlink -f, so this still finds the library when the launcher is reached
-# through the symlink that stowing `scripts` puts in ~.
-. "$(dirname -- "$(readlink -f -- "$0")")/stow-lib.sh" || exit 1
+# through the symlink that stowing `scripts` puts in ~/.local/bin.
+. "$(dirname -- "$(readlink -f -- "$0")")/../lib/dotfiles/stow-lib.sh" || exit 1
 
 sd_where=host
 # Nothing is replaced here: this is the machine the packages are written for.
@@ -19,9 +19,11 @@ sd_extra=()
 # whatever the tool writes there shows up as a change to the working tree:
 #   fish   fisher and `fish_config theme save` write into ~/.config/fish
 #   herdr  its socket, its logs and session.json live in ~/.config/herdr
+#   scripts ~/.local/lib does not exist on a fresh machine, and folded it would
+#          become a link into this repository for anything else to write into
 # nvim and nushell stay folded on purpose -- what they generate in there is
 # either tracked (lazy-lock.json) or listed in .gitignore.
-sd_unfolded=(fish herdr)
+sd_unfolded=(fish herdr scripts)
 sd_examples=(
     "$self"
     "$self -n"

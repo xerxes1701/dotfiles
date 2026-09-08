@@ -6,12 +6,14 @@
 # from /usr/share/cachyos-fish-config/cachyos-config.fish.
 #
 # Exits non-zero if any unallowlisted difference is found.
-# Intentional differences live in scripts/shell-parity.allow.
+# Intentional differences live in scripts/.local/lib/dotfiles/shell-parity.allow.
 
 set -uo pipefail
 
-here=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
-allow_file="$here/shell-parity.allow"
+# readlink -f, so this still finds the allow list when the script is reached
+# through the symlink that stowing `scripts` puts in ~/.local/bin.
+here=$(cd -- "$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")" && pwd)
+allow_file="$here/../lib/dotfiles/shell-parity.allow"
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 

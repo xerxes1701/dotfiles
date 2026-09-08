@@ -2,7 +2,7 @@
 #
 # A launcher describes its tool and hands over:
 #
-#   . "$(dirname -- "$(readlink -f -- "$0")")/devcontainer-lib.sh"
+#   . "$(dirname -- "$(readlink -f -- "$0")")/../lib/dotfiles/devcontainer-lib.sh"
 #   dc_tool=nvim
 #   dc_tool_hint='the devcontainer image has to install it'
 #   dc_examples=("\$self README.md" "\$self -- --headless +qa")

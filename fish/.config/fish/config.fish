@@ -3,7 +3,7 @@ if test -e /usr/share/cachyos-fish-config/cachyos-config.fish
 end
 
 # Sections below mirror nushell/.config/nushell/{env,config}.nu and zsh/.zshrc.
-# Keep them in the same order with the same contents; scripts/shell-parity.sh
+# Keep them in the same order with the same contents; shell-parity.sh
 # reports any drift.
 
 # ===== env =====

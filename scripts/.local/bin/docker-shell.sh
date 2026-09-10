@@ -43,7 +43,14 @@ else
     c_key= c_hdr= c_dim= c_off=
 fi
 
-die() { printf 'docker-shell: %s\n' "$1" >&2; exit 1; }
+# Loud reason, then one dim hint line per extra argument -- what to do about
+# it, which is the same shape as .local/lib/dotfiles/stow-lib.sh's die.
+die() {
+    printf 'docker-shell: %s\n' "$1" >&2
+    shift
+    for hint in "$@"; do printf '%s  %s%s\n' "$c_dim" "$hint" "$c_off" >&2; done
+    exit 1
+}
 
 usage() {
     cat <<EOF
@@ -237,10 +244,16 @@ if ! docker exec ${user:+-u "$user"} "$id" test -d "$dir" >/dev/null 2>&1; then
 fi
 
 if [ $# -eq 0 ]; then
-    for sh in fish bash sh; do
-        if docker exec "$id" command -v "$sh" >/dev/null 2>&1; then set -- "$sh"; break; fi
-    done
-    [ $# -gt 0 ] || die 'container has no fish, bash or sh'
+    # Asked from inside a shell, and in one exec rather than one per candidate.
+    # `command -v` is a shell builtin, and docker exec runs a binary with no
+    # shell around it -- `docker exec <id> command -v fish` does not report a
+    # missing fish, it fails with "command": executable file not found.
+    shell=$(docker exec "$id" sh -c \
+        'for s in fish bash sh; do command -v "$s" 2>/dev/null && exit 0; done
+         exit 1' 2>/dev/null) \
+        || die 'container has no fish, bash or sh' \
+               "name one yourself: $(basename -- "$0") -- <command>"
+    set -- "$shell"
 fi
 
 # exec, so the shell replaces this script instead of leaving it waiting: one

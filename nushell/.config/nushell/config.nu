@@ -55,6 +55,11 @@ alias y = yazi
 alias f = fzf --preview "bat {} --force-colorization"
 alias neogit = nvim -c :Neogit
 alias conf = tmuxinator start conf
+
+# Pick a running container with fzf and open a shell in it. A script in
+# scripts/, not three copies of a function: it is the same picker in all three
+# shells, and the fzf preview has to be a command fzf can re-run per row.
+alias dsh = docker-shell.sh
 alias cls = clear
 
 # RDP to the Windows box. A `def` rather than an alias: nushell mis-parses an

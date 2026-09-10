@@ -6,6 +6,16 @@
 # variable, no project-local file -- so a second config is the only way to
 # tell the instances apart. See the "devcontainer" section of the README for
 # why this package is a hidden directory.
+#
+# Which half of this file applies depends on how the container is reached.
+# Started inside it -- scripts/devcontainer-herdr.sh -- this is the whole
+# config, theme and badge included. Reached as a saved SSH machine from the
+# host client (`herdr machine add`), the client's own theme, sidebar and
+# keybindings are used instead, so the gruvbox ground and the DEVCONTAINER
+# badge below never render; the `machine` token on the sidebar row is the tell
+# there. What still comes from here in that case is everything the *server*
+# decides: the pane shell, the update checks, and the key table the server
+# resolves.
 
 [ui]
 # The container shares the WSL kernel, and herdr's "auto" cursor mode reads
@@ -32,6 +42,24 @@ name = "gruvbox"
 # and desaturated enough not to fight gruvbox's own foreground.
 panel_bg = "#2c2a20"
 sidebar_bg = "#252319"
+
+[terminal]
+# The host config states this too (its [terminal] block), and here it is not a
+# preference but parity: VS Code opens fish in this container
+# (terminal.integrated.defaultProfile.linux), but a herdr server started over
+# ssh inherits vscode's passwd shell, which is bash. Without this line the same
+# repository would hand you fish in one window and bash in the other.
+default_shell = "/usr/bin/fish"
+
+[update]
+# The binary is pinned by the image (HERDR_VERSION in its Dockerfile) and lives
+# root-owned in /usr/local/bin, which vscode's sudo rule does not cover -- so
+# there is no update this container could install, and no point checking for
+# one. `manifest_check` deliberately stays on: agent-detection manifests are
+# what classify idle/working/blocked for an agent's TUI, and they are the one
+# thing here that should stay current (herdr.dev is on the firewall allowlist
+# for exactly that).
+version_check = false
 
 # The navigation scheme below is a verbatim copy of the same block in the host
 # config. Everything above this line is meant to differ between the two;

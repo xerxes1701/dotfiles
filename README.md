@@ -420,7 +420,7 @@ one, and `Tab` means tab at every level.
 
 the last two rows are herdr's alone. moving between workspaces is frequent
 enough to want it off the prefix, so it is `ctrl+shift` with the same `j` and
-`k`; `C-a j` and `C-a k` still work, through `scripts/herdr-cycle-workspace.sh`
+`k`; `C-a j` and `C-a k` still work, through `herdr-cycle-workspace.sh`
 -- herdr binds one key per action, and keeping the prefix form is what keeps
 that rung of the ladder the same as tmux's. the agent panel is a level nothing
 else has, which is why it can afford the deepest chord.
@@ -467,7 +467,7 @@ two gaps in that plugin are filled here:
                                         said. herdr covers the same case
                                         through the passthrough regex the
                                         shell configs export
-    scripts/herdr-resize-pane.sh        the herdr plugin ships navigation
+    herdr-resize-pane.sh                the herdr plugin ships navigation
                                         actions but no resize actions, and a
                                         plain herdr binding on ctrl+arrows
                                         would take the keys before an nvim
@@ -480,10 +480,10 @@ two gaps in that plugin are filled here:
                                         minimum -- nvim calls this script with
                                         `--mux-only` instead, and the step is
                                         3 cells in all three apps
-    scripts/herdr-cycle-tab.sh          herdr's next_tab takes one key, which
+    herdr-cycle-tab.sh                  herdr's next_tab takes one key, which
                                         C-a n already has, so C-a <Tab> needs
                                         a command of its own
-    scripts/herdr-cycle-workspace.sh    the same, for the workspace level:
+    herdr-cycle-workspace.sh            the same, for the workspace level:
                                         next_workspace holds ctrl+shift+j, so
                                         C-a j goes through this
 
@@ -503,7 +503,7 @@ matters once:
 
 ## checking it has not drifted
 
-> scripts/nav-parity.sh
+> nav-parity.sh
 
 it reads nvim's `keybindings.yaml`, starts a throwaway tmux server on a private
 socket and asks it to `list-keys`, and reads both herdr configs, then reports
@@ -604,3 +604,49 @@ container whose `~/dotfiles` has moved on since the image was built.
 
 to add a third tool, copy a launcher: source the library, set `dc_tool`, its
 `dc_tool_hint` and a few `dc_examples`, then call `dc_main "$@"`.
+
+## a shell in any container
+
+the launchers above are for *devcontainers*, and they know a lot about them:
+the `devcontainer.local_folder` label, `remoteUser`, the workspace folder,
+starting a stopped one. `dsh` is the other half of the question -- any running
+container, picked from a list, with a shell in it:
+
+> docker-shell.sh [options] [--] [command...]
+
+aliased to `dsh` in all three shells. `-c` preselects, `-x` skips the picker
+when the preselection leaves exactly one container, `-u` and `-w` override the
+user and the working directory, `--help` explains the rest. with no command it
+tries fish, then bash, then sh.
+
+the defaults (`vscode` in `/workspaces/firstx-master`) name the container this
+was written for, and every one of them is checked against whatever gets
+picked: no such user, or no such directory, and it falls back to the
+container's own and says so. so the defaults cost nothing anywhere else.
+
+it is not a `dc_` launcher because it answers a different question and lists
+containers the launchers filter out -- but if what you want is nvim or herdr
+in *the* devcontainer, `devcontainer-nvim.sh` is still the one to reach for:
+it starts a stopped container, `dsh` only lists running ones.
+
+the obvious spelling of this is a pipeline into xargs:
+
+> docker ps -q | xargs docker exec -it -u vscode -w /workspaces/firstx-master fish
+
+which cannot work. xargs builds its command from stdin, so the child's stdin
+is the pipe rather than the terminal, `-it` finds no tty, and the shell exits
+at once. gnu xargs has `--open-tty` for exactly that, but a command
+substitution is both shorter and portable, and is what the script does.
+
+posix sh rather than a function in each shell config: it is one picker
+reachable from three dialects, and the fzf preview has to be a command fzf can
+re-run for every row anyway. the script is its own preview -- fzf calls it
+back as `docker-shell.sh --preview <id>` -- which keeps the renderer next to
+the picker instead of in a second file. in the list: enter opens the shell,
+`^R` reloads it, `^L` follows the container's logs, `^Y` copies its id.
+
+the preview zeroes the kitty keyboard protocol the way
+`fish/.config/fish/functions/fzf.fish` does. that wrapper only covers a direct
+`fzf` call from fish, and this script is reached from three shells, so it has
+to do it for itself -- otherwise fish's key-release events arrive in fzf's
+prompt as literal text like `102;1:3u`.

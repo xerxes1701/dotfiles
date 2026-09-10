@@ -23,6 +23,14 @@ set -gx FZF_CTRL_T_COMMAND "$FZF_DEFAULT_COMMAND"
 set -gx FZF_ALT_C_COMMAND 'fd --type d --hidden --follow --exclude .git'
 set -gx FZF_DEFAULT_OPTS "--height=40% --layout=reverse --preview-window=right:60% --preview '[ -f {} ] && bat --style=numbers --color=always {} || eza --tree --color=always --icons=always {} | head -200'"
 
+# herdr's side of the unified navigation scheme. smart-splits.nvim's herdr
+# plugin knows to leave ctrl+hjkl to a pane that holds nvim, but nothing else;
+# fzf binds ctrl+j and ctrl+k itself and runs in ordinary shell panes, so it
+# has to be named. tmux covers the same case in ~/.config/tmux/pane-owns-key.sh.
+# The plugin runs on the herdr server, which inherits this from the shell that
+# launched it -- so a `herdr server stop` and relaunch is what picks up a change.
+set -gx SMART_SPLITS_HERDR_PASSTHROUGH_RE '^fzf$'
+
 # Ollama. Read by the ollama *server*, not the client, so these apply only to an
 # `ollama serve` started from a shell -- the systemd unit needs the same values
 # in a `systemctl edit ollama` drop-in. Sized for the 8 GB RTX 4060: qwen3.5:9b

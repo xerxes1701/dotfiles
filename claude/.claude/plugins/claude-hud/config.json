@@ -1,0 +1,10 @@
+{
+  "display": {
+    "showSessionName": true,
+    "showEffortLevel": true,
+    "showUsage": true,
+    "showModelScopedUsage": true,
+    "usageValue": "remaining",
+    "sevenDayThreshold": 0
+  }
+}

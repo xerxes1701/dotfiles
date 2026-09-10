@@ -36,7 +36,8 @@ packages deploys only those:
 > stow-deploy.sh nvim tmux
 
 nushell needs `nu-regen-init.nu` once per machine afterwards, see
-[shells](#shells).
+[shells](#shells), and claude code needs `claude-bootstrap.sh`, see
+[claude code](#claude-code).
 
 ## restowing after a move
 
@@ -512,6 +513,49 @@ keys are duplicated on purpose and nothing but a check keeps them equal -- and
 verifies that the pinned commit, the checkout on disk and herdr's plugin link
 still agree.
 
+# claude code
+
+`claude/` carries the four files of `~/.claude` that are configuration rather
+than state -- `settings.json`, the `SessionStart` hook that reports the session
+to herdr, the `prompt-pop` theme and the display options of the claude-hud
+statusline:
+
+    claude/.claude/settings.json
+    claude/.claude/hooks/herdr-agent-state.sh
+    claude/.claude/themes/prompt-pop.json
+    claude/.claude/plugins/claude-hud/config.json
+
+everything else in `~/.claude` -- sessions, history, `projects/`, the plugin
+cache -- belongs to the machine, which is why the package is in `sd_unfolded`.
+folded, `~/.claude` would become one symlink into this repository and all of
+that would land in the working tree. claude code rewrites `settings.json` in
+place rather than replacing it, so the link survives a `/theme` or a
+`/plugin install` and the change shows up here as a diff.
+
+nothing in the two files may name `/home/entwickler`: both the statusline
+command and the hook are run through a shell, so they use `$HOME` and
+`${CLAUDE_CONFIG_DIR:-$HOME/.claude}` instead.
+
+## plugins, once per machine
+
+> claude-bootstrap.sh
+
+`settings.json` names both halves of a plugin -- `extraKnownMarketplaces` says
+where it comes from, `enabledPlugins` says it is on -- but declaring it does
+not install it. since claude code 2.1.195 a plugin from an external source that
+only a settings file enables is reported as not installed, and the cli does not
+clone a marketplace it has only read about. so the two commands have to run
+once:
+
+> claude plugin marketplace add jarrodwatts/claude-hud
+> claude plugin install claude-hud@claude-hud
+
+`claude-bootstrap.sh` reads those two tables out of the packaged
+`settings.json` and runs the pair for every plugin it finds, so declaring
+another plugin in `settings.json` is the only edit a second one needs. both
+commands are idempotent and neither rewrites `settings.json`; `-n` prints them
+and runs nothing. restart claude code, or `/reload-plugins`, afterwards.
+
 # devcontainer
 
 the devcontainers of the projects here stow this repo and install neovim and
@@ -603,6 +647,23 @@ container whose `~/dotfiles` has moved on since the image was built.
 to add a third tool, copy a launcher: source the library, set `dc_tool`, its
 `dc_tool_hint` and a few `dc_examples`, then call `dc_main "$@"`.
 
+since herdr 0.9.0 there is a second way in, and it does not go through a
+launcher at all: `herdr machine add <ssh-target>` registers a container as a
+*saved machine*, and its workspaces and agents then live in this machine's
+herdr window, next to the local ones. the container needs an sshd and the
+same herdr version for that -- firstx-master's devcontainer has both, see the
+"herdr from the host" section of its `.devcontainer/README.md`.
+
+which config governs what differs between the two. nested, through
+`devcontainer-herdr.sh`, `.herdr-devcontainer/` is the whole config, theme and
+badge included. as a saved machine the *client* supplies theme, sidebar and
+keybindings, so that theme never renders and the `machine` token on the
+sidebar row is the tell instead; what still comes from the container's config
+is what its server decides -- the pane shell (`[terminal] default_shell`, which
+is why that key is in there) and its update checks. `nav-parity.sh` compares
+only the keys block of the two files, so both cases resolve the same
+navigation scheme.
+
 ## a shell in any container
 
 the launchers above are for *devcontainers*, and they know a lot about them:
@@ -648,3 +709,52 @@ the preview zeroes the kitty keyboard protocol the way
 `fzf` call from fish, and this script is reached from three shells, so it has
 to do it for itself -- otherwise fish's key-release events arrive in fzf's
 prompt as literal text like `102;1:3u`.
+
+## a devcontainer in this herdr window
+
+the same picker, for the other question: not a shell in a container, but a
+container in *this* herdr:
+
+> herdr-machine.sh [options]
+
+it lists the running devcontainers, and registers the one you pick as a herdr
+saved machine -- `herdr machine add`, with the ssh target worked out for you.
+`-c`/`-x` preselect the way `dsh`'s do, `-n` says what it would run without
+running it, `-l` overrides the sidebar label (default: the worktree the
+container was built for), `-s` picks a named session on the far side.
+
+why bother, when `dsh` already reaches into a container: herdr recognizes an
+agent from the *foreground process* of a pane, so a pane holding
+`docker exec ... claude` holds `docker`, and the agent panel stays empty. a
+saved machine puts the agents next to the herdr server that owns them, inside
+the container, and that server reports them properly -- states, session
+identity, `herdr agent prompt`, all of it. (`HERDR_AGENT=claude docker exec
+... claude` is the documented way to make the panel see a wrapped agent, and
+it does work, but it hands over no session identity.)
+
+the ssh target is derived rather than configured. the container's published
+port gives a `host:port`, and `ssh -G` is asked whether any `Host` block in
+`~/.ssh/config` resolves to exactly that address, port and user; a match wins
+because that is where the identity file and `HostKeyAlias` live, and only when
+nothing matches does it fall back to a bare `ssh://user@host:port`.
+
+the preview is the readiness check, and every probe in it is local docker or
+local ssh config -- no dialing, so moving the cursor cannot hang on a network
+timeout. it shows the published port, whether sshd is up in there, the
+container's herdr version against the 0.9.0 floor that saved machines need,
+the target that would be used, whether it is already registered, and the
+agents already running inside. two of those probes filter what they read
+rather than trusting it: a failed `docker exec` prints "executable file not
+found in $PATH" on *stdout*, so a container without herdr would otherwise
+have that paragraph shown as its version.
+
+the first connection is made by the script, in the foreground, on purpose.
+herdr's own connects and reconnects are non-interactive -- a host key it has
+never seen leaves the machine sitting in *Attention* instead of asking -- so
+the script does the trust-on-first-use itself, and prints that the fingerprint
+should match the one the container's `init-sshd.sh` logged when it started.
+
+the container side needs an sshd and herdr 0.9.0 for any of this;
+firstx-master's devcontainer has both, and its `.devcontainer/README.md`
+explains the port, the key path and the per-worktree port slots under "herdr
+from the host".

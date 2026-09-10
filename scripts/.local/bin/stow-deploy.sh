@@ -26,9 +26,11 @@ sd_extra=()
 #   herdr  its socket, its logs and session.json live in ~/.config/herdr
 #   scripts ~/.local/lib does not exist on a fresh machine, and folded it would
 #          become a link into this repository for anything else to write into
+#   claude ~/.claude holds this machine's sessions, history, projects and the
+#          plugin cache next to the four tracked files
 # nvim and nushell stay folded on purpose -- what they generate in there is
 # either tracked (lazy-lock.json) or listed in .gitignore.
-sd_unfolded=(fish herdr scripts)
+sd_unfolded=(claude fish herdr scripts)
 sd_examples=(
     "$self"
     "$self -n"

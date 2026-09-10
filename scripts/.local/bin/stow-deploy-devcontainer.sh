@@ -32,7 +32,7 @@ sd_exclude=(git herdr)
 sd_extra=(.herdr-devcontainer)
 # See stow-deploy.sh for what folding costs. herdr's package is not deployed
 # here, but the container's replacement for it needs the same treatment.
-sd_unfolded=(fish .herdr-devcontainer scripts)
+sd_unfolded=(claude fish .herdr-devcontainer scripts)
 sd_examples=(
     "$self"
     "$self -n"

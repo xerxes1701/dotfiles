@@ -1,0 +1,11 @@
+{
+  "name": "Prompt Pop",
+  "base": "dark",
+  "overrides": {
+    "promptBorder": "#cba6f7",
+    "promptBorderShimmer": "#e7d5ff",
+    "userMessageBackground": "#3b2f52",
+    "userMessageBackgroundHover": "#4a3b67",
+    "composerSidebarBackground": "#2b2340"
+  }
+}

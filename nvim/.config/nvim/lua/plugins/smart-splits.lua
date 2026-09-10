@@ -11,7 +11,7 @@
 -- cell count straight through -- but `herdr pane resize --amount` is a fraction
 -- of the split, so 3 reads as 300% and slams the split to its minimum. That is
 -- the common case, not a corner: a single-window nvim pane is what a resize key
--- is usually pressed in. scripts/herdr-resize-pane.sh owns the conversion, for
+-- is usually pressed in. herdr-resize-pane.sh owns the conversion, for
 -- this and for the herdr keybinding both, so the step is 3 cells everywhere.
 --
 -- The predicate is smart-splits.nvim's own, so this hands off in exactly the
@@ -24,7 +24,7 @@ local function resize(direction)
 		local full = horizontal and win.is_full_width() or win.is_full_height()
 		if in_herdr and full then
 			vim.system({
-				vim.fn.expand("~/dotfiles/scripts/herdr-resize-pane.sh"),
+				"herdr-resize-pane.sh",
 				direction,
 				"--mux-only",
 			})

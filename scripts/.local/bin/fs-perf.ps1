@@ -31,7 +31,7 @@
     first, or run it without touching the file-based policy:
 
         powershell -NoProfile -Command "& ([ScriptBlock]::Create((Get-Content -Raw \
-            \\wsl.localhost\<distro>\home\<user>\dotfiles\scripts\fs-perf.ps1) \
+            \\wsl.localhost\<distro>\home\<user>\dotfiles\scripts\.local\bin\fs-perf.ps1) \
             -replace '(?m)^#Requires.*$','')) -Count 2000"
 #>
 [CmdletBinding()]
@@ -626,4 +626,4 @@ if ($Keep) {
 }
 
 Write-Host ''
-Write-Host 'For the WSL-side halves of the matrix run scripts/fs-perf.sh from WSL.'
+Write-Host 'For the WSL-side halves of the matrix run fs-perf.sh from WSL.'

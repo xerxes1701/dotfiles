@@ -36,7 +36,7 @@ sidebar_bg = "#252319"
 # The navigation scheme below is a verbatim copy of the same block in the host
 # config. Everything above this line is meant to differ between the two;
 # these keys are meant not to, so that the same fingers work in a container.
-# scripts/nav-parity.sh fails if the two blocks drift apart.
+# nav-parity.sh fails if the two blocks drift apart.
 
 # --- unified navigation scheme ---------------------------------------------
 # The prefix picks the level, the letter picks the action. No prefix reaches
@@ -154,46 +154,46 @@ description = "goto right pane/split"
 # resize_pane_* would take the keys before an nvim pane could resize its own
 # splits, so this makes the same nvim-or-not decision first.
 #
-# Addressed in the repository rather than through a stowed copy in ~: the
-# scripts package links its files straight into ~, so a name there would be one
-# more thing to keep deployed, and ~/dotfiles is where this repository lives on
-# a host and in a container alike. herdr runs these through /bin/sh -lc, so
-# $HOME expands.
+# Called by bare name: the scripts package stows its executables into
+# ~/.local/bin, and herdr runs these through /bin/sh -lc -- a login shell, so
+# ~/.profile has put that directory on PATH by the time the command runs. The
+# name holds wherever the repository is checked out, on a host and in a
+# container alike.
 [[keys.command]]
 key = "ctrl+left"
 type = "shell"
-command = "$HOME/dotfiles/scripts/herdr-resize-pane.sh left"
+command = "herdr-resize-pane.sh left"
 description = "resize pane/split left"
 
 [[keys.command]]
 key = "ctrl+down"
 type = "shell"
-command = "$HOME/dotfiles/scripts/herdr-resize-pane.sh down"
+command = "herdr-resize-pane.sh down"
 description = "resize pane/split down"
 
 [[keys.command]]
 key = "ctrl+up"
 type = "shell"
-command = "$HOME/dotfiles/scripts/herdr-resize-pane.sh up"
+command = "herdr-resize-pane.sh up"
 description = "resize pane/split up"
 
 [[keys.command]]
 key = "ctrl+right"
 type = "shell"
-command = "$HOME/dotfiles/scripts/herdr-resize-pane.sh right"
+command = "herdr-resize-pane.sh right"
 description = "resize pane/split right"
 
 # Tab means tab at every level: <leader><Tab> in nvim, C-a Tab in tmux.
 [[keys.command]]
 key = "prefix+tab"
 type = "shell"
-command = "$HOME/dotfiles/scripts/herdr-cycle-tab.sh next"
+command = "herdr-cycle-tab.sh next"
 description = "tab move next"
 
 [[keys.command]]
 key = "prefix+shift+tab"
 type = "shell"
-command = "$HOME/dotfiles/scripts/herdr-cycle-tab.sh prev"
+command = "herdr-cycle-tab.sh prev"
 description = "tab move prev"
 
 # The prefix form of the workspace level, kept alongside ctrl+shift+j/k so that
@@ -201,13 +201,13 @@ description = "tab move prev"
 [[keys.command]]
 key = "prefix+j"
 type = "shell"
-command = "$HOME/dotfiles/scripts/herdr-cycle-workspace.sh next"
+command = "herdr-cycle-workspace.sh next"
 description = "workspace move next"
 
 [[keys.command]]
 key = "prefix+k"
 type = "shell"
-command = "$HOME/dotfiles/scripts/herdr-cycle-workspace.sh prev"
+command = "herdr-cycle-workspace.sh prev"
 description = "workspace move prev"
 
 # The shell's beginning-of-line is not lost to the prefix: herdr sends a

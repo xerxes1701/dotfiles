@@ -675,4 +675,4 @@ if [ "$KEEP" = 1 ]; then
     done
 fi
 
-printf '\nFor the Windows-side halves of the matrix run scripts/fs-perf.ps1 from Windows.\n'
+printf '\nFor the Windows-side halves of the matrix run fs-perf.ps1 from Windows.\n'

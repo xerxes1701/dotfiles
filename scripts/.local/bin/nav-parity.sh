@@ -19,8 +19,11 @@
 
 set -uo pipefail
 
-here=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
-root=$(cd -- "$here/.." && pwd)
+# readlink -f, so this still finds the repository when the script is reached
+# through the symlink that stowing `scripts` puts in ~/.local/bin. This file
+# lives in scripts/.local/bin, three levels below the repository.
+root=$(cd -- "$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")/../../.." && pwd) \
+    || exit 1
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"; tmux -L navparity kill-server 2>/dev/null' EXIT
 

@@ -1,0 +1,11 @@
+{
+  "modelSettings": {
+    "claude-opus-5": {
+      "effortLevel": "medium"
+    }
+  },
+  "theme": "dark",
+  "agentPushNotifEnabled": true,
+  "model": "fable",
+  "feedbackSurveyRate": 0
+}

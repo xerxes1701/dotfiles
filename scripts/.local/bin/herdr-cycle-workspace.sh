@@ -2,12 +2,11 @@
 # Focus the next or previous herdr workspace.
 #
 # The workspace level of the unified navigation scheme has two entry points:
-# ctrl+shift+j / ctrl+shift+k directly, and C-a j / C-a k on the prefix. herdr
-# binds one key per action, and the direct chords have next_workspace and
-# previous_workspace, so the prefix form goes through this instead. It is worth
-# keeping: C-a j / C-a k is the form tmux also has (switch-client -n / -p), so
-# the portable level ladder stays intact, and it is the fallback if a terminal
-# without a modern keyboard protocol ever collapses ctrl+shift+j onto ctrl+j.
+# alt+j / alt+k directly, and C-a j / C-a k on the prefix. herdr binds one key
+# per action, and the direct chords have next_workspace and previous_workspace,
+# so the prefix form goes through this instead. It is worth keeping: C-a j /
+# C-a k is the form tmux also has (switch-client -n / -p), so the portable
+# level ladder stays intact.
 #
 # `herdr workspace focus` wants an explicit id, so the order comes from
 # `herdr workspace list`, which returns them in sidebar order. Wraps at both

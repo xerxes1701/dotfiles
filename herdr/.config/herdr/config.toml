@@ -79,16 +79,12 @@ close_workspace = "prefix+shift+d"
 detach = "prefix+shift+q"
 
 # Moving between workspaces is frequent enough to want it off the prefix, so it
-# is ctrl+shift with the same j and k. C-a j and C-a k still work, through
+# is alt with the same j and k. C-a j and C-a k still work, through
 # herdr-cycle-workspace.sh below: one key per action here, and that is the form
 # tmux has too (switch-client -n / -p), so the prefix ladder stays complete.
 #
-# ctrl+shift+letter needs a terminal that can tell it apart from plain
-# ctrl+letter -- without one, ctrl+shift+j arrives as ctrl+j and would move
-# pane focus down instead. herdr negotiates the kitty keyboard protocol (its
-# binary carries push_keyboard_enhancement_flags and try_encode_csi_u) and both
-# terminals used here, ghostty and wezterm, speak it. On a terminal that does
-# not, fall back to the prefix form.
+# alt+letter arrives as ESC plus the letter on every terminal, so it needs no
+# keyboard protocol and cannot collapse onto ctrl+j, which is pane focus.
 next_workspace = "alt+j"
 previous_workspace = "alt+k"
 
@@ -181,7 +177,7 @@ type = "shell"
 command = "herdr-cycle-tab.sh prev"
 description = "tab move prev"
 
-# The prefix form of the workspace level, kept alongside ctrl+shift+j/k so that
+# The prefix form of the workspace level, kept alongside alt+j/k so that
 # C-a j and C-a k mean the same thing here as in tmux.
 [[keys.command]]
 key = "prefix+j"

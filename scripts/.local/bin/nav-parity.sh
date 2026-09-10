@@ -40,7 +40,7 @@ herdr_dc=$root/.herdr-devcontainer/.config/herdr/config.toml
 #   equalize panes    herdr has no equalize action, only its resize mode
 #   session movement,
 #   rename, detach    nvim has no session to move between, rename or detach
-#   workspace, agent  the direct ctrl+shift chords and the agent panel are
+#   workspace, agent  the direct alt chords and the agent panel are
 #                     herdr's alone: the prefix rows above are what tmux and
 #                     nvim match, these are the accelerators on top
 ROWS=(
@@ -68,10 +68,10 @@ ROWS=(
     "session picker    | <leader>ww     | w       | prefix | prefix+w"
     "next session      | n/a            | j       | prefix | prefix+j"
     "previous session  | n/a            | k       | prefix | prefix+k"
-    "next workspace    | n/a            | n/a     | prefix | ctrl+shift+j"
-    "prev workspace    | n/a            | n/a     | prefix | ctrl+shift+k"
-    "next agent        | n/a            | n/a     | prefix | ctrl+alt+shift+j"
-    "prev agent        | n/a            | n/a     | prefix | ctrl+alt+shift+k"
+    "next workspace    | n/a            | n/a     | prefix | alt+j"
+    "prev workspace    | n/a            | n/a     | prefix | alt+k"
+    "next agent        | n/a            | n/a     | prefix | alt+shift+j"
+    "prev agent        | n/a            | n/a     | prefix | alt+shift+k"
     "new session       | <leader>wN     | N       | prefix | prefix+shift+n"
     "rename session    | n/a            | W       | prefix | prefix+shift+w"
     "close session     | <leader>wD     | D       | prefix | prefix+shift+d"

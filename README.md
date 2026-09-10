@@ -382,8 +382,8 @@ the prefix picks the *level*, the letter picks the *action*:
     C-a             the multiplexer's own panes and tabs
     C-a + shift     the multiplexer's sessions, which herdr calls workspaces
     <Space>         inside nvim, the same actions one level in
-    ctrl+shift      herdr only: the workspace level again, off the prefix
-    ctrl+alt+shift  herdr only: the agent panel, which nothing else has
+    alt             herdr only: the workspace level again, off the prefix
+    alt+shift       herdr only: the agent panel, which nothing else has
 
 so `C-a v` opens a new multiplexer pane to the right and `<Space>s v` a new
 nvim split to the right: same letter, and the level is whichever prefix your
@@ -411,8 +411,8 @@ sends a literal `C-a` for the shell's beginning-of-line, in both.
     tab 1..9            <Space>1..9       C-a 1..9     C-a 1..9
     session picker      <Space>ww         C-a w        C-a w
     next / prev session --                C-a j k      C-a j k
-    next / prev space   --                --           C-S-j / C-S-k
-    next / prev agent   --                --           C-A-S-j / C-A-S-k
+    next / prev space   --                --           M-j / M-k
+    next / prev agent   --                --           M-S-j / M-S-k
     new session         <Space>wN         C-a N        C-a N
     close session       <Space>wD         C-a D        C-a D
     detach              --                C-a Q        C-a Q
@@ -422,19 +422,14 @@ two conventions carry the weight: `x` closes the inner thing and `X` the outer
 one, and `Tab` means tab at every level.
 
 the last two rows are herdr's alone. moving between workspaces is frequent
-enough to want it off the prefix, so it is `ctrl+shift` with the same `j` and
-`k`; `C-a j` and `C-a k` still work, through `herdr-cycle-workspace.sh`
--- herdr binds one key per action, and keeping the prefix form is what keeps
-that rung of the ladder the same as tmux's. the agent panel is a level nothing
-else has, which is why it can afford the deepest chord.
+enough to want it off the prefix, so it is `alt` with the same `j` and `k`;
+`C-a j` and `C-a k` still work, through `herdr-cycle-workspace.sh` -- herdr
+binds one key per action, and keeping the prefix form is what keeps that rung
+of the ladder the same as tmux's. the agent panel is a level nothing else has,
+which is why it can afford the deepest chord.
 
-`ctrl+shift+letter` only works on a terminal that can tell it apart from plain
-`ctrl+letter`; without one, `ctrl+shift+j` arrives as `ctrl+j` and moves pane
-focus down instead. herdr negotiates the kitty keyboard protocol -- its binary
-carries `push_keyboard_enhancement_flags` and `try_encode_csi_u` -- and both
-terminals here, ghostty and wezterm, speak it. tmux is the odd one out: it
-defaults `extended-keys off`, so it cannot receive those chords at all without
-turning that on, which is the other reason the prefix form stays.
+`alt+letter` arrives as ESC plus the letter on every terminal, so it needs no
+keyboard protocol and can never collapse onto the `ctrl` pane-focus keys.
 
 `C-\` is the one key on two levels at once: inside nvim it is `<C-w>p`, and in
 a bare tmux pane it is tmux's last-pane. `C-a \` is the multiplexer's own, and
@@ -487,7 +482,7 @@ two gaps in that plugin are filled here:
                                         C-a n already has, so C-a <Tab> needs
                                         a command of its own
     herdr-cycle-workspace.sh            the same, for the workspace level:
-                                        next_workspace holds ctrl+shift+j, so
+                                        next_workspace holds alt+j, so
                                         C-a j goes through this
 
 no side wraps at the outer edge: `at_edge = "stop"` in nvim,

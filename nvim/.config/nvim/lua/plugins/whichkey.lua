@@ -13,6 +13,11 @@ return {
 			{ "<leader>lS", group = "server" },
 			{ "<leader>ld", desc = "diagnostics hydra" },
 			{ "<leader>T", group = "typst" },
+			-- The three levels of the unified navigation scheme. The letter
+			-- after the group matches the key after the tmux/herdr prefix.
+			{ "<leader>s", group = "split (pane level)" },
+			{ "<leader>t", group = "tab level" },
+			{ "<leader>w", group = "session (workspace level)" },
 		},
 	},
 	keys = {

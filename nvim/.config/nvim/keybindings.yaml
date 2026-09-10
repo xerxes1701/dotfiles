@@ -64,20 +64,27 @@ keybindings:
   - { key: ">",            mode: ["n"],           action: ">>",                               description: "Indent line right",                       file: "lua/keymaps.lua", plugin: "", group: "Editing",         source: "explicit" }
   - { key: "<leader>L",    mode: ["n"],           action: "<cmd>Lazy<CR>",                    description: "Open Lazy plugin manager",                file: "lua/keymaps.lua", plugin: "", group: "Misc",            source: "explicit" }
   - { key: "<leader>sv",   mode: ["n"],           action: "<cmd>vsplit<CR>",                  description: "Split window vertically",                  file: "lua/keymaps.lua", plugin: "", group: "Windows",         source: "explicit" }
-  - { key: "<leader>sh",   mode: ["n"],           action: "<cmd>split<CR>",                   description: "Split window horizontally",                file: "lua/keymaps.lua", plugin: "", group: "Windows",         source: "explicit" }
-  - { key: "<leader>se",   mode: ["n"],           action: "<C-w>=",                           description: "Equalize split sizes",                    file: "lua/keymaps.lua", plugin: "", group: "Windows",         source: "explicit" }
-  - { key: "<leader>sq",   mode: ["n"],           action: "<cmd>close<CR>",                   description: "Close current split",                     file: "lua/keymaps.lua", plugin: "", group: "Windows",         source: "explicit" }
-  - { key: "<C-Left>",     mode: ["n"],           action: ":vertical resize +1<CR>",          description: "Increase vertical split width",           file: "lua/keymaps.lua", plugin: "", group: "Windows",         source: "explicit" }
-  - { key: "<C-Right>",    mode: ["n"],           action: ":vertical resize -1<CR>",          description: "Decrease vertical split width",           file: "lua/keymaps.lua", plugin: "", group: "Windows",         source: "explicit" }
-  - { key: "<C-Up>",       mode: ["n"],           action: ":resize +1<CR>",                   description: "Increase split height",                   file: "lua/keymaps.lua", plugin: "", group: "Windows",         source: "explicit" }
-  - { key: "<C-Down>",     mode: ["n"],           action: ":resize -1<CR>",                   description: "Decrease split height",                   file: "lua/keymaps.lua", plugin: "", group: "Windows",         source: "explicit" }
-  - { key: "<leader>to",   mode: ["n"],           action: "<cmd>tabnew<CR>",                  description: "Open new tab",                            file: "lua/keymaps.lua", plugin: "", group: "Tabs",            source: "explicit" }
+  - { key: "<leader>s-",   mode: ["n"],           action: "<cmd>split<CR>",                   description: "Split window horizontally",                file: "lua/keymaps.lua", plugin: "", group: "Windows",         source: "explicit" }
+  - { key: "<leader>se",       mode: ["n"],                 action: "<C-w>=",                                   description: "Equalize split sizes",                                 file: "lua/keymaps.lua", plugin: "", group: "Windows",               source: "explicit" }
+  - { key: "<leader>sx",   mode: ["n"],           action: "<cmd>close<CR>",                   description: "Close current split",                      file: "lua/keymaps.lua", plugin: "", group: "Windows",         source: "explicit" }
+  - { key: "<leader>so",   mode: ["n"],           action: "<C-w>w",                           description: "Cycle to next split",                      file: "lua/keymaps.lua", plugin: "", group: "Windows",         source: "explicit" }
+  - { key: "<C-\\>",       mode: ["n"],           action: "<C-w>p",                           description: "Go to previous pane/split",                file: "lua/keymaps.lua", plugin: "", group: "Navigation",      source: "explicit" }
+  - { key: "<leader>tc",   mode: ["n"],           action: "<cmd>tabnew<CR>",                  description: "Open new tab",                             file: "lua/keymaps.lua", plugin: "", group: "Tabs",            source: "explicit" }
   - { key: "<leader>tf",   mode: ["n"],           action: "<cmd>tabnew %<CR>",                description: "Open current file in new tab",            file: "lua/keymaps.lua", plugin: "", group: "Tabs",            source: "explicit" }
-  - { key: "<leader>tq",   mode: ["n"],           action: "<cmd>tabclose<CR>",                description: "Close current tab",                       file: "lua/keymaps.lua", plugin: "", group: "Tabs",            source: "explicit" }
+  - { key: "<leader>tx",   mode: ["n"],           action: "<cmd>tabclose<CR>",                description: "Close current tab",                        file: "lua/keymaps.lua", plugin: "", group: "Tabs",            source: "explicit" }
   - { key: "<leader>tn",   mode: ["n"],           action: "<cmd>tabn<CR>",                    description: "Go to next tab",                          file: "lua/keymaps.lua", plugin: "", group: "Tabs",            source: "explicit" }
   - { key: "<leader>tp",   mode: ["n"],           action: "<cmd>tabp<CR>",                    description: "Go to previous tab",                      file: "lua/keymaps.lua", plugin: "", group: "Tabs",            source: "explicit" }
   - { key: "<leader><Tab>", mode: ["n"],           action: "<cmd>tabn<CR>",                    description: "Go to next tab",                          file: "lua/keymaps.lua", plugin: "", group: "Tabs",            source: "explicit" }
   - { key: "<leader><S-Tab>", mode: ["n"],           action: "<cmd>tabp<CR>",                    description: "Go to previous tab",                      file: "lua/keymaps.lua", plugin: "", group: "Tabs",            source: "explicit" }
+  - { key: "<leader>1",    mode: ["n"],           action: "<cmd>tabnext 1<CR>",               description: "Go to tab 1",                              file: "lua/keymaps.lua", plugin: "", group: "Tabs",            source: "explicit" }
+  - { key: "<leader>2",    mode: ["n"],           action: "<cmd>tabnext 2<CR>",               description: "Go to tab 2",                              file: "lua/keymaps.lua", plugin: "", group: "Tabs",            source: "explicit" }
+  - { key: "<leader>3",    mode: ["n"],           action: "<cmd>tabnext 3<CR>",               description: "Go to tab 3",                              file: "lua/keymaps.lua", plugin: "", group: "Tabs",            source: "explicit" }
+  - { key: "<leader>4",    mode: ["n"],           action: "<cmd>tabnext 4<CR>",               description: "Go to tab 4",                              file: "lua/keymaps.lua", plugin: "", group: "Tabs",            source: "explicit" }
+  - { key: "<leader>5",    mode: ["n"],           action: "<cmd>tabnext 5<CR>",               description: "Go to tab 5",                              file: "lua/keymaps.lua", plugin: "", group: "Tabs",            source: "explicit" }
+  - { key: "<leader>6",    mode: ["n"],           action: "<cmd>tabnext 6<CR>",               description: "Go to tab 6",                              file: "lua/keymaps.lua", plugin: "", group: "Tabs",            source: "explicit" }
+  - { key: "<leader>7",    mode: ["n"],           action: "<cmd>tabnext 7<CR>",               description: "Go to tab 7",                              file: "lua/keymaps.lua", plugin: "", group: "Tabs",            source: "explicit" }
+  - { key: "<leader>8",    mode: ["n"],           action: "<cmd>tabnext 8<CR>",               description: "Go to tab 8",                              file: "lua/keymaps.lua", plugin: "", group: "Tabs",            source: "explicit" }
+  - { key: "<leader>9",    mode: ["n"],           action: "<cmd>tabnext 9<CR>",               description: "Go to tab 9",                              file: "lua/keymaps.lua", plugin: "", group: "Tabs",            source: "explicit" }
   - { key: "<Esc>",        mode: ["t"],           action: "<C-\\><C-N>",                      description: "Exit terminal insert mode",               file: "lua/keymaps.lua", plugin: "", group: "Terminal",        source: "explicit" }
 
   # ------------------------------------------------------------------ #
@@ -246,7 +253,7 @@ keybindings:
   # ------------------------------------------------------------------ #
   # vim-maximizer - lua/plugins/maximizer.lua                          #
   # ------------------------------------------------------------------ #
-  - { key: "<leader>sm",   mode: ["n"],           action: "<cmd>MaximizerToggle<CR>",         description: "Toggle split maximize",                   file: "lua/plugins/maximizer.lua", plugin: "vim-maximizer", group: "Windows", source: "explicit" }
+  - { key: "<leader>sz",   mode: ["n"],           action: "<cmd>MaximizerToggle<CR>",         description: "Toggle split zoom",                        file: "lua/plugins/maximizer.lua",plugin: "vim-maximizer",group: "Windows",source: "explicit" }
 
   # ------------------------------------------------------------------ #
   # trouble.nvim - lua/plugins/trouble.lua                             #
@@ -262,13 +269,16 @@ keybindings:
   - { key: "<leader>gg",   mode: ["n"],           action: "<cmd>Neogit<CR>",                  description: "Open Neogit",                             file: "lua/plugins/neogit.lua", plugin: "neogit", group: "Git", source: "explicit" }
 
   # ------------------------------------------------------------------ #
-  # vim-tmux-navigator - lua/plugins/tmux-naivation.lua                #
+  # smart-splits.nvim - lua/plugins/smart-splits.lua                   #
   # ------------------------------------------------------------------ #
-  - { key: "<c-h>",        mode: ["n"],           action: "<cmd>TmuxNavigateLeft<cr>",        description: "Navigate to left pane/split",             file: "lua/plugins/tmux-naivation.lua", plugin: "vim-tmux-navigator", group: "Navigation", source: "explicit" }
-  - { key: "<c-j>",        mode: ["n"],           action: "<cmd>TmuxNavigateDown<cr>",        description: "Navigate to lower pane/split",            file: "lua/plugins/tmux-naivation.lua", plugin: "vim-tmux-navigator", group: "Navigation", source: "explicit" }
-  - { key: "<c-k>",        mode: ["n"],           action: "<cmd>TmuxNavigateUp<cr>",          description: "Navigate to upper pane/split",            file: "lua/plugins/tmux-naivation.lua", plugin: "vim-tmux-navigator", group: "Navigation", source: "explicit" }
-  - { key: "<c-l>",        mode: ["n"],           action: "<cmd>TmuxNavigateRight<cr>",       description: "Navigate to right pane/split",            file: "lua/plugins/tmux-naivation.lua", plugin: "vim-tmux-navigator", group: "Navigation", source: "explicit" }
-  - { key: "<c-\\>",       mode: ["n"],           action: "<cmd>TmuxNavigatePrevious<cr>",    description: "Navigate to previous pane/split",         file: "lua/plugins/tmux-naivation.lua", plugin: "vim-tmux-navigator", group: "Navigation", source: "explicit" }
+  - { key: "<C-h>",        mode: ["n"],           action: "smart-splits.move_cursor_left()",  description: "Go to left pane/split",                    file: "lua/plugins/smart-splits.lua", plugin: "smart-splits.nvim", group: "Navigation", source: "explicit" }
+  - { key: "<C-j>",        mode: ["n"],           action: "smart-splits.move_cursor_down()",  description: "Go to lower pane/split",                   file: "lua/plugins/smart-splits.lua", plugin: "smart-splits.nvim", group: "Navigation", source: "explicit" }
+  - { key: "<C-k>",        mode: ["n"],           action: "smart-splits.move_cursor_up()",    description: "Go to upper pane/split",                   file: "lua/plugins/smart-splits.lua", plugin: "smart-splits.nvim", group: "Navigation", source: "explicit" }
+  - { key: "<C-l>",        mode: ["n"],           action: "smart-splits.move_cursor_right()", description: "Go to right pane/split",                   file: "lua/plugins/smart-splits.lua", plugin: "smart-splits.nvim", group: "Navigation", source: "explicit" }
+  - { key: "<C-Left>",     mode: ["n"],           action: "resize('left') -> split or herdr pane", description: "Resize pane/split left",              file: "lua/plugins/smart-splits.lua", plugin: "smart-splits.nvim", group: "Windows", source: "explicit" }
+  - { key: "<C-Down>",     mode: ["n"],           action: "resize('down') -> split or herdr pane", description: "Resize pane/split down",              file: "lua/plugins/smart-splits.lua", plugin: "smart-splits.nvim", group: "Windows", source: "explicit" }
+  - { key: "<C-Up>",       mode: ["n"],           action: "resize('up') -> split or herdr pane", description: "Resize pane/split up",                  file: "lua/plugins/smart-splits.lua", plugin: "smart-splits.nvim", group: "Windows", source: "explicit" }
+  - { key: "<C-Right>",    mode: ["n"],           action: "resize('right') -> split or herdr pane", description: "Resize pane/split right",            file: "lua/plugins/smart-splits.lua", plugin: "smart-splits.nvim", group: "Windows", source: "explicit" }
 
   # ------------------------------------------------------------------ #
   # diffview.nvim - lua/plugins/diffview.lua                           #
@@ -391,6 +401,13 @@ keybindings:
   - { key: "<leader>Tp",   mode: ["n"],           action: "<cmd>TypstPreviewToggle<CR>",      description: "Typst: toggle live preview",              file: "lua/plugins/typst-preview.lua", plugin: "typst-preview.nvim", group: "Typst", source: "explicit" }
   - { key: "<leader>Tf",   mode: ["n"],           action: "<cmd>TypstPreviewFollowCursorToggle<CR>", description: "Typst: toggle preview follow cursor", file: "lua/plugins/typst-preview.lua", plugin: "typst-preview.nvim", group: "Typst", source: "explicit" }
   - { key: "<leader>Ts",   mode: ["n"],           action: "<cmd>TypstPreviewSyncCursor<CR>",  description: "Typst: scroll preview to cursor",         file: "lua/plugins/typst-preview.lua", plugin: "typst-preview.nvim", group: "Typst", source: "explicit" }
+
+  # ------------------------------------------------------------------ #
+  # auto-session - lua/plugins/session.lua                             #
+  # ------------------------------------------------------------------ #
+  - { key: "<leader>ww",   mode: ["n"],           action: "<cmd>SessionSearch<CR>",           description: "Session: open the picker",                 file: "lua/plugins/session.lua", plugin: "auto-session", group: "Sessions", source: "explicit" }
+  - { key: "<leader>wN",   mode: ["n"],           action: "<cmd>SessionSave<CR>",             description: "Session: save the current one",            file: "lua/plugins/session.lua", plugin: "auto-session", group: "Sessions", source: "explicit" }
+  - { key: "<leader>wD",   mode: ["n"],           action: "<cmd>SessionDelete<CR>",           description: "Session: delete the current one",          file: "lua/plugins/session.lua", plugin: "auto-session", group: "Sessions", source: "explicit" }
 
 # ==================================================================== #
 # default_bindings                                                     #

@@ -15,7 +15,7 @@ _Generated from `keybindings.yaml` by `keybindings-to-md.cs`._
 > 🔹 marks a **Neovim built-in** default — a core editor command that is
 > not defined via a keymap (it never appears in `:map`/`nvim_get_keymap`).
 >
-> Totals: **523** keybindings — **236** explicit, **146** implicit defaults (🔸), **141** built-ins (🔹).
+> Totals: **536** keybindings — **249** explicit, **146** implicit defaults (🔸), **141** built-ins (🔹).
 
 ## Table of Contents
 
@@ -38,15 +38,17 @@ _Generated from `keybindings.yaml` by `keybindings-to-md.cs`._
    - [lua/plugins/maximizer.lua](#file-luapluginsmaximizerlua)
    - [lua/plugins/neogit.lua](#file-luapluginsneogitlua)
    - [lua/plugins/oil.lua](#file-luapluginsoillua)
+   - [lua/plugins/session.lua](#file-luapluginssessionlua)
+   - [lua/plugins/smart-splits.lua](#file-luapluginssmart-splitslua)
    - [lua/plugins/snacks.nvim.lua](#file-luapluginssnacksnvimlua)
    - [lua/plugins/telescope.lua](#file-luapluginstelescopelua)
    - [lua/plugins/telescope_undo.lua](#file-luapluginstelescope-undolua)
-   - [lua/plugins/tmux-naivation.lua](#file-luapluginstmux-naivationlua)
    - [lua/plugins/treesitter.lua](#file-luapluginstreesitterlua)
    - [lua/plugins/trouble.lua](#file-luapluginstroublelua)
    - [lua/plugins/typst-preview.lua](#file-luapluginstypst-previewlua)
    - [lua/plugins/whichkey.lua](#file-luapluginswhichkeylua)
 2. [Grouped by Plugin](#sec-by-plugin)
+   - [auto-session](#plugin-auto-session)
    - [blink.cmp](#plugin-blinkcmp)
    - [codecompanion.nvim](#plugin-codecompanionnvim)
    - [Comment.nvim](#plugin-commentnvim)
@@ -71,13 +73,13 @@ _Generated from `keybindings.yaml` by `keybindings-to-md.cs`._
    - [nvim-surround](#plugin-nvim-surround)
    - [nvim-treesitter](#plugin-nvim-treesitter)
    - [oil.nvim](#plugin-oilnvim)
+   - [smart-splits.nvim](#plugin-smart-splitsnvim)
    - [snacks.nvim](#plugin-snacksnvim)
    - [telescope-undo.nvim](#plugin-telescope-undonvim)
    - [telescope.nvim](#plugin-telescopenvim)
    - [trouble.nvim](#plugin-troublenvim)
    - [typst-preview.nvim](#plugin-typst-previewnvim)
    - [vim-maximizer](#plugin-vim-maximizer)
-   - [vim-tmux-navigator](#plugin-vim-tmux-navigator)
    - [which-key.nvim](#plugin-which-keynvim)
 3. [Grouped Logically](#sec-logical)
    - [AI Chat](#group-ai-chat)
@@ -107,6 +109,7 @@ _Generated from `keybindings.yaml` by `keybindings-to-md.cs`._
    - [Registers & Macros](#group-registers--macros)
    - [Scrolling](#group-scrolling)
    - [Search](#group-search)
+   - [Sessions](#group-sessions)
    - [Surround](#group-surround)
    - [Tabs](#group-tabs)
    - [Terminal](#group-terminal)
@@ -206,14 +209,20 @@ Core configuration (no plugin)
 | --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- |
 | `<` | v | Indent left, keep selection                                                      | `<gv`                                    |  |
 | `<` | n | Indent line left                                                                 | `<<`                                     |  |
-| `<C-Down>` | n | Decrease split height                                                            | `:resize -1<CR>`                         |  |
-| `<C-Left>` | n | Increase vertical split width                                                    | `:vertical resize +1<CR>`                |  |
-| `<C-Right>` | n | Decrease vertical split width                                                    | `:vertical resize -1<CR>`                |  |
-| `<C-Up>` | n | Increase split height                                                            | `:resize +1<CR>`                         |  |
+| `<C-\>` | n | Go to previous pane/split                                                        | `<C-w>p`                                 |  |
 | `<ESC>` | n | Clear search highlight                                                           | `:nohlsearch\|:echo<CR>`                 |  |
 | `<Esc>` | t | Exit terminal insert mode                                                        | `<C-\><C-N>`                             |  |
 | `<leader>+` | n | Increment number under cursor                                                    | `<C-a>`                                  |  |
 | `<leader>-` | n | Decrement number under cursor                                                    | `<C-x>`                                  |  |
+| `<leader>1` | n | Go to tab 1                                                                      | `<cmd>tabnext 1<CR>`                     |  |
+| `<leader>2` | n | Go to tab 2                                                                      | `<cmd>tabnext 2<CR>`                     |  |
+| `<leader>3` | n | Go to tab 3                                                                      | `<cmd>tabnext 3<CR>`                     |  |
+| `<leader>4` | n | Go to tab 4                                                                      | `<cmd>tabnext 4<CR>`                     |  |
+| `<leader>5` | n | Go to tab 5                                                                      | `<cmd>tabnext 5<CR>`                     |  |
+| `<leader>6` | n | Go to tab 6                                                                      | `<cmd>tabnext 6<CR>`                     |  |
+| `<leader>7` | n | Go to tab 7                                                                      | `<cmd>tabnext 7<CR>`                     |  |
+| `<leader>8` | n | Go to tab 8                                                                      | `<cmd>tabnext 8<CR>`                     |  |
+| `<leader>9` | n | Go to tab 9                                                                      | `<cmd>tabnext 9<CR>`                     |  |
 | `<leader><S-Tab>` | n | Go to previous tab                                                               | `<cmd>tabp<CR>`                          |  |
 | `<leader><Tab>` | n | Go to next tab                                                                   | `<cmd>tabn<CR>`                          |  |
 | `<leader>c` | n | Change (yank into default register)                                              | `c`                                      |  |
@@ -221,15 +230,16 @@ Core configuration (no plugin)
 | `<leader>L` | n | Open Lazy plugin manager                                                         | `<cmd>Lazy<CR>`                          |  |
 | `<leader>p` | n | Paste from system clipboard                                                      | `"+p`                                    |  |
 | `<leader>p` | v | Paste over selection without yanking                                             | `"_dP`                                   |  |
+| `<leader>s-` | n | Split window horizontally                                                        | `<cmd>split<CR>`                         |  |
 | `<leader>se` | n | Equalize split sizes                                                             | `<C-w>=`                                 |  |
-| `<leader>sh` | n | Split window horizontally                                                        | `<cmd>split<CR>`                         |  |
-| `<leader>sq` | n | Close current split                                                              | `<cmd>close<CR>`                         |  |
+| `<leader>so` | n | Cycle to next split                                                              | `<C-w>w`                                 |  |
 | `<leader>sv` | n | Split window vertically                                                          | `<cmd>vsplit<CR>`                        |  |
+| `<leader>sx` | n | Close current split                                                              | `<cmd>close<CR>`                         |  |
+| `<leader>tc` | n | Open new tab                                                                     | `<cmd>tabnew<CR>`                        |  |
 | `<leader>tf` | n | Open current file in new tab                                                     | `<cmd>tabnew %<CR>`                      |  |
 | `<leader>tn` | n | Go to next tab                                                                   | `<cmd>tabn<CR>`                          |  |
-| `<leader>to` | n | Open new tab                                                                     | `<cmd>tabnew<CR>`                        |  |
 | `<leader>tp` | n | Go to previous tab                                                               | `<cmd>tabp<CR>`                          |  |
-| `<leader>tq` | n | Close current tab                                                                | `<cmd>tabclose<CR>`                      |  |
+| `<leader>tx` | n | Close current tab                                                                | `<cmd>tabclose<CR>`                      |  |
 | `<leader>y` | n | Yank to system clipboard                                                         | `"+y`                                    |  |
 | `<leader>y` | v | Yank selection to system clipboard                                               | `"+y`                                    |  |
 | `>` | v | Indent right, keep selection                                                     | `>gv`                                    |  |
@@ -391,7 +401,7 @@ Configures: `vim-maximizer`
 
 | Key | Mode | Description                                                                      | Action                                   | Implicit |
 | --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- |
-| `<leader>sm` | n | Toggle split maximize                                                            | `<cmd>MaximizerToggle<CR>`               |  |
+| `<leader>sz` | n | Toggle split zoom                                                                | `<cmd>MaximizerToggle<CR>`               |  |
 
 ### lua/plugins/neogit.lua <a id="file-luapluginsneogitlua"></a>
 
@@ -425,6 +435,31 @@ Configures: `oil.nvim`
 | `_` | n | Oil: open current working directory                                              | `actions.open_cwd`                       |  |
 | `'` | n | Oil: :cd to directory                                                            | `actions.cd`                             |  |
 | `~` | n | Oil: :tcd to directory                                                           | `actions.cd scope=tab`                   |  |
+
+### lua/plugins/session.lua <a id="file-luapluginssessionlua"></a>
+
+Configures: `auto-session`
+
+| Key | Mode | Description                                                                      | Action                                   | Implicit |
+| --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- |
+| `<leader>wD` | n | Session: delete the current one                                                  | `<cmd>SessionDelete<CR>`                 |  |
+| `<leader>wN` | n | Session: save the current one                                                    | `<cmd>SessionSave<CR>`                   |  |
+| `<leader>ww` | n | Session: open the picker                                                         | `<cmd>SessionSearch<CR>`                 |  |
+
+### lua/plugins/smart-splits.lua <a id="file-luapluginssmart-splitslua"></a>
+
+Configures: `smart-splits.nvim`
+
+| Key | Mode | Description                                                                      | Action                                   | Implicit |
+| --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- |
+| `<C-Down>` | n | Resize pane/split down                                                           | `resize('down') -> split or herdr pane`  |  |
+| `<C-h>` | n | Go to left pane/split                                                            | `smart-splits.move_cursor_left()`        |  |
+| `<C-j>` | n | Go to lower pane/split                                                           | `smart-splits.move_cursor_down()`        |  |
+| `<C-k>` | n | Go to upper pane/split                                                           | `smart-splits.move_cursor_up()`          |  |
+| `<C-l>` | n | Go to right pane/split                                                           | `smart-splits.move_cursor_right()`       |  |
+| `<C-Left>` | n | Resize pane/split left                                                           | `resize('left') -> split or herdr pane`  |  |
+| `<C-Right>` | n | Resize pane/split right                                                          | `resize('right') -> split or herdr pane` |  |
+| `<C-Up>` | n | Resize pane/split up                                                             | `resize('up') -> split or herdr pane`    |  |
 
 ### lua/plugins/snacks.nvim.lua <a id="file-luapluginssnacksnvimlua"></a>
 
@@ -462,18 +497,6 @@ Configures: `telescope-undo.nvim`
 | Key | Mode | Description                                                                      | Action                                   | Implicit |
 | --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- |
 | `<leader>u` | n | Browse undo history                                                              | `<cmd>Telescope undo<cr>`                |  |
-
-### lua/plugins/tmux-naivation.lua <a id="file-luapluginstmux-naivationlua"></a>
-
-Configures: `vim-tmux-navigator`
-
-| Key | Mode | Description                                                                      | Action                                   | Implicit |
-| --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- |
-| `<c-h>` | n | Navigate to left pane/split                                                      | `<cmd>TmuxNavigateLeft<cr>`              |  |
-| `<c-j>` | n | Navigate to lower pane/split                                                     | `<cmd>TmuxNavigateDown<cr>`              |  |
-| `<c-k>` | n | Navigate to upper pane/split                                                     | `<cmd>TmuxNavigateUp<cr>`                |  |
-| `<c-l>` | n | Navigate to right pane/split                                                     | `<cmd>TmuxNavigateRight<cr>`             |  |
-| `<c-\>` | n | Navigate to previous pane/split                                                  | `<cmd>TmuxNavigatePrevious<cr>`          |  |
 
 ### lua/plugins/treesitter.lua <a id="file-luapluginstreesitterlua"></a>
 
@@ -546,6 +569,16 @@ Configures: `which-key.nvim`
 Keybindings associated with a plugin — both those defined in the plugin's
 config file and the plugin's implicit defaults (🔸). Core-config
 keybindings that belong to no plugin are omitted here.
+
+### auto-session <a id="plugin-auto-session"></a>
+
+Defined in: `lua/plugins/session.lua`
+
+| Key | Mode | Description                                                                      | Action                                   | Implicit |
+| --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- |
+| `<leader>wD` | n | Session: delete the current one                                                  | `<cmd>SessionDelete<CR>`                 |  |
+| `<leader>wN` | n | Session: save the current one                                                    | `<cmd>SessionSave<CR>`                   |  |
+| `<leader>ww` | n | Session: open the picker                                                         | `<cmd>SessionSearch<CR>`                 |  |
 
 ### blink.cmp <a id="plugin-blinkcmp"></a>
 
@@ -1004,6 +1037,21 @@ Defined in: `lua/plugins/oil.lua`; includes 16 implicit default(s) 🔸
 | `_` | n | Oil (default): open current working directory                                    | `actions.open_cwd`                       | 🔸 |
 | `'` | n | Oil (default): :cd to directory                                                  | `actions.cd`                             | 🔸 |
 
+### smart-splits.nvim <a id="plugin-smart-splitsnvim"></a>
+
+Defined in: `lua/plugins/smart-splits.lua`
+
+| Key | Mode | Description                                                                      | Action                                   | Implicit |
+| --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- |
+| `<C-Down>` | n | Resize pane/split down                                                           | `resize('down') -> split or herdr pane`  |  |
+| `<C-h>` | n | Go to left pane/split                                                            | `smart-splits.move_cursor_left()`        |  |
+| `<C-j>` | n | Go to lower pane/split                                                           | `smart-splits.move_cursor_down()`        |  |
+| `<C-k>` | n | Go to upper pane/split                                                           | `smart-splits.move_cursor_up()`          |  |
+| `<C-l>` | n | Go to right pane/split                                                           | `smart-splits.move_cursor_right()`       |  |
+| `<C-Left>` | n | Resize pane/split left                                                           | `resize('left') -> split or herdr pane`  |  |
+| `<C-Right>` | n | Resize pane/split right                                                          | `resize('right') -> split or herdr pane` |  |
+| `<C-Up>` | n | Resize pane/split up                                                             | `resize('up') -> split or herdr pane`    |  |
+
 ### snacks.nvim <a id="plugin-snacksnvim"></a>
 
 Defined in: `lua/plugins/snacks.nvim.lua`
@@ -1095,19 +1143,7 @@ Defined in: `lua/plugins/maximizer.lua`
 
 | Key | Mode | Description                                                                      | Action                                   | Implicit |
 | --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- |
-| `<leader>sm` | n | Toggle split maximize                                                            | `<cmd>MaximizerToggle<CR>`               |  |
-
-### vim-tmux-navigator <a id="plugin-vim-tmux-navigator"></a>
-
-Defined in: `lua/plugins/tmux-naivation.lua`
-
-| Key | Mode | Description                                                                      | Action                                   | Implicit |
-| --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- |
-| `<c-h>` | n | Navigate to left pane/split                                                      | `<cmd>TmuxNavigateLeft<cr>`              |  |
-| `<c-j>` | n | Navigate to lower pane/split                                                     | `<cmd>TmuxNavigateDown<cr>`              |  |
-| `<c-k>` | n | Navigate to upper pane/split                                                     | `<cmd>TmuxNavigateUp<cr>`                |  |
-| `<c-l>` | n | Navigate to right pane/split                                                     | `<cmd>TmuxNavigateRight<cr>`             |  |
-| `<c-\>` | n | Navigate to previous pane/split                                                  | `<cmd>TmuxNavigatePrevious<cr>`          |  |
+| `<leader>sz` | n | Toggle split zoom                                                                | `<cmd>MaximizerToggle<CR>`               |  |
 
 ### which-key.nvim <a id="plugin-which-keynvim"></a>
 
@@ -1575,11 +1611,11 @@ plugin.
 
 | Key | Mode | Description                                                                      | Action                                   | Plugin | Implicit |
 | --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- | --- |
-| `<c-h>` | n | Navigate to left pane/split                                                      | `<cmd>TmuxNavigateLeft<cr>`              | `vim-tmux-navigator` |  |
-| `<c-j>` | n | Navigate to lower pane/split                                                     | `<cmd>TmuxNavigateDown<cr>`              | `vim-tmux-navigator` |  |
-| `<c-k>` | n | Navigate to upper pane/split                                                     | `<cmd>TmuxNavigateUp<cr>`                | `vim-tmux-navigator` |  |
-| `<c-l>` | n | Navigate to right pane/split                                                     | `<cmd>TmuxNavigateRight<cr>`             | `vim-tmux-navigator` |  |
-| `<c-\>` | n | Navigate to previous pane/split                                                  | `<cmd>TmuxNavigatePrevious<cr>`          | `vim-tmux-navigator` |  |
+| `<C-h>` | n | Go to left pane/split                                                            | `smart-splits.move_cursor_left()`        | `smart-splits.nvim` |  |
+| `<C-j>` | n | Go to lower pane/split                                                           | `smart-splits.move_cursor_down()`        | `smart-splits.nvim` |  |
+| `<C-k>` | n | Go to upper pane/split                                                           | `smart-splits.move_cursor_up()`          | `smart-splits.nvim` |  |
+| `<C-l>` | n | Go to right pane/split                                                           | `smart-splits.move_cursor_right()`       | `smart-splits.nvim` |  |
+| `<C-\>` | n | Go to previous pane/split                                                        | `<C-w>p`                                 | _core_ |  |
 | `gj` | n | History: go back                                                                 | `<cmd>HisTravBack<cr>`                   | `history-traverse` |  |
 | `gk` | n | History: go forward                                                              | `<cmd>HisTravForward<cr>`                | `history-traverse` |  |
 
@@ -1653,6 +1689,14 @@ plugin.
 | `t` | n,x,o | Flash: enhanced t, jump till char                                                | `enhanced t (flash till)`                | `flash.nvim` | 🔸 |
 | `T` | n,x,o | Flash: enhanced T, backward jump till char                                       | `enhanced T (flash till back)`           | `flash.nvim` | 🔸 |
 
+### Sessions <a id="group-sessions"></a>
+
+| Key | Mode | Description                                                                      | Action                                   | Plugin | Implicit |
+| --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- | --- |
+| `<leader>wD` | n | Session: delete the current one                                                  | `<cmd>SessionDelete<CR>`                 | `auto-session` |  |
+| `<leader>wN` | n | Session: save the current one                                                    | `<cmd>SessionSave<CR>`                   | `auto-session` |  |
+| `<leader>ww` | n | Session: open the picker                                                         | `<cmd>SessionSearch<CR>`                 | `auto-session` |  |
+
 ### Surround <a id="group-surround"></a>
 
 | Key | Mode | Description                                                                      | Action                                   | Plugin | Implicit |
@@ -1673,13 +1717,22 @@ plugin.
 
 | Key | Mode | Description                                                                      | Action                                   | Plugin | Implicit |
 | --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- | --- |
+| `<leader>1` | n | Go to tab 1                                                                      | `<cmd>tabnext 1<CR>`                     | _core_ |  |
+| `<leader>2` | n | Go to tab 2                                                                      | `<cmd>tabnext 2<CR>`                     | _core_ |  |
+| `<leader>3` | n | Go to tab 3                                                                      | `<cmd>tabnext 3<CR>`                     | _core_ |  |
+| `<leader>4` | n | Go to tab 4                                                                      | `<cmd>tabnext 4<CR>`                     | _core_ |  |
+| `<leader>5` | n | Go to tab 5                                                                      | `<cmd>tabnext 5<CR>`                     | _core_ |  |
+| `<leader>6` | n | Go to tab 6                                                                      | `<cmd>tabnext 6<CR>`                     | _core_ |  |
+| `<leader>7` | n | Go to tab 7                                                                      | `<cmd>tabnext 7<CR>`                     | _core_ |  |
+| `<leader>8` | n | Go to tab 8                                                                      | `<cmd>tabnext 8<CR>`                     | _core_ |  |
+| `<leader>9` | n | Go to tab 9                                                                      | `<cmd>tabnext 9<CR>`                     | _core_ |  |
 | `<leader><S-Tab>` | n | Go to previous tab                                                               | `<cmd>tabp<CR>`                          | _core_ |  |
 | `<leader><Tab>` | n | Go to next tab                                                                   | `<cmd>tabn<CR>`                          | _core_ |  |
+| `<leader>tc` | n | Open new tab                                                                     | `<cmd>tabnew<CR>`                        | _core_ |  |
 | `<leader>tf` | n | Open current file in new tab                                                     | `<cmd>tabnew %<CR>`                      | _core_ |  |
 | `<leader>tn` | n | Go to next tab                                                                   | `<cmd>tabn<CR>`                          | _core_ |  |
-| `<leader>to` | n | Open new tab                                                                     | `<cmd>tabnew<CR>`                        | _core_ |  |
 | `<leader>tp` | n | Go to previous tab                                                               | `<cmd>tabp<CR>`                          | _core_ |  |
-| `<leader>tq` | n | Close current tab                                                                | `<cmd>tabclose<CR>`                      | _core_ |  |
+| `<leader>tx` | n | Close current tab                                                                | `<cmd>tabclose<CR>`                      | _core_ |  |
 | `gT` | n | Go to previous tab page                                                          | `(tab)`                                  | _core_ | 🔹 |
 
 ### Terminal <a id="group-terminal"></a>
@@ -1798,10 +1851,10 @@ plugin.
 
 | Key | Mode | Description                                                                      | Action                                   | Plugin | Implicit |
 | --- | --- | -------------------------------------------------------------------------------- | ---------------------------------------- | --- | --- |
-| `<C-Down>` | n | Decrease split height                                                            | `:resize -1<CR>`                         | _core_ |  |
-| `<C-Left>` | n | Increase vertical split width                                                    | `:vertical resize +1<CR>`                | _core_ |  |
-| `<C-Right>` | n | Decrease vertical split width                                                    | `:vertical resize -1<CR>`                | _core_ |  |
-| `<C-Up>` | n | Increase split height                                                            | `:resize +1<CR>`                         | _core_ |  |
+| `<C-Down>` | n | Resize pane/split down                                                           | `resize('down') -> split or herdr pane`  | `smart-splits.nvim` |  |
+| `<C-Left>` | n | Resize pane/split left                                                           | `resize('left') -> split or herdr pane`  | `smart-splits.nvim` |  |
+| `<C-Right>` | n | Resize pane/split right                                                          | `resize('right') -> split or herdr pane` | `smart-splits.nvim` |  |
+| `<C-Up>` | n | Resize pane/split up                                                             | `resize('up') -> split or herdr pane`    | `smart-splits.nvim` |  |
 | `<C-w>=` | n | Equalize window sizes                                                            | `(window)`                               | _core_ | 🔹 |
 | `<C-w>h` | n | Move to window on the left                                                       | `(window)`                               | _core_ | 🔹 |
 | `<C-w>j` | n | Move to window below                                                             | `(window)`                               | _core_ | 🔹 |
@@ -1814,11 +1867,12 @@ plugin.
 | `<C-w>w` | n | Cycle to next window                                                             | `(window)`                               | _core_ | 🔹 |
 | `<C-w>_` | n | Maximize window height                                                           | `(window)`                               | _core_ | 🔹 |
 | `<C-w>\|` | n | Maximize window width                                                            | `(window)`                               | _core_ | 🔹 |
+| `<leader>s-` | n | Split window horizontally                                                        | `<cmd>split<CR>`                         | _core_ |  |
 | `<leader>se` | n | Equalize split sizes                                                             | `<C-w>=`                                 | _core_ |  |
-| `<leader>sh` | n | Split window horizontally                                                        | `<cmd>split<CR>`                         | _core_ |  |
-| `<leader>sm` | n | Toggle split maximize                                                            | `<cmd>MaximizerToggle<CR>`               | `vim-maximizer` |  |
-| `<leader>sq` | n | Close current split                                                              | `<cmd>close<CR>`                         | _core_ |  |
+| `<leader>so` | n | Cycle to next split                                                              | `<C-w>w`                                 | _core_ |  |
 | `<leader>sv` | n | Split window vertically                                                          | `<cmd>vsplit<CR>`                        | _core_ |  |
+| `<leader>sx` | n | Close current split                                                              | `<cmd>close<CR>`                         | _core_ |  |
+| `<leader>sz` | n | Toggle split zoom                                                                | `<cmd>MaximizerToggle<CR>`               | `vim-maximizer` |  |
 
 ## All Keybindings (sorted) <a id="sec-all"></a>
 
@@ -1874,7 +1928,7 @@ Every keybinding in one flat table, sorted by key then mode.
 | `<C-d>` | i | Un-indent current line                                                           | `(edit)`                                 | _core_ | 🔹 |
 | `<C-d>` | i,n | Telescope (default): scroll preview down                                         | `preview_scrolling_down`                 | `telescope.nvim` | 🔸 |
 | `<C-d>` | n | Scroll down half a screen                                                        | `(scroll)`                               | _core_ | 🔹 |
-| `<C-Down>` | n | Decrease split height                                                            | `:resize -1<CR>`                         | _core_ |  |
+| `<C-Down>` | n | Resize pane/split down                                                           | `resize('down') -> split or herdr pane`  | `smart-splits.nvim` |  |
 | `<C-e>` | i | Completion: cancel / hide menu                                                   | `hide menu`                              | `blink.cmp` | 🔸 |
 | `<C-e>` | n | Scroll down one line                                                             | `(scroll)`                               | _core_ | 🔹 |
 | `<C-F14>` | n | Go to previous diagnostic                                                        | `:Lspsaga diagnostic_jump_prev<CR>`      | `lspsaga.nvim` |  |
@@ -1884,18 +1938,18 @@ Every keybinding in one flat table, sorted by key then mode.
 | `<C-g>` | n | Show file name and status                                                        | `(misc)`                                 | _core_ | 🔹 |
 | `<C-g>s` | i | Surround: add pair around the cursor                                             | `surround at cursor`                     | `nvim-surround` | 🔸 |
 | `<C-g>S` | i | Surround: add pair around cursor, on new lines                                   | `surround at cursor (new lines)`         | `nvim-surround` | 🔸 |
-| `<c-h>` | n | Navigate to left pane/split                                                      | `<cmd>TmuxNavigateLeft<cr>`              | `vim-tmux-navigator` |  |
+| `<C-h>` | n | Go to left pane/split                                                            | `smart-splits.move_cursor_left()`        | `smart-splits.nvim` |  |
 | `<C-h>` | n,v | Oil (default): open in horizontal split                                          | `actions.select horizontal`              | `oil.nvim` | 🔸 |
 | `<C-i>` | n | Jump to newer position in jumplist                                               | `(jump)`                                 | _core_ | 🔹 |
 | `<C-j>` | i | Telescope picker: move to next item                                              | `actions.move_selection_next`            | `telescope.nvim` |  |
-| `<c-j>` | n | Navigate to lower pane/split                                                     | `<cmd>TmuxNavigateDown<cr>`              | `vim-tmux-navigator` |  |
+| `<C-j>` | n | Go to lower pane/split                                                           | `smart-splits.move_cursor_down()`        | `smart-splits.nvim` |  |
 | `<C-k>` | i | Telescope picker: move to previous item                                          | `actions.move_selection_previous`        | `telescope.nvim` |  |
 | `<C-k>` | i | Completion: toggle signature help                                                | `toggle signature help`                  | `blink.cmp` | 🔸 |
-| `<c-k>` | n | Navigate to upper pane/split                                                     | `<cmd>TmuxNavigateUp<cr>`                | `vim-tmux-navigator` |  |
-| `<c-l>` | n | Navigate to right pane/split                                                     | `<cmd>TmuxNavigateRight<cr>`             | `vim-tmux-navigator` |  |
+| `<C-k>` | n | Go to upper pane/split                                                           | `smart-splits.move_cursor_up()`          | `smart-splits.nvim` |  |
+| `<C-l>` | n | Go to right pane/split                                                           | `smart-splits.move_cursor_right()`       | `smart-splits.nvim` |  |
 | `<C-l>` | n | Redraw screen                                                                    | `(misc)`                                 | _core_ | 🔹 |
 | `<C-l>` | n,v | Oil (default): refresh buffer                                                    | `actions.refresh`                        | `oil.nvim` | 🔸 |
-| `<C-Left>` | n | Increase vertical split width                                                    | `:vertical resize +1<CR>`                | _core_ |  |
+| `<C-Left>` | n | Resize pane/split left                                                           | `resize('left') -> split or herdr pane`  | `smart-splits.nvim` |  |
 | `<C-n>` | i | Completion: select next item                                                     | `select next`                            | `blink.cmp` | 🔸 |
 | `<C-n>` | i | Telescope (default): next result                                                 | `move_selection_next`                    | `telescope.nvim` | 🔸 |
 | `<C-o>` | i | Execute one Normal-mode command                                                  | `(edit)`                                 | _core_ | 🔹 |
@@ -1907,7 +1961,7 @@ Every keybinding in one flat table, sorted by key then mode.
 | `<C-q>` | i,n | Telescope (default): send all to quickfix                                        | `send_to_qflist + open_qflist`           | `telescope.nvim` | 🔸 |
 | `<C-r>` | i | Insert contents of a register                                                    | `(edit)`                                 | _core_ | 🔹 |
 | `<C-r>` | n | Redo                                                                             | `(edit)`                                 | _core_ | 🔹 |
-| `<C-Right>` | n | Decrease vertical split width                                                    | `:vertical resize -1<CR>`                | _core_ |  |
+| `<C-Right>` | n | Resize pane/split right                                                          | `resize('right') -> split or herdr pane` | `smart-splits.nvim` |  |
 | `<c-s>` | c | Toggle flash while searching                                                     | `require('flash').toggle()`              | `flash.nvim` |  |
 | `<C-s>` | i | LSP: signature help                                                              | `vim.lsp.buf.signature_help`             | `nvim-lspconfig` |  |
 | `<C-s>` | n | Trouble window: jump in horizontal split                                         | `jump (horizontal split)`                | `trouble.nvim` | 🔸 |
@@ -1922,7 +1976,7 @@ Every keybinding in one flat table, sorted by key then mode.
 | `<C-u>` | i | Delete to start of line                                                          | `(edit)`                                 | _core_ | 🔹 |
 | `<C-u>` | i,n | Telescope (default): scroll preview up                                           | `preview_scrolling_up`                   | `telescope.nvim` | 🔸 |
 | `<C-u>` | n | Scroll up half a screen                                                          | `(scroll)`                               | _core_ | 🔹 |
-| `<C-Up>` | n | Increase split height                                                            | `:resize +1<CR>`                         | _core_ |  |
+| `<C-Up>` | n | Resize pane/split up                                                             | `resize('up') -> split or herdr pane`    | `smart-splits.nvim` |  |
 | `<C-v>` | i,n | Telescope (default): open in vertical split                                      | `select_vertical`                        | `telescope.nvim` | 🔸 |
 | `<C-v>` | n | Trouble window: jump in vertical split                                           | `jump (vertical split)`                  | `trouble.nvim` | 🔸 |
 | `<C-v>` | n | Start blockwise Visual mode                                                      | `(visual)`                               | _core_ | 🔹 |
@@ -1942,7 +1996,7 @@ Every keybinding in one flat table, sorted by key then mode.
 | `<C-x>` | i,n | Telescope (default): open in horizontal split                                    | `select_horizontal`                      | `telescope.nvim` | 🔸 |
 | `<C-y>` | i | Completion: accept selected item                                                 | `accept item`                            | `blink.cmp` | 🔸 |
 | `<C-y>` | n | Scroll up one line                                                               | `(scroll)`                               | _core_ | 🔹 |
-| `<c-\>` | n | Navigate to previous pane/split                                                  | `<cmd>TmuxNavigatePrevious<cr>`          | `vim-tmux-navigator` |  |
+| `<C-\>` | n | Go to previous pane/split                                                        | `<C-w>p`                                 | _core_ |  |
 | `<C-]>` | i | Copilot: dismiss current suggestion                                              | `dismiss suggestion`                     | `copilot.lua` | 🔸 |
 | `<C-]>` | n | Jump to definition/tag under cursor                                              | `(jump)`                                 | _core_ | 🔹 |
 | `<C-_>` | i | CodeCompanion chat: open completion menu                                         | `chat: completion menu`                  | `codecompanion.nvim` | 🔸 |
@@ -1982,6 +2036,15 @@ Every keybinding in one flat table, sorted by key then mode.
 | `<k7>` | n,x,o | Flash jump                                                                       | `require('flash').jump()`                | `flash.nvim` |  |
 | `<leader>+` | n | Increment number under cursor                                                    | `<C-a>`                                  | _core_ |  |
 | `<leader>-` | n | Decrement number under cursor                                                    | `<C-x>`                                  | _core_ |  |
+| `<leader>1` | n | Go to tab 1                                                                      | `<cmd>tabnext 1<CR>`                     | _core_ |  |
+| `<leader>2` | n | Go to tab 2                                                                      | `<cmd>tabnext 2<CR>`                     | _core_ |  |
+| `<leader>3` | n | Go to tab 3                                                                      | `<cmd>tabnext 3<CR>`                     | _core_ |  |
+| `<leader>4` | n | Go to tab 4                                                                      | `<cmd>tabnext 4<CR>`                     | _core_ |  |
+| `<leader>5` | n | Go to tab 5                                                                      | `<cmd>tabnext 5<CR>`                     | _core_ |  |
+| `<leader>6` | n | Go to tab 6                                                                      | `<cmd>tabnext 6<CR>`                     | _core_ |  |
+| `<leader>7` | n | Go to tab 7                                                                      | `<cmd>tabnext 7<CR>`                     | _core_ |  |
+| `<leader>8` | n | Go to tab 8                                                                      | `<cmd>tabnext 8<CR>`                     | _core_ |  |
+| `<leader>9` | n | Go to tab 9                                                                      | `<cmd>tabnext 9<CR>`                     | _core_ |  |
 | `<leader><leader>sn` | n | Show notification history                                                        | `Snacks.notifier.show_history()`         | `snacks.nvim` |  |
 | `<leader><S-Tab>` | n | Go to previous tab                                                               | `<cmd>tabp<CR>`                          | _core_ |  |
 | `<leader><Tab>` | n | Go to next tab                                                                   | `<cmd>tabn<CR>`                          | _core_ |  |
@@ -2031,20 +2094,24 @@ Every keybinding in one flat table, sorted by key then mode.
 | `<leader>lSr` | n | LSP: restart                                                                     | `<cmd>lsp restart<CR>`                   | `nvim-lspconfig` |  |
 | `<leader>p` | n | Paste from system clipboard                                                      | `"+p`                                    | _core_ |  |
 | `<leader>p` | v | Paste over selection without yanking                                             | `"_dP`                                   | _core_ |  |
+| `<leader>s-` | n | Split window horizontally                                                        | `<cmd>split<CR>`                         | _core_ |  |
 | `<leader>se` | n | Equalize split sizes                                                             | `<C-w>=`                                 | _core_ |  |
-| `<leader>sh` | n | Split window horizontally                                                        | `<cmd>split<CR>`                         | _core_ |  |
-| `<leader>sm` | n | Toggle split maximize                                                            | `<cmd>MaximizerToggle<CR>`               | `vim-maximizer` |  |
-| `<leader>sq` | n | Close current split                                                              | `<cmd>close<CR>`                         | _core_ |  |
+| `<leader>so` | n | Cycle to next split                                                              | `<C-w>w`                                 | _core_ |  |
 | `<leader>sv` | n | Split window vertically                                                          | `<cmd>vsplit<CR>`                        | _core_ |  |
+| `<leader>sx` | n | Close current split                                                              | `<cmd>close<CR>`                         | _core_ |  |
+| `<leader>sz` | n | Toggle split zoom                                                                | `<cmd>MaximizerToggle<CR>`               | `vim-maximizer` |  |
+| `<leader>tc` | n | Open new tab                                                                     | `<cmd>tabnew<CR>`                        | _core_ |  |
 | `<leader>tf` | n | Open current file in new tab                                                     | `<cmd>tabnew %<CR>`                      | _core_ |  |
 | `<leader>Tf` | n | Typst: toggle preview follow cursor                                              | `<cmd>TypstPreviewFollowCursorToggle<CR>` | `typst-preview.nvim` |  |
 | `<leader>tn` | n | Go to next tab                                                                   | `<cmd>tabn<CR>`                          | _core_ |  |
-| `<leader>to` | n | Open new tab                                                                     | `<cmd>tabnew<CR>`                        | _core_ |  |
 | `<leader>tp` | n | Go to previous tab                                                               | `<cmd>tabp<CR>`                          | _core_ |  |
 | `<leader>Tp` | n | Typst: toggle live preview                                                       | `<cmd>TypstPreviewToggle<CR>`            | `typst-preview.nvim` |  |
-| `<leader>tq` | n | Close current tab                                                                | `<cmd>tabclose<CR>`                      | _core_ |  |
 | `<leader>Ts` | n | Typst: scroll preview to cursor                                                  | `<cmd>TypstPreviewSyncCursor<CR>`        | `typst-preview.nvim` |  |
+| `<leader>tx` | n | Close current tab                                                                | `<cmd>tabclose<CR>`                      | _core_ |  |
 | `<leader>u` | n | Browse undo history                                                              | `<cmd>Telescope undo<cr>`                | `telescope-undo.nvim` |  |
+| `<leader>wD` | n | Session: delete the current one                                                  | `<cmd>SessionDelete<CR>`                 | `auto-session` |  |
+| `<leader>wN` | n | Session: save the current one                                                    | `<cmd>SessionSave<CR>`                   | `auto-session` |  |
+| `<leader>ww` | n | Session: open the picker                                                         | `<cmd>SessionSearch<CR>`                 | `auto-session` |  |
 | `<leader>y` | n | Yank to system clipboard                                                         | `"+y`                                    | _core_ |  |
 | `<leader>y` | v | Yank selection to system clipboard                                               | `"+y`                                    | _core_ |  |
 | `<M-CR>` | n | Copilot: open suggestion panel                                                   | `open panel`                             | `copilot.lua` | 🔸 |

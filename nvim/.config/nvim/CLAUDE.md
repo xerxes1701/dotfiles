@@ -6,7 +6,9 @@ This directory is a GNU stow package. Its files appear at `~/.config/nvim`.
 ## Plugin pins
 
 lazy.nvim loads all plugins. Each plugin has one spec file in `lua/plugins/`.
-Two shared libraries have their specs in `lua/plugins.lua`. The file
+Two shared libraries have their specs in `lua/plugins.lua`. lazy.nvim pins
+itself in `lua/config/lazy.lua`, where one SHA serves both its spec and the
+bootstrap clone. The file
 `lazy-lock.json` records the installed commit of each plugin.
 
 Each spec must have `commit = "<full 40-character SHA>"`. Each entry in a

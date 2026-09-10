@@ -9,6 +9,14 @@
 -- as soon as a query uses one (e.g. `#set-lang-from-info-string!` in its markdown
 -- injections, which fires on every fenced code block). `main` drops those
 -- directives entirely, but is a full API rewrite -- see the notes inline below.
+--
+-- `main` builds parsers with the `tree-sitter` CLI (0.26.1+) plus a C
+-- compiler, and ships no prebuilt ones. `master` needed only `cc`, so a
+-- machine that was fine before the switch has no CLI, every `install` below
+-- fails, and the parsers `master` left in the plugin's own `parser/` folder
+-- keep the old languages working while new ones (typst) have nothing. The
+-- verify check reports the missing CLI by name. Install:
+--   cargo install --locked tree-sitter-cli
 
 local ensure_installed = {
 	"lua",

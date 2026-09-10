@@ -146,11 +146,14 @@ install
 
 ## tree-sitter-cli
 
-dependency of nvim-treesitter
+dependency of nvim-treesitter (`main` branch): it builds every parser with
+this CLI, version 0.26.1 or later. The Ubuntu package is 0.20.8 and too old;
+without a usable CLI every parser build fails and opening a Typst file
+errors in markview.nvim (2026-09-09).
 
 install
 
-> sudo apt install tree-sitter-cli
+> cargo install --locked tree-sitter-cli
 
 ## zig
 

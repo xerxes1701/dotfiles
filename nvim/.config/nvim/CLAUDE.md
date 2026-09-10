@@ -98,10 +98,22 @@ here:
    `VimEnter` before warning that its theme was not found. `check.lua`
    waits that out before it summarizes.
 
+The check needs two tools on the machine's PATH, because nvim-treesitter's
+`main` branch builds every parser itself and the sandbox installs nothing
+from mason: the `tree-sitter` CLI (0.26.1 or later; `cargo install --locked
+tree-sitter-cli`, the apt package is too old) and a C compiler (`cc`).
+`check.lua` reports each as its own finding when it is missing, then skips
+the parser waits, because no parser can arrive. Without the CLI the symptom
+is that `:edit` of a Typst file throws from markview.nvim's BufEnter
+autocmd, which calls `vim.treesitter.start` without a pcall.
+
 `verify/fixture/` is a real crate, committed so that no one has to build
 one, and so rust-analyzer has a `Cargo.toml` to attach to.
 `verify/fixture-cs/` is the same idea for C#, so roslyn has a `.csproj`,
 and `verify/fixture-typst/` for Typst, so tinymist has a `typst.toml`.
+`check.lua` also opens a Typst file it creates on the spot: empty, in a
+temporary directory with no `typst.toml`, which is how a new file is met in
+practice and the case that first showed the missing-parser error.
 `check.lua` requires rust-analyzer, roslyn and tinymist to attach only when
 they are on `PATH`. The Lua probes expect no client, because the servers
 come from mason and the sandbox does not install them.

@@ -36,6 +36,40 @@ for _, plugin in ipairs(lazy.plugins()) do
 	end
 end
 
+-- nvim-treesitter `main` builds every parser itself, with the tree-sitter CLI
+-- (0.26.1 or later) and a C compiler; there are no prebuilt downloads. Without
+-- the CLI every install fails, no parser ever exists, and a plugin that calls
+-- vim.treesitter.start without a pcall -- markview.nvim does, on BufEnter --
+-- turns `:edit file.typ` into an error. Name that cause as its own finding so
+-- the report does not stop at the symptom. The archived `master` branch
+-- compiled with `cc` alone, which is why this prerequisite is new.
+local have_ts_cli = vim.fn.executable("tree-sitter") == 1
+if not have_ts_cli then
+	table.insert(errs, "tree-sitter CLI not on PATH: nvim-treesitter (main) cannot build parsers; install tree-sitter-cli 0.26.1+ (cargo install --locked tree-sitter-cli)")
+end
+if vim.fn.executable("cc") ~= 1 then
+	table.insert(errs, "no C compiler (cc) on PATH: nvim-treesitter cannot build parsers")
+end
+
+-- The treesitter spec starts `ts.install(ensure_installed)` when it loads and
+-- returns at once. A probe opened before its parser has landed fails on that
+-- race, not on the config, so wait for the parsers the probes need first.
+-- Pointless without the CLI: nothing would ever arrive.
+local function wait_for_parsers(langs)
+	if not have_ts_cli then
+		return
+	end
+	vim.wait(300000, function()
+		for _, lang in ipairs(langs) do
+			if not vim.treesitter.language.add(lang) then
+				return false
+			end
+		end
+		return true
+	end, 500)
+end
+wait_for_parsers({ "rust", "c_sharp", "typst", "lua" })
+
 local function open(path, filetype, want_lsp)
 	local opened, open_err = pcall(vim.cmd, "edit " .. vim.fn.fnameescape(path))
 	if not opened then
@@ -67,8 +101,10 @@ local function open(path, filetype, want_lsp)
 	-- after a language joins `ensure_installed` reaches this line before the
 	-- parser is on disk. Waiting turns that into a slow pass instead of a
 	-- spurious finding; a language that never installs still fails.
+	-- Skip the wait when no parser can ever arrive; it only slows the
+	-- finding down.
 	local parser
-	vim.wait(120000, function()
+	vim.wait(have_ts_cli and 120000 or 0, function()
 		local got, p = pcall(vim.treesitter.get_parser, 0, lang)
 		parser = got and p or nil
 		return parser ~= nil
@@ -123,6 +159,18 @@ open(config .. "/verify/fixture-cs/Program.cs", "cs", cs_lsp)
 -- some other install already put it on PATH.
 local typst_lsp = vim.fn.executable("tinymist") == 1 and "tinymist" or nil
 open(config .. "/verify/fixture-typst/main.typ", "typst", typst_lsp)
+
+-- Typst again, the way a file is first met in practice: empty, just created,
+-- in a directory with no typst.toml. That is the case that surfaced the
+-- missing parser on 2026-09-09; the fixture project alone would have found it
+-- too, but a root marker and existing content are two variables this probe
+-- removes. tinymist attaches regardless (it falls back to the file's
+-- directory), so the client requirement is the same.
+local loose_dir = vim.fn.tempname()
+vim.fn.mkdir(loose_dir, "p")
+local loose_typ = loose_dir .. "/0001-erste-seite.typ"
+vim.fn.writefile({}, loose_typ)
+open(loose_typ, "typst", typst_lsp)
 
 -- Lua: this config's own files. Servers here come from mason, which the
 -- sandbox does not install, so no client is required.

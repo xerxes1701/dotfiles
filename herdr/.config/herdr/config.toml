@@ -22,3 +22,179 @@ sidebar_bg = "#181825"
 [terminal]
 # Executable used for new interactive panes (tabs, workspaces, splits).
 default_shell = "/usr/bin/fish"
+
+# --- unified navigation scheme ---------------------------------------------
+# The prefix picks the level, the letter picks the action. No prefix reaches
+# the pane grid (layer 0), the prefix reaches panes and tabs (layer 1), the
+# prefix with shift reaches workspaces (layer 2), and inside nvim <Space>
+# reaches the same actions one level in. The letter after the prefix here is
+# the letter after C-a in tmux and after <Space>s or <Space>t in nvim.
+# See ~/dotfiles/README.md, section "navigation".
+[keys]
+# One prefix for both multiplexers. tmux and herdr are alternatives on this
+# machine, never nested, so they can share it -- and ctrl+a is the one nvim
+# has already given up (increment lives on <leader>+), which leaves ctrl+b
+# free for nvim's page-up instead of being swallowed here.
+prefix = "ctrl+a"
+
+# Layer 0 is ctrl+hjkl and ctrl+arrows, in [[keys.command]] below. The prefixed
+# focus keys are cleared so that prefix+j and prefix+k can address workspaces,
+# the way they do in tmux.
+focus_pane_left = ""
+focus_pane_down = ""
+focus_pane_up = ""
+focus_pane_right = ""
+last_pane = "prefix+backslash"
+
+# layer 1: panes. v puts the new pane to the right and minus puts it below,
+# which is what :vsplit and :split do in nvim and what C-a v and C-a - do in
+# tmux (spelled there with tmux's own inverted -h and -v flags).
+split_vertical = "prefix+v"
+split_horizontal = "prefix+minus"
+close_pane = "prefix+x"
+zoom = "prefix+z"
+cycle_pane_next = "prefix+o"
+cycle_pane_previous = "prefix+shift+o"
+rename_pane = "prefix+shift+p"
+resize_mode = "prefix+r"
+
+# layer 1: tabs. n and p are canonical, because tmux, herdr and nvim
+# (<leader>tn, <leader>tp) all had them already; prefix+tab and
+# prefix+shift+tab come from herdr-cycle-tab.sh below.
+new_tab = "prefix+c"
+next_tab = "prefix+n"
+previous_tab = "prefix+p"
+close_tab = "prefix+shift+x"
+rename_tab = "prefix+comma"
+switch_tab = "prefix+1..9"
+
+# layer 2: workspaces, which are what tmux calls sessions. Shift on the letter
+# moves one level out. j and k rather than another picker key because the
+# sidebar lists workspaces vertically and reads the same way: j is the next
+# one down, k the previous one up.
+workspace_picker = "prefix+w"
+new_workspace = "prefix+shift+n"
+rename_workspace = "prefix+shift+w"
+close_workspace = "prefix+shift+d"
+detach = "prefix+shift+q"
+
+# Moving between workspaces is frequent enough to want it off the prefix, so it
+# is ctrl+shift with the same j and k. C-a j and C-a k still work, through
+# herdr-cycle-workspace.sh below: one key per action here, and that is the form
+# tmux has too (switch-client -n / -p), so the prefix ladder stays complete.
+#
+# ctrl+shift+letter needs a terminal that can tell it apart from plain
+# ctrl+letter -- without one, ctrl+shift+j arrives as ctrl+j and would move
+# pane focus down instead. herdr negotiates the kitty keyboard protocol (its
+# binary carries push_keyboard_enhancement_flags and try_encode_csi_u) and both
+# terminals used here, ghostty and wezterm, speak it. On a terminal that does
+# not, fall back to the prefix form.
+next_workspace = "alt+j"
+previous_workspace = "alt+k"
+
+# layer 3, and herdr's alone: the agent panel. Neither tmux nor nvim has
+# anything to match it, so these are the one part of the scheme with no twin
+# elsewhere -- which is also why they can afford the deepest chord. Same j and
+# k down the same vertical sidebar, one modifier family further out.
+next_agent = "alt+shift+j"
+previous_agent = "alt+shift+k"
+
+# unchanged, and already the same key as tmux's and nvim's
+help = "prefix+?"
+reload_config = "prefix+shift+r"
+toggle_sidebar = "prefix+b"
+goto = "prefix+g"
+settings = "prefix+s"
+edit_scrollback = "prefix+e"
+
+# Layer 0, navigation. Provided by smart-splits.nvim's bundled herdr plugin,
+# which forwards the key when the focused pane holds an editor and moves herdr
+# focus otherwise -- the same decision tmux makes through @pane-is-vim. Link it
+# once with:  herdr plugin link ~/.local/share/nvim/lazy/smart-splits.nvim
+[[keys.command]]
+key = "ctrl+h"
+type = "plugin_action"
+command = "smart-splits.nvim.left"
+description = "goto left pane/split"
+
+[[keys.command]]
+key = "ctrl+j"
+type = "plugin_action"
+command = "smart-splits.nvim.down"
+description = "goto lower pane/split"
+
+[[keys.command]]
+key = "ctrl+k"
+type = "plugin_action"
+command = "smart-splits.nvim.up"
+description = "goto upper pane/split"
+
+[[keys.command]]
+key = "ctrl+l"
+type = "plugin_action"
+command = "smart-splits.nvim.right"
+description = "goto right pane/split"
+
+# Layer 0, resizing. That plugin ships no resize actions, and herdr's own
+# resize_pane_* would take the keys before an nvim pane could resize its own
+# splits, so this makes the same nvim-or-not decision first.
+#
+# Addressed in the repository rather than through a stowed copy in ~: the
+# scripts package links its files straight into ~, so a name there would be one
+# more thing to keep deployed, and ~/dotfiles is where this repository lives on
+# a host and in a container alike. herdr runs these through /bin/sh -lc, so
+# $HOME expands.
+[[keys.command]]
+key = "ctrl+left"
+type = "shell"
+command = "$HOME/dotfiles/scripts/herdr-resize-pane.sh left"
+description = "resize pane/split left"
+
+[[keys.command]]
+key = "ctrl+down"
+type = "shell"
+command = "$HOME/dotfiles/scripts/herdr-resize-pane.sh down"
+description = "resize pane/split down"
+
+[[keys.command]]
+key = "ctrl+up"
+type = "shell"
+command = "$HOME/dotfiles/scripts/herdr-resize-pane.sh up"
+description = "resize pane/split up"
+
+[[keys.command]]
+key = "ctrl+right"
+type = "shell"
+command = "$HOME/dotfiles/scripts/herdr-resize-pane.sh right"
+description = "resize pane/split right"
+
+# Tab means tab at every level: <leader><Tab> in nvim, C-a Tab in tmux.
+[[keys.command]]
+key = "prefix+tab"
+type = "shell"
+command = "$HOME/dotfiles/scripts/herdr-cycle-tab.sh next"
+description = "tab move next"
+
+[[keys.command]]
+key = "prefix+shift+tab"
+type = "shell"
+command = "$HOME/dotfiles/scripts/herdr-cycle-tab.sh prev"
+description = "tab move prev"
+
+# The prefix form of the workspace level, kept alongside ctrl+shift+j/k so that
+# C-a j and C-a k mean the same thing here as in tmux.
+[[keys.command]]
+key = "prefix+j"
+type = "shell"
+command = "$HOME/dotfiles/scripts/herdr-cycle-workspace.sh next"
+description = "workspace move next"
+
+[[keys.command]]
+key = "prefix+k"
+type = "shell"
+command = "$HOME/dotfiles/scripts/herdr-cycle-workspace.sh prev"
+description = "workspace move prev"
+
+# The shell's beginning-of-line is not lost to the prefix: herdr sends a
+# literal prefix key when it is pressed twice, so C-a C-a is a literal C-a.
+# tmux does the same through `bind-key C-a send-prefix` in tmux.conf.

@@ -4,6 +4,11 @@
 # The README's `stow */`, plus the packages that must not be folded into the
 # working tree. stow-lib.sh does the work; this file only says which packages
 # belong to this machine.
+#
+# Stowing is not the whole story for the navigation scheme: tmux and herdr both
+# consume nvim's smart-splits.nvim checkout, so after a first deploy run the
+# three steps under "navigation / after a fresh deploy" in the README.
+# scripts/nav-parity.sh reports it if any of them is missing.
 
 set -uo pipefail
 

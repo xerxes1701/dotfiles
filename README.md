@@ -365,6 +365,155 @@ autoload dir). both are generated and machine-local, deliberately not tracked
 here: the previous setup committed a `zoxide init` dump that went stale
 whenever zoxide was upgraded.
 
+# navigation
+
+nvim, tmux and herdr all have panes and all have tabs, and each of them used
+to name those things with different keys. this is one scheme across all five
+combinations -- nvim alone, tmux alone, herdr alone, tmux+nvim, herdr+nvim.
+nvim took precedence wherever the three disagreed.
+
+the prefix picks the *level*, the letter picks the *action*:
+
+    no prefix       the pane grid. nvim splits and multiplexer panes are one
+                    grid, and these keys cross the boundary between them
+    C-a             the multiplexer's own panes and tabs
+    C-a + shift     the multiplexer's sessions, which herdr calls workspaces
+    <Space>         inside nvim, the same actions one level in
+    ctrl+shift      herdr only: the workspace level again, off the prefix
+    ctrl+alt+shift  herdr only: the agent panel, which nothing else has
+
+so `C-a v` opens a new multiplexer pane to the right and `<Space>s v` a new
+nvim split to the right: same letter, and the level is whichever prefix your
+left hand reached for. one prefix serves both multiplexers because tmux and
+herdr are alternatives here, never nested -- and `C-a` is the one nvim had
+already given up (increment lives on `<Space>+`), which leaves `C-b` free for
+nvim's page-up instead of being swallowed by herdr's default prefix. `C-a C-a`
+sends a literal `C-a` for the shell's beginning-of-line, in both.
+
+    action              nvim              tmux         herdr
+    ------------------  ----------------  -----------  ----------------
+    focus a pane        C-h C-j C-k C-l   (the same)   (the same)
+    resize a pane       C-arrows          (the same)   (the same)
+    previous pane       C-\               C-a \        C-a \
+    split right         <Space>sv         C-a v        C-a v
+    split below         <Space>s-         C-a -        C-a -
+    close pane          <Space>sx         C-a x        C-a x
+    zoom pane           <Space>sz         C-a z        C-a z
+    equalize panes      <Space>se         C-a e        --
+    cycle pane          <Space>so         C-a o        C-a o
+    new tab             <Space>tc         C-a c        C-a c
+    next / prev tab     <Space>tn tp      C-a n p      C-a n p
+    next / prev tab     <Space><Tab>/<S-Tab>  C-a <Tab>/<S-Tab>  (the same)
+    close tab           <Space>tx         C-a X        C-a X
+    tab 1..9            <Space>1..9       C-a 1..9     C-a 1..9
+    session picker      <Space>ww         C-a w        C-a w
+    next / prev session --                C-a j k      C-a j k
+    next / prev space   --                --           C-S-j / C-S-k
+    next / prev agent   --                --           C-A-S-j / C-A-S-k
+    new session         <Space>wN         C-a N        C-a N
+    close session       <Space>wD         C-a D        C-a D
+    detach              --                C-a Q        C-a Q
+    help                <Space>?          C-a ?        C-a ?
+
+two conventions carry the weight: `x` closes the inner thing and `X` the outer
+one, and `Tab` means tab at every level.
+
+the last two rows are herdr's alone. moving between workspaces is frequent
+enough to want it off the prefix, so it is `ctrl+shift` with the same `j` and
+`k`; `C-a j` and `C-a k` still work, through `scripts/herdr-cycle-workspace.sh`
+-- herdr binds one key per action, and keeping the prefix form is what keeps
+that rung of the ladder the same as tmux's. the agent panel is a level nothing
+else has, which is why it can afford the deepest chord.
+
+`ctrl+shift+letter` only works on a terminal that can tell it apart from plain
+`ctrl+letter`; without one, `ctrl+shift+j` arrives as `ctrl+j` and moves pane
+focus down instead. herdr negotiates the kitty keyboard protocol -- its binary
+carries `push_keyboard_enhancement_flags` and `try_encode_csi_u` -- and both
+terminals here, ghostty and wezterm, speak it. tmux is the odd one out: it
+defaults `extended-keys off`, so it cannot receive those chords at all without
+turning that on, which is the other reason the prefix form stays.
+
+`C-\` is the one key on two levels at once: inside nvim it is `<C-w>p`, and in
+a bare tmux pane it is tmux's last-pane. `C-a \` is the multiplexer's own, and
+it is the only form herdr can offer -- a root-level `ctrl+\` there would reach
+herdr even from an nvim pane and move the wrong level's panes.
+
+## how the pane grid crosses apps
+
+`smart-splits.nvim` is the whole compatibility layer. it ships back-ends for
+both tmux and herdr, and both of them ask the editor rather than guessing:
+tmux branches on `@pane-is-vim`, a pane-local option nvim sets when it loads
+and clears when it exits, and herdr runs a plugin that inspects the focused
+pane's foreground process. it replaced `vim-tmux-navigator`, which only knew
+tmux and decided by matching `ps` output against a regex.
+
+one checkout serves all three. nvim pins it in
+`nvim/.config/nvim/lua/plugins/smart-splits.lua` and `lazy-lock.json`,
+`tmux/.config/tmux/navigation.conf` sources the tmux side straight out of
+nvim's checkout instead of letting tpm clone a second copy at master HEAD, and
+herdr links its plugin against the same directory. three sides of one
+protocol; pinning two of them and not the third is how they would drift.
+
+that also means smart-splits.nvim must not be lazy-loaded: `@pane-is-vim`
+stays unset until the plugin loads, and until then tmux would move its own
+pane on the first `C-h` in a fresh nvim.
+
+two gaps in that plugin are filled here:
+
+    tmux/.config/tmux/pane-owns-key.sh  `@pane-is-vim` only knows about nvim,
+                                        and fzf owns C-j and C-k in ordinary
+                                        shell panes. the old is_vim regex
+                                        covered fzf by accident; here it is
+                                        said. herdr covers the same case
+                                        through the passthrough regex the
+                                        shell configs export
+    scripts/herdr-resize-pane.sh        the herdr plugin ships navigation
+                                        actions but no resize actions, and a
+                                        plain herdr binding on ctrl+arrows
+                                        would take the keys before an nvim
+                                        pane could resize its own splits.
+                                        it also owns the unit: `herdr pane
+                                        resize --amount` is a fraction of the
+                                        split, not a cell count, so the 3 that
+                                        smart-splits.nvim passes through reads
+                                        as 300% and slams the split to its
+                                        minimum -- nvim calls this script with
+                                        `--mux-only` instead, and the step is
+                                        3 cells in all three apps
+    scripts/herdr-cycle-tab.sh          herdr's next_tab takes one key, which
+                                        C-a n already has, so C-a <Tab> needs
+                                        a command of its own
+    scripts/herdr-cycle-workspace.sh    the same, for the workspace level:
+                                        next_workspace holds ctrl+shift+j, so
+                                        C-a j goes through this
+
+no side wraps at the outer edge: `at_edge = "stop"` in nvim,
+`@smart-splits_no_wrap` in tmux, and the herdr plugin does not wrap at all.
+anything else would make the edge depend on which app owns the pane.
+
+## after a fresh deploy
+
+nvim installs the plugin, and the other two consume its checkout, so the order
+matters once:
+
+> nvim --headless "+Lazy! install" +qa
+> herdr plugin link ~/.local/share/nvim/lazy/smart-splits.nvim
+> herdr server stop   # so the server picks up the new prefix and the
+>                     # passthrough regex from the shell that relaunches it
+
+## checking it has not drifted
+
+> scripts/nav-parity.sh
+
+it reads nvim's `keybindings.yaml`, starts a throwaway tmux server on a private
+socket and asks it to `list-keys`, and reads both herdr configs, then reports
+every row of the table above that is missing on a side that should have it. it
+also diffs the keys block of `herdr/` against `.herdr-devcontainer/` -- herdr
+reads only `~/.config/herdr/config.toml` and has no include mechanism, so those
+keys are duplicated on purpose and nothing but a check keeps them equal -- and
+verifies that the pinned commit, the checkout on disk and herdr's plugin link
+still agree.
+
 # devcontainer
 
 the devcontainers of the projects here stow this repo and install neovim and

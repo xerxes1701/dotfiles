@@ -369,6 +369,49 @@ autoload dir). both are generated and machine-local, deliberately not tracked
 here: the previous setup committed a `zoxide init` dump that went stale
 whenever zoxide was upgraded.
 
+# browsing
+
+there is no linux browser on the wsl machine: `www-browser` is lynx, `open` is
+a symlink to `xdg-open`, and no `x-www-browser` alternative is registered. the
+only real browser is the windows one, and `/etc/wsl.conf` sets
+`appendWindowsPath = false`, so it is reached only by naming `explorer.exe` in
+full and translating the path first.
+
+> browse.sh [-c] [--] [target...]
+> <command> | browse.sh [-c]
+
+aliased to `br` in all three shells. targets are files, directories or urls,
+and with no target stdin is read: if every line is an existing path or a url
+they are all opened, anything else is treated as content -- written to a file
+under `/tmp` and opened from there. `-c` forces that reading when a list of
+paths is what should be rendered instead, `--help` explains the rest. so both
+halves of this work, which is the whole point:
+
+> br lessons/01.html main.pdf
+> fd -e html | fzf | br
+> curl -s https://example.com | br
+
+four measured details are why this is a script and not an alias:
+
+    wslpath -w sb.html       -> sb.html      relative paths are not translated
+                                             -- and relative is exactly what
+                                             fzf prints
+    wslpath -w https://x/    -> https\x\     a url has to bypass wslpath
+    wslpath -w /no/such.html -> a path       existence is the script's to
+                                             check, or windows opens a dialog
+    explorer.exe <anything>  -> exit 1       always, even on success
+
+piped content is typed by its first bytes, because the extension is what
+decides which windows program gets the file: a pdf stays a pdf, html and svg
+are passed through, everything else is wrapped in a `<pre>` page -- left as
+`.txt` it would open notepad, and this command is called browse. the temporary
+file is deliberately never cleaned up: the opener returns long before the
+browser has read it.
+
+outside wsl the script falls through to `xdg-open`, so the same alias works on
+a linux machine. bash does not get the alias -- `~/.bashrc` is not stowed here
+-- but `browse.sh` is on `PATH` there like every other script in `scripts/`.
+
 # navigation
 
 nvim, tmux and herdr all have panes and all have tabs, and each of them used

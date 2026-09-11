@@ -92,6 +92,14 @@ alias conf='tmuxinator start conf'
 # scripts/, not three copies of a function: it is the same picker in all three
 # shells, and the fzf preview has to be a command fzf can re-run per row.
 alias dsh='docker-shell.sh'
+
+# Open a file, a URL or piped content in a real browser. A script for the same
+# reason as dsh -- and because under WSL this is nowhere near a one-liner:
+# explorer.exe has to be named with its full path and handed a windows path,
+# which wslpath refuses to make from a relative one, i.e. from exactly what
+# `fzf` prints. Takes targets or stdin: `br datei.html`, `fzf | br`.
+alias br='browse.sh'
+
 alias cls='clear'
 
 # RDP to the Windows box. The password is piped in from 1Password rather than

@@ -69,7 +69,7 @@
 	l   = log
 	lg  = log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(auto)%d%C(reset)'
 	lga = lg --all
-	lgm = "!git lg $(git main-branch)~1..$(git bn)"
+	lgm = "!git lg $(git merge-base $(git main-branch) $(git bn))~1..$(git bn)"
 	ls  = log --decorate --pretty=format:'%C(yellow)%h %Cblue[%cn] %Creset%s %Cred%d'
 	ll  = ls --numstat
 	lf  = "!f() { git ls --color=always | fzf --ansi --preview 'git show --name-only --color=always {1}'; }; f"

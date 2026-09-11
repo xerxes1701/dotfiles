@@ -758,3 +758,55 @@ the container side needs an sshd and herdr 0.9.0 for any of this;
 firstx-master's devcontainer has both, and its `.devcontainer/README.md`
 explains the port, the key path and the per-worktree port slots under "herdr
 from the host".
+
+## rebuilding a devcontainer
+
+the third picker, and the one that replaces containers instead of reaching
+into them:
+
+> devcontainer-rebuild.sh [options] [project...]
+
+it looks one level under `~/SWProjekte` and `/mnt/c/SWProjekte` (`--roots`
+elsewhere) for anything carrying a devcontainer config, and rebuilds what you
+pick with `devcontainer up --remove-existing-container` -- the command vs
+code's *rebuild container* runs. `tab` selects several, `^A` takes all, `-a`
+skips the picker entirely, `--no-cache` is *rebuild without cache*, `-n`
+prints the exact command per project and runs nothing, `-y` skips the
+question.
+
+the question is asked because a rebuild deletes the container it replaces, and
+anything running in there -- an agent mid-task, a herdr server -- goes with
+it. the confirmation names the projects whose container is *running* rather
+than just listing what was picked.
+
+the point of care in this script is identity. vs code stamps
+`devcontainer.local_folder` with the path *it* opened, so on windows that is
+`c:\SWProjekte\x` -- lower-case drive, backslashes -- while the same extension
+writes `devcontainer.config_file` and the workspace bind mount the way the
+docker host sees them, `/mnt/c/SWProjekte/x`. all three were read off a
+container this machine's vs code built. the cli left to itself writes the wsl
+spelling for every one of them, and the result is not a visible failure: the
+old container stays, a second one appears, and vs code builds its own again on
+the next attach. so a project that already has a container is rebuilt under
+that container's own labels, and only a project without one falls back to the
+rule (`--label-style windows|wsl|auto`). where two containers exist for one
+folder -- exactly the mess above -- the preview says so and the preferred
+spelling decides which one is replaced.
+
+`--mount-workspace-git-root false` is in there for the same reason: it is the
+cli's own convenience, mounting the git root and treating the opened folder as
+a subpath, which the extension does not do. these worktrees are their own git
+root, so it changes nothing today and everything the day a subfolder is
+opened.
+
+builds run one at a time. two concurrent devcontainer builds are what took wsl
+down in firstx-master's
+`.devcontainer/issues/wsl-memory-and-container-sharing.md`, and a rebuild is
+the memory-hungry half of that. each one's output is streamed and kept under
+`~/.local/state/devcontainer-rebuild`, and the summary at the end says which
+project ended up in which container -- or which log to read.
+
+the preview is the pre-flight: the config's `name`, every container docker has
+for that folder with the label each carries, and the `devcontainer up` command
+that would run, one flag per line. nothing in it builds or starts anything, so
+moving the cursor stays cheap.

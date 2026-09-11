@@ -68,7 +68,7 @@ local function wait_for_parsers(langs)
 		return true
 	end, 500)
 end
-wait_for_parsers({ "rust", "c_sharp", "typst", "lua" })
+wait_for_parsers({ "rust", "c_sharp", "typst", "lua", "markdown" })
 
 local function open(path, filetype, want_lsp)
 	local opened, open_err = pcall(vim.cmd, "edit " .. vim.fn.fnameescape(path))
@@ -176,6 +176,86 @@ open(loose_typ, "typst", typst_lsp)
 -- sandbox does not install, so no client is required.
 open(config .. "/init.lua", "lua", nil)
 open(config .. "/lua/plugins/bufferline.lua", "lua", nil)
+
+-- `g=` is mini.operators' evaluate: it runs the operated-on text as Lua. Any
+-- buffer that is not Lua -- markdown prose, most of all -- is a syntax or
+-- runtime error, which is the normal outcome of a mistyped `g=`, not a defect.
+-- It used to escape the operator as E5108 with a full stack traceback across
+-- the message area. The config now catches it and reports the message through
+-- vim.notify instead. Both halves are checked here, because either one alone
+-- passes against the broken config: swallowing the error silently would also
+-- stop the throw, and a report that still carries the traceback is the symptom
+-- this exists to prevent.
+--
+-- vim.notify is swapped for a local collector for the duration, so the
+-- expected ERROR does not land in `errs` as a finding of its own.
+local function check_evaluate_on_prose()
+
+-- The other half of the same wrapper: catching the failure must not cost the
+-- feature. Valid Lua still evaluates and still replaces the line.
+local function check_evaluate_on_lua()
+	local dir = vim.fn.tempname()
+	vim.fn.mkdir(dir, "p")
+	local scratch = dir .. "/scratch.lua"
+	vim.fn.writefile({ "1 + 1" }, scratch)
+	open(scratch, "lua", nil)
+
+	local ok, err = pcall(vim.cmd, "normal g==")
+	if not ok then
+		table.insert(errs, ("g== on Lua threw: %s"):format(tostring(err):gsub("\n.*", "")))
+		return
+	end
+
+	local got = table.concat(vim.api.nvim_buf_get_lines(0, 0, -1, false), "\n")
+	if got ~= "2" then
+		table.insert(errs, ("g== on Lua gave %q, expected \"2\""):format(got))
+	end
+
+	io.stderr:write(("  %-18s g== -> %s\n"):format("scratch.lua", got))
+end
+check_evaluate_on_lua()
+	open(config .. "/verify/fixture-md/note.md", "markdown", nil)
+
+	local before = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+	local captured = {}
+	local outer_notify = vim.notify
+	vim.notify = function(msg, level, _)
+		table.insert(captured, { msg = tostring(msg), level = level })
+	end
+	local ok, err = pcall(vim.cmd, "normal g=ip")
+	vim.notify = outer_notify
+
+	if not ok then
+		table.insert(errs, ("g= on prose threw: %s"):format(tostring(err):gsub("\n.*", "")))
+	end
+
+	local reported
+	for _, note in ipairs(captured) do
+		if note.level == vim.log.levels.ERROR then
+			reported = note.msg
+		end
+	end
+
+	if not reported then
+		table.insert(errs, "g= on prose reported no error through vim.notify")
+	else
+		if reported:find("stack traceback", 1, true) or reported:find("\n") then
+			table.insert(errs, ("g= error report is not a single line: %q"):format(reported:sub(1, 120)))
+		end
+		if not reported:find("Heading", 1, true) then
+			table.insert(errs, ("g= error report lost the Lua message: %q"):format(reported:sub(1, 120)))
+		end
+	end
+
+	-- A failed evaluation leaves the text alone; it does not half-replace it.
+	local after = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+	if table.concat(before, "\n") ~= table.concat(after, "\n") then
+		table.insert(errs, "g= on prose changed the buffer despite failing")
+	end
+
+	io.stderr:write(("  %-18s g= reported=%s\n"):format("note.md", reported and "yes" or "no"))
+end
+check_evaluate_on_prose()
 
 -- Give bufferline something to draw; its spec sets mode = "tabs".
 vim.cmd("tabnew | tabnext")

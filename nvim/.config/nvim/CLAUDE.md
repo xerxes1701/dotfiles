@@ -116,6 +116,11 @@ and `verify/fixture-typst/` for Typst, so tinymist has a `typst.toml`.
 `check.lua` also opens a Typst file it creates on the spot: empty, in a
 temporary directory with no `typst.toml`, which is how a new file is met in
 practice and the case that first showed the missing-parser error.
+`verify/fixture-md/note.md` is prose, not Lua, so `g=` over it must fail; the
+check requires that failure to arrive as a single-line `vim.notify` and not as
+a thrown E5108, and a second probe evaluates real Lua so the catch cannot be a
+silent swallow.
+
 `check.lua` requires rust-analyzer, roslyn and tinymist to attach only when
 they are on `PATH`. The Lua probes expect no client, because the servers
 come from mason and the sandbox does not install them.
@@ -231,6 +236,7 @@ Tags: `entry` `options` `keymaps` `plugin-spec` `generated` `inventory`
 | `verify/fixture/`                  | Committed Rust crate the check opens, so rust-analyzer and the Rust parser get exercised.         | script         |
 | `verify/fixture-cs/`               | Committed .NET project the check opens, so roslyn and the C# parser get exercised.                | script         |
 | `verify/fixture-typst/`            | Committed Typst project the check opens, so tinymist and the Typst parser get exercised.          | script         |
+| `verify/fixture-md/`               | Committed markdown file the check runs `g=` over, so mini.operators' evaluate is exercised.       | script         |
 | `lua/defaults.lua`                 | Core options, leader keys and the statuscolumn setup.                                             | options        |
 | `lua/keymaps.lua`                  | Global keymaps that belong to no plugin.                                                          | keymaps        |
 | `lua/keymap_registry.lua`          | Wraps the keymap functions before plugins load and records which file owns each map.              | keymaps        |

@@ -158,13 +158,59 @@ function M.setup()
 		vim.lsp.inlay_hint.enable(vim.g.inlay_hints_enabled)
 	end
 
+	-- nvim-lint publishes into one diagnostic namespace per linter and re-runs on
+	-- BufWritePost, so turning it off has to do both halves: empty the filetype's
+	-- linter list, so the autocmd finds nothing to run, and reset the namespaces the
+	-- last run already published. Otherwise the stale diagnostics sit there until the
+	-- buffer is wiped. The stash wraps the old value in a table so that a filetype
+	-- with no entry of its own -- one served by nvim-lint's split-filetype fallback --
+	-- is restored to nil and not to an empty list that would shadow the fallback.
+	local lint_stash = {}
+
+	local function toggle_lint()
+		local ok, lint = pcall(require, "lint")
+		if not ok then
+			vim.notify("nvim-lint is not loaded", vim.log.levels.WARN)
+			return
+		end
+		local ft = vim.bo.filetype
+		if ft == "" then
+			vim.notify("Buffer has no filetype", vim.log.levels.WARN)
+			return
+		end
+
+		local stashed = lint_stash[ft]
+		if stashed then
+			lint_stash[ft] = nil
+			lint.linters_by_ft[ft] = stashed[1]
+			lint.try_lint()
+			vim.notify("linting on for " .. ft)
+			return
+		end
+
+		local names = lint._resolve_linter_by_ft(ft)
+		if #names == 0 then
+			vim.notify("No linter configured for " .. ft, vim.log.levels.WARN)
+			return
+		end
+		lint_stash[ft] = { lint.linters_by_ft[ft] }
+		lint.linters_by_ft[ft] = {}
+		for _, name in ipairs(names) do
+			local ns = lint.get_namespace(name)
+			if ns then
+				vim.diagnostic.reset(ns)
+			end
+		end
+		vim.notify("linting off for " .. ft .. " (" .. table.concat(names, ", ") .. ")")
+	end
+
 	local diag_hint = [[
  _d_/_D_: next/prev diagnostic   _}_/_{_: last/first
  _e_/_E_: next/prev error   _w_/_W_: next/prev warning
  _i_/_I_: next/prev info    _h_/_H_: next/prev hint
  _b_: toggle scope (buffer/project)
  _x_/_X_: Trouble diagnostics workspace/buffer
- _tv_/_tc_/_ti_: toggle virtual_lines/codelens/inlay
+ _tv_/_tc_/_ti_/_tl_: toggle virtual_lines/codelens/inlay/lint
  _q_/_<Esc>_: exit
 ]]
 
@@ -204,6 +250,7 @@ function M.setup()
 			{ "tv", toggle_virtual_lines, { desc = "toggle virtual_lines" } },
 			{ "tc", toggle_codelens, { desc = "toggle codelens" } },
 			{ "ti", toggle_inlay_hints, { desc = "toggle inlay hints" } },
+			{ "tl", toggle_lint, { desc = "toggle linting (filetype)" } },
 
 			{ "q", nil, { exit = true, desc = "exit" } },
 			{ "<Esc>", nil, { exit = true, desc = "exit" } },

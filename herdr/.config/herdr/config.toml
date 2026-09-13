@@ -3,6 +3,8 @@ onboarding = false
 host_cursor = "native"
 
 agent_panel_sort = "spaces"
+status_indicators = "symbols"
+show_agent_labels_on_pane_borders = true
 
 [theme]
 # Explicit, even though it is the default: the devcontainer config

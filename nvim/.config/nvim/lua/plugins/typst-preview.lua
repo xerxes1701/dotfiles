@@ -48,14 +48,42 @@ return {
 		-- is the right call, not a workaround.
 		--
 		-- `open_cmd` is a format string: `%s` is the URL, and a string command
-		-- goes through the shell, hence the quotes. explorer.exe exits 1 even on
-		-- success, which is harmless -- the plugin reports stderr, not the exit
-		-- code, and explorer writes nothing there.
+		-- goes through the shell, hence the quotes. explorer.exe
+		-- exits 1 even on success, which is harmless -- the plugin reports stderr,
+		-- not the exit code, and explorer writes nothing there.
 		if vim.fn.has("wsl") == 1 then
 			local explorer = "/mnt/c/Windows/explorer.exe"
 			if vim.fn.executable(explorer) == 1 then
 				opts.open_cmd = explorer .. ' "%s"'
 			end
+		elseif vim.fn.executable("systemd-run") == 1 then
+			-- Hand the URL to the systemd user manager instead of spawning the
+			-- browser as a child of nvim. nvim does not necessarily hold the
+			-- environment of the session sitting in front of the screen: herdr is
+			-- client/server like tmux, so a buffer opened through a client running
+			-- in the niri Ghostty is still a child of the herdr *server*, and
+			-- inherits whatever DISPLAY that server was started under -- here an
+			-- xrdp/i3 session on :10.0, with no WAYLAND_DISPLAY at all. A plain
+			-- `xdg-open` then opens the preview correctly on a display nobody is
+			-- looking at, which is indistinguishable from the preview failing.
+			--
+			-- `systemctl --user show-environment` is the live graphical session's
+			-- environment -- niri-session imports WAYLAND_DISPLAY, DISPLAY and
+			-- XDG_CURRENT_DESKTOP into it on startup -- so a unit started from it
+			-- lands on the screen regardless of how stale nvim's own copy is.
+			-- Reaching the manager needs DBUS_SESSION_BUS_ADDRESS, which survives
+			-- in the server's environment because the user bus path is per-user,
+			-- not per-session.
+			--
+			-- This also silences the browser: its stderr goes to the journal
+			-- rather than to the job's stderr, and the plugin prints any stderr it
+			-- gets as "typst-preview opening link failed:" without ever looking at
+			-- the exit code -- so a cold Chrome start used to report failure twice
+			-- over its own XNNPACK and GCM notices while working fine.
+			--
+			-- `--collect` reaps the transient unit so a browser that exits
+			-- non-zero does not leave a failed unit behind.
+			opts.open_cmd = 'systemd-run --user --quiet --collect xdg-open "%s"'
 		end
 
 		return opts

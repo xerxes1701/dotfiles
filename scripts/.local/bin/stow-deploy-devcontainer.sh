@@ -10,9 +10,9 @@
 # from being mistaken for the one on the host.
 #
 # Stowing is not the whole story for the navigation scheme: tmux and herdr both
-# consume nvim's smart-splits.nvim checkout, so after a first deploy run the
-# three steps under "navigation / after a fresh deploy" in the README.
-# nav-parity.sh reports it if any of them is missing.
+# consume nvim's smart-splits.nvim checkout, which only nvim can create, so a
+# first deploy is followed by nav-setup.sh. nav-parity.sh reports it if that
+# step is missing.
 
 set -uo pipefail
 

@@ -37,8 +37,9 @@ packages deploys only those:
 > stow-deploy.sh nvim tmux
 
 nushell needs `nu-regen-init.nu` once per machine afterwards, see
-[shells](#shells), and claude code needs `claude-bootstrap.sh`, see
-[claude code](#claude-code).
+[shells](#shells), claude code needs `claude-bootstrap.sh`, see
+[claude code](#claude-code), and the pane-navigation scheme needs
+`nav-setup.sh`, see [navigation](#navigation).
 
 ## restowing after a move
 
@@ -537,12 +538,22 @@ anything else would make the edge depend on which app owns the pane.
 ## after a fresh deploy
 
 nvim installs the plugin, and the other two consume its checkout, so the order
-matters once:
+matters once. `nav-setup.sh` is that order:
 
-> nvim --headless "+Lazy! install" +qa
-> herdr plugin link ~/.local/share/nvim/lazy/smart-splits.nvim
-> herdr server stop   # so the server picks up the new prefix and the
->                     # passthrough regex from the shell that relaunches it
+> nav-setup.sh
+
+it runs `nvim --headless "+Lazy! install" +qa`, links herdr's plugin against
+the checkout that produces, and reports how many actions herdr ended up with
+-- four, or `ctrl+hjkl` is still dead. it is idempotent, so it is also what to
+run after a `git pull` moved the pinned commit.
+
+it stops short of restarting the herdr server. a running server picks up the
+new plugin from `reload-config`, which the script does, but a changed prefix
+or passthrough regex needs the server to go away and be relaunched from a
+fresh shell -- and that closes every pane in the running session. on a fresh
+deploy there is nothing to lose, so say so:
+
+> nav-setup.sh --restart-server
 
 ## checking it has not drifted
 

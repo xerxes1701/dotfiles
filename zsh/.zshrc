@@ -34,6 +34,14 @@ export OLLAMA_CONTEXT_LENGTH=16384
 export OLLAMA_KV_CACHE_TYPE=q8_0
 export OLLAMA_KEEP_ALIVE=30m
 
+# ssh-agent.service, from the ssh package, listens here. Exported only when the
+# socket exists and nothing has set SSH_AUTH_SOCK already -- a devcontainer
+# forwards the host's agent and a desktop session may bring its own -- so this
+# never displaces an agent, it only supplies one where there was none.
+if [ -z "${SSH_AUTH_SOCK:-}" ] && [ -S "${XDG_RUNTIME_DIR:-/nonexistent}/ssh-agent.socket" ]; then
+  export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"
+fi
+
 # ===== path =====
 
 # `typeset -U` keeps $path deduplicated, so re-sourcing never grows it.

@@ -21,11 +21,12 @@ file calls them that way.
 
 both are `stow */` with the two things that instruction gets wrong. stow folds
 a package into a single symlink when its target directory does not exist yet,
-so `~/.config/fish` and `~/.config/herdr` become links into this repository
-and everything those tools write there -- fisher's plug-ins, herdr's socket,
-logs and session -- lands in the working tree; the scripts stow both unfolded.
-and a container leaves `git` and `herdr` out, in favour of the packages it
-replaces them with.
+so `~/.config/fish`, `~/.config/herdr` and `~/.ssh` become links into this
+repository and everything those tools write there -- fisher's plug-ins, herdr's
+socket, logs and session, ssh's keys and known_hosts -- lands in the working
+tree; the scripts stow all three unfolded. and a container leaves `git` and
+`herdr` out, in favour of the packages it replaces them with, and `ssh` out
+because it mounts the host's `~/.ssh` as it is.
 
 `-n` shows what would happen and changes nothing, `--list` the packages a
 script deploys, `-R` re-creates the links after a package lost a file, `-D`
@@ -598,6 +599,55 @@ once:
 another plugin in `settings.json` is the only edit a second one needs. both
 commands are idempotent and neither rewrites `settings.json`; `-n` prints them
 and runs nothing. restart claude code, or `/reload-plugins`, afterwards.
+
+# herdr on another machine
+
+a herdr window here can attach to the herdr server on another linux machine
+over ssh: this machine draws the ui with its own theme and keybindings, and
+the panes and agents run over there. two forms:
+
+> herdr --remote <alias>                       one window, that server only
+> herdr machine add <alias> --label <name>     saved: that server appears in
+>                                              the sidebar next to the local one
+
+`<alias>` is a `Host` in `ssh/.ssh/config`, which is what makes the target a
+name instead of a user@address on every call. herdr wraps that config in one
+of its own that adds keepalives, so none are set here.
+
+the `ssh` package is that config and the agent it relies on:
+
+    .ssh/config                          AddKeysToAgent, and the Host aliases
+    .config/systemd/user/
+      ssh-agent.service                  one agent per login, listening at
+                                         $XDG_RUNTIME_DIR/ssh-agent.socket
+
+the key has a passphrase, and herdr's saved machines connect in the background
+where nothing can ask for one -- the machine shows "attention" instead. so the
+agent holds the key: the first interactive `ssh <alias>` asks once and adds
+it, and every connection after that, herdr's included, finds it there until
+the agent stops. the three shells export SSH_AUTH_SOCK for the socket when it
+exists and nothing has set one already, so a devcontainer's forwarded agent or
+a desktop session's own is never displaced; shell-parity.sh checks the three
+agree on it wherever the socket exists.
+
+once per machine, after deploying:
+
+> systemctl --user enable --now ssh-agent.service
+
+and once per target -- it needs sshd running over there, and the key copied:
+
+> ssh-copy-id <alias>
+> herdr machine add <alias> --label <name>
+
+`herdr machine add` runs in the foreground on purpose: it checks the herdr on
+the far side, offers to install one to `~/.local/bin` there if it finds none,
+and starts its server before saving the profile. after that, `herdr` alone
+shows both machines. if a saved machine ever shows "attention", `herdr
+--remote <alias>` shows the prompt it could not answer in the background.
+
+the custom keys of this config (`C-a j`, `C-a Tab` and the resize keys) are
+shell commands, and those run on the server side: against another machine
+they work only if this repository is deployed there too.
 
 # devcontainer
 

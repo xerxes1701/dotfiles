@@ -36,6 +36,16 @@ $env.OLLAMA_CONTEXT_LENGTH = "16384"
 $env.OLLAMA_KV_CACHE_TYPE = "q8_0"
 $env.OLLAMA_KEEP_ALIVE = "30m"
 
+# ssh-agent.service, from the ssh package, listens here. Exported only when the
+# socket exists and nothing has set SSH_AUTH_SOCK already -- a devcontainer
+# forwards the host's agent and a desktop session may bring its own -- so this
+# never displaces an agent, it only supplies one where there was none. An `if`
+# block is not a closure, so the assignment inside it reaches the shell.
+if ($env.SSH_AUTH_SOCK? | is-empty) and ($env.XDG_RUNTIME_DIR? | is-not-empty) {
+    let sock = ($env.XDG_RUNTIME_DIR | path join "ssh-agent.socket")
+    if ($sock | path exists) { $env.SSH_AUTH_SOCK = $sock }
+}
+
 # ===== path =====
 
 # Built with `path join` rather than a literal "~/..." string: nushell does not

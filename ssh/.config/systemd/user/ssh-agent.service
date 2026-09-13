@@ -1,0 +1,22 @@
+# One ssh-agent per user, started with the systemd user instance, so a key
+# unlocked once (AddKeysToAgent in ~/.ssh/config) serves every later ssh --
+# including the ones herdr starts in the background, which cannot show a
+# passphrase prompt. Enable it once per machine, after deploying:
+#
+#   systemctl --user enable --now ssh-agent.service
+#
+# Its socket is $XDG_RUNTIME_DIR/ssh-agent.socket (%t below), and the shells
+# export SSH_AUTH_SOCK for it when it exists. -D keeps the agent in the
+# foreground, which is what Type=simple expects; ssh-agent lives at
+# /usr/bin on Ubuntu and Arch alike.
+
+[Unit]
+Description=ssh-agent
+Documentation=man:ssh-agent(1)
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/ssh-agent -D -a %t/ssh-agent.socket
+
+[Install]
+WantedBy=default.target

@@ -28,9 +28,11 @@ sd_extra=()
 #          become a link into this repository for anything else to write into
 #   claude ~/.claude holds this machine's sessions, history, projects and the
 #          plugin cache next to the four tracked files
+#   ssh    ~/.ssh holds the keys and known_hosts, which must never land here;
+#          and ~/.config/systemd/user is where `systemctl --user enable` writes
 # nvim and nushell stay folded on purpose -- what they generate in there is
 # either tracked (lazy-lock.json) or listed in .gitignore.
-sd_unfolded=(claude fish herdr scripts)
+sd_unfolded=(claude fish herdr scripts ssh)
 sd_examples=(
     "$self"
     "$self -n"

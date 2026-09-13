@@ -41,6 +41,14 @@ set -gx OLLAMA_CONTEXT_LENGTH 16384
 set -gx OLLAMA_KV_CACHE_TYPE q8_0
 set -gx OLLAMA_KEEP_ALIVE 30m
 
+# ssh-agent.service, from the ssh package, listens here. Exported only when the
+# socket exists and nothing has set SSH_AUTH_SOCK already -- a devcontainer
+# forwards the host's agent and a desktop session may bring its own -- so this
+# never displaces an agent, it only supplies one where there was none.
+if not set -q SSH_AUTH_SOCK; and set -q XDG_RUNTIME_DIR; and test -S "$XDG_RUNTIME_DIR/ssh-agent.socket"
+  set -gx SSH_AUTH_SOCK "$XDG_RUNTIME_DIR/ssh-agent.socket"
+end
+
 # ===== path =====
 
 # fish_add_path skips entries already in $PATH, so this is idempotent -- unlike

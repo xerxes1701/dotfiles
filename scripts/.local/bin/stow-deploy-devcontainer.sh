@@ -26,7 +26,9 @@ sd_where=devcontainer
 #          ~/.gitconfig that [include]s the packaged one instead.
 #   herdr  the config of the host machine. .herdr-devcontainer takes its
 #          place, so the two herdr instances do not look alike.
-sd_exclude=(git herdr)
+#   ssh    the container mounts the host's ~/.ssh, config included, and has
+#          no systemd for the agent unit; it forwards the host's agent instead.
+sd_exclude=(git herdr ssh)
 # Hidden, so neither `stow */` on the host nor the `for d in */` loop in the
 # Dockerfile matches it. That is the point: only a container deploys it.
 sd_extra=(.herdr-devcontainer)

@@ -51,8 +51,10 @@ for s in "${SHELLS[@]}"; do
     case ":$CLEAN_PATH:" in *":$d:"*) ;; *) CLEAN_PATH="$CLEAN_PATH:$d" ;; esac
 done
 
+# XDG_RUNTIME_DIR passes through: like HOME it names a place on this machine,
+# and the SSH_AUTH_SOCK check below is about what the shells do with it.
 clean() { env -i HOME="$HOME" TERM="${TERM:-xterm}" USER="${USER:-$(id -un)}" \
-               PATH="$CLEAN_PATH" "$@"; }
+               PATH="$CLEAN_PATH" ${XDG_RUNTIME_DIR:+XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR"} "$@"; }
 
 NUCFG=(--config "$HOME/.config/nushell/config.nu" --env-config "$HOME/.config/nushell/env.nu")
 
@@ -63,7 +65,8 @@ FUNCS=(ssh-agent-start)
 ENVVARS=(EDITOR VISUAL BAT_THEME MANPAGER MANROFFOPT BUN_INSTALL
          FZF_DEFAULT_COMMAND FZF_CTRL_T_COMMAND FZF_ALT_C_COMMAND FZF_DEFAULT_OPTS
          SMART_SPLITS_HERDR_PASSTHROUGH_RE
-         OLLAMA_CONTEXT_LENGTH OLLAMA_KV_CACHE_TYPE OLLAMA_KEEP_ALIVE)
+         OLLAMA_CONTEXT_LENGTH OLLAMA_KV_CACHE_TYPE OLLAMA_KEEP_ALIVE
+         SSH_AUTH_SOCK)
 
 # PATH entries expected in every shell.
 PATHENTRIES=("$HOME/.local/bin" "$HOME/.cargo/bin" "$HOME/.dotnet/tools" "$HOME/.bun/bin")
@@ -212,6 +215,13 @@ done
 
 printf '\n== env ==\n'
 for var in "${ENVVARS[@]}"; do
+    # The shells export SSH_AUTH_SOCK only for a socket that exists. Where the
+    # ssh-agent unit is not running, all three leave it unset -- a fact about
+    # the machine, not a difference between the configs, so do not measure it.
+    if [ "$var" = SSH_AUTH_SOCK ] && [ ! -S "${XDG_RUNTIME_DIR:-/nonexistent}/ssh-agent.socket" ]; then
+        printf '  %-12s skipped (no ssh-agent socket on this machine)\n' "$var"
+        continue
+    fi
     fv=$(clean "${BIN[fish]}" -i -c "echo \$$var" 2>/dev/null | normalize)
     nv=$(clean "${BIN[nu]}" "${NUCFG[@]}" -c "\$env.$var? | default ''" 2>/dev/null | normalize)
     zv=$(clean "${BIN[zsh]}" -i -c "echo \$$var" 2>/dev/null | normalize)

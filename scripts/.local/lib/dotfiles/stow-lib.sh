@@ -125,6 +125,13 @@ sd_in_container() {
     return 1
 }
 
+# Git Bash is msys; WSL is a linux host and matches neither of these.
+sd_in_windows() {
+    [ -n "${MSYSTEM:-}" ] && return 0
+    case ${OSTYPE:-} in msys|cygwin) return 0 ;; esac
+    return 1
+}
+
 # Running the wrong script is not a harmless mistake: each one skips the
 # packages its environment replaces, so the container script would leave this
 # machine without a git config and with the container's herdr look, and the
@@ -135,13 +142,20 @@ sd_check_where() {
         host)
             sd_in_container && die 'this looks like a container, not this machine' \
                 'inside a devcontainer run stow-deploy-devcontainer.sh instead' \
-                '--force deploys the packages of this machine anyway' ;;
+                '--force deploys the packages of this machine anyway'
+            sd_in_windows && die 'this looks like windows, where herdr/ cannot run' \
+                'on a windows machine run stow-deploy-windows.sh instead' \
+                '--force deploys the linux packages anyway' ;;
         devcontainer)
             sd_in_container || die 'this does not look like a devcontainer' \
                 'on this machine run stow-deploy.sh instead' \
                 '--force deploys the container packages anyway' ;;
+        windows)
+            sd_in_windows || die 'this does not look like windows (git bash)' \
+                'on a linux machine run stow-deploy.sh instead' \
+                '--force deploys the windows packages anyway' ;;
         *) die "internal error: sd_where is \"$sd_where\"" \
-               'a launcher has to set it to host or devcontainer' ;;
+               'a launcher has to set it to host, devcontainer or windows' ;;
     esac
     return 0
 }
@@ -235,6 +249,29 @@ sd_stow() {
     stow "${flags[@]}" "$@"
 }
 
+# Symlinks on Windows fail in two quiet ways that stow would not report: msys
+# *copies* the file unless MSYS=winsymlinks:nativestrict is set, and a native
+# link needs Developer Mode or an elevated shell -- stow would then die halfway
+# through a plan whose unlink steps it has already done. So the variable is set
+# here, and the privilege is probed before stow touches the target.
+sd_windows_prepare() {
+    export MSYS=winsymlinks:nativestrict
+    [ "$sd_dry" = 1 ] && return 0
+    [ "$sd_mode" = --delete ] && return 0
+    local probe
+    probe=$(mktemp -d "$sd_target/.stow-probe.XXXXXX") || die "cannot write to $sd_target"
+    : > "$probe/src"
+    if ! ln -s "$probe/src" "$probe/lnk" 2>/dev/null; then
+        rm -rf "$probe"
+        die 'cannot create a symlink here' \
+            'a native symlink on windows needs Developer Mode (settings > system > for developers)' \
+            'or an elevated shell -- rerun this from one' \
+            '-n shows the plan without either'
+    fi
+    rm -rf "$probe"
+    return 0
+}
+
 # stow explains a conflict well; what it does not say is that it applied
 # nothing at all, and what to do about the file in the way.
 sd_bail() {
@@ -245,6 +282,12 @@ sd_bail() {
     printf '%s    mv ~/.zshrc ~/.zshrc.pre-stow.bak%s\n' "$e_dim" "$e_off" >&2
     printf '%s  a link to another package means two of them claim the same file%s\n' \
         "$e_dim" "$e_off" >&2
+    if [ ${#sd_exclude[@]} -gt 0 ]; then
+        printf '%s  a package this environment replaces has to be removed first if it was deployed here before:%s\n' \
+            "$e_dim" "$e_off" >&2
+        printf '%s    stow --dir %s --target %s -D %s%s\n' \
+            "$e_dim" "$sd_root" "$sd_target" "${sd_exclude[*]}" "$e_off" >&2
+    fi
     exit "$1"
 }
 
@@ -264,6 +307,7 @@ sd_main() {
     sd_check_where
     [ -d "$sd_target" ] || die "the target $sd_target is not a directory" \
         'pass an existing directory with --target'
+    [ "$sd_where" = windows ] && sd_windows_prepare
 
     sd_stow nofold ${sd_nofold[@]+"${sd_nofold[@]}"} || sd_bail $?
     sd_stow fold ${sd_folded[@]+"${sd_folded[@]}"} || sd_bail $?

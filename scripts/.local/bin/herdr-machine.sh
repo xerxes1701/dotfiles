@@ -11,8 +11,14 @@
 # docker exec ... claude` is the other way out, and gives no session identity.
 #
 # The container side of this needs an sshd and a herdr new enough to speak
-# endpoint generation 1 (0.9.0). firstx-master's devcontainer has both; see the
-# "herdr from the host" section of its .devcontainer/README.md. This script
+# endpoint generation 1 (0.9.0); the firstx devcontainer has both, see the
+# "herdr from the host" section of its .devcontainer/README.md. How that sshd
+# is reached is worked out here, by preference: as `<worktree>.dc`, the alias
+# devcontainer-ssh-setup.sh installs on this host, whose ProxyCommand resolves
+# the name to the container's docker-bridge address on every connection -- so
+# nothing is published, two worktree containers cannot collide on a host port,
+# and the target survives a rebuild. Failing that, a port the container
+# publishes, through a matching Host block or a plain ssh:// url. This script
 # only ever *reads* the container, so a container that is not set up for it is
 # reported, not modified.
 #
@@ -26,13 +32,15 @@ set -u
 self=$(readlink -f -- "$0" 2>/dev/null) || self=$0
 
 # Defaults for the devcontainers here: `vscode` is the remoteUser of every one
-# of them, 2222 the port their sshd publishes. Both are checked against the
-# container that gets picked.
+# of them, 2222 the port their sshd listens on. Both are checked against the
+# container that gets picked, and both are what the *.dc alias assumes -- with
+# other values the alias is skipped and only a published port can be used.
 user=${HERDR_MACHINE_USER-vscode}
 port=${HERDR_MACHINE_PORT-2222}
 
 US=$(printf '\037')
 RS=$(printf '\036')
+TAB=$(printf '\t')
 
 # Same rule as docker-shell.sh: colors for a terminal only, and never against
 # NO_COLOR or TERM=dumb. fzf renders the preview into a pty, so it keeps them.
@@ -70,10 +78,12 @@ Picks one of the running devcontainers with fzf and registers it with
                      nothing.
   -h, --help         this help.
 
-The ssh target is worked out from the container: the host side of its published
-$port maps to a \`Host\` block in ~/.ssh/config when one matches, and to a plain
-\`ssh://user@host:port\` when none does. A matching Host block is preferred
-because that is where the identity file and HostKeyAlias live.
+The ssh target is worked out from the container. Preferred: \`<worktree>.dc\`,
+the alias devcontainer-ssh-setup.sh installs on this host, which reaches the
+container on the docker bridge by name -- nothing published, and the target
+survives a rebuild. Otherwise a port the container publishes: the host side of
+it maps to a \`Host\` block in ~/.ssh/config when one matches, and to a plain
+\`ssh://user@host:port\` when none does.
 
   herdr-machine.sh                  pick, check, add
   herdr-machine.sh -c firstx -x     skip the picker when only one matches
@@ -140,6 +150,71 @@ ssh_target() {
     fi
 }
 
+# The worktree a devcontainer was built for: the last segment of its
+# devcontainer.local_folder label. Both separators, since VS Code on Windows
+# stamps `c:\SWProjekte\x` and the devcontainer cli in WSL `/mnt/c/SWProjekte/x`.
+worktree_name() {
+    docker inspect "$1" --format \
+        '{{ index .Config.Labels "devcontainer.local_folder" }}' 2>/dev/null \
+        | sed 's![\\/]$!!; s!.*[\\/]!!'
+}
+
+# Whether ssh resolves `<name>.dc` to the alias devcontainer-ssh-setup.sh
+# installs -- the proxy as ProxyCommand, and the port and user this run wants,
+# since the alias hard-codes both. Asked of `ssh -G`, like ssh_config_host, so
+# it holds however the Include got there. No connection is made.
+dc_alias_ready() {
+    ssh -G "$1" 2>/dev/null | LC_ALL=C awk -v port="$2" -v user="$3" '
+        $1 == "proxycommand" && /devcontainer-ssh-proxy/ { proxy = 1 }
+        $1 == "port" && $2 == port { p = 1 }
+        $1 == "user" && $2 == user { u = 1 }
+        END { exit !(proxy && p && u) }'
+}
+
+# The container's address on the docker bridge, or nothing.
+bridge_addr() {
+    docker inspect "$1" --format \
+        '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{"\n"}}{{end}}' 2>/dev/null \
+        | sed -n '1p'
+}
+
+# How a container is reached, as one line "<mode> <target> <address>":
+#   bridge     <worktree>.dc           <bridge-ip>:<port>
+#   published  <Host alias | ssh url>  <host>:<port>
+# and "none", with status 1, when neither applies. The alias wins: it needs no
+# published port, so two worktree containers cannot collide, and it names the
+# container rather than an address, so a rebuild does not stale the saved
+# machine. A published port is the way in for a container that still has one,
+# or for a docker whose bridge this host cannot reach (Docker Desktop).
+resolve_target() {
+    rt_id=$1 rt_port=$2 rt_user=$3
+    rt_name=$(worktree_name "$rt_id")
+    if [ -n "$rt_name" ] && dc_alias_ready "$rt_name.dc" "$rt_port" "$rt_user"; then
+        rt_ip=$(bridge_addr "$rt_id")
+        printf 'bridge %s %s\n' "$rt_name.dc" "${rt_ip:-?}:$rt_port"
+        return 0
+    fi
+    rt_addr=$(published_addr "$rt_id" "$rt_port")
+    if [ -n "$rt_addr" ]; then
+        printf 'published %s %s\n' "$(ssh_target "$rt_addr" "$rt_user")" "$rt_addr"
+        return 0
+    fi
+    printf 'none\n'
+    return 1
+}
+
+# How many running devcontainers carry a worktree name. The proxy takes the
+# first when there are several -- a container VS Code built next to one the
+# cli built for the same folder -- and that is worth a warning before a
+# machine is saved under that name.
+same_name_count() {
+    docker ps --filter label=devcontainer.local_folder \
+        --format "{{.ID}}${TAB}{{.Label \"devcontainer.local_folder\"}}" 2>/dev/null \
+        | LC_ALL=C awk -F"$TAB" -v want="$1" '
+            { n = $2; sub(/[\\\/]$/, "", n); sub(/.*[\\\/]/, "", n); if (n == want) c++ }
+            END { print c + 0 }'
+}
+
 # `herdr --version` in a container, or nothing.
 #
 # The filter is not politeness: a failed `docker exec` prints its own diagnosis
@@ -198,13 +273,27 @@ H${US}user${US}{{ if .Config.User }}{{ .Config.User }}{{ else }}root{{ end }}${R
         return 0
     fi
 
-    pv_addr=$(published_addr "$pv_id" "$port")
-    if [ -n "$pv_addr" ]; then
-        pv_state="$c_ok$pv_addr$c_off"
-    else
-        pv_state="${c_bad}port $port not published$c_off"
-    fi
-    printf '  %-9s %s\n' 'ssh port' "$pv_state"
+    pv_res=$(resolve_target "$pv_id" "$port" "$user")
+    pv_mode=${pv_res%% *} pv_rest=${pv_res#* }
+    pv_target=${pv_rest%% *} pv_addr=${pv_rest#* }
+    case $pv_mode in
+        bridge)
+            printf '  %-9s %s%s%s %s(%s, on the bridge)%s\n' reach \
+                "$c_ok" "$pv_target" "$c_off" "$c_dim" "$pv_addr" "$c_off"
+            pv_dups=$(same_name_count "${pv_target%.dc}")
+            [ "$pv_dups" -le 1 ] || printf '  %-9s %s%s running containers carry this name -- the proxy takes the first%s\n' \
+                '' "$c_bad" "$pv_dups" "$c_off"
+            ;;
+        published)
+            printf '  %-9s %s%s%s %s(published port)%s\n' reach \
+                "$c_ok" "$pv_addr" "$c_off" "$c_dim" "$c_off"
+            ;;
+        *)
+            printf '  %-9s %sno *.dc alias here and port %s not published%s\n' reach \
+                "$c_bad" "$port" "$c_off"
+            printf '  %-9s %sdevcontainer-ssh-setup.sh installs the alias%s\n' '' "$c_dim" "$c_off"
+            ;;
+    esac
 
     if docker exec "$pv_id" pgrep -x sshd >/dev/null 2>&1; then
         printf '  %-9s %srunning%s\n' sshd "$c_ok" "$c_off"
@@ -221,8 +310,7 @@ H${US}user${US}{{ if .Config.User }}{{ .Config.User }}{{ else }}root{{ end }}${R
         printf '  %-9s %s%s -- needs 0.9.0%s\n' herdr "$c_bad" "$pv_herdr" "$c_off"
     fi
 
-    if [ -n "$pv_addr" ]; then
-        pv_target=$(ssh_target "$pv_addr" "$user")
+    if [ "$pv_mode" != none ]; then
         printf '  %-9s %s\n' target "$pv_target"
         if herdr machine list --json 2>/dev/null | grep -Fq "\"$pv_target\""; then
             printf '  %-9s %salready a saved machine%s\n' saved "$c_dim" "$c_off"
@@ -290,9 +378,9 @@ version_ge_090 "$herdr_local" || die \
 # devcontainer-herdr.sh (which starts one) or dsh if that is what you meant.
 
 fmt='{{.ID}}\t{{.Label "devcontainer.local_folder"}}\t{{.Names}}\t{{.Status}}'
-TAB=$(printf '\t')
 # The label is a host path, and its last segment -- the worktree -- is the part
-# that identifies the container. Windows separators included, since these
+# that identifies the container (worktree_name, inlined here because fzf
+# re-runs this string on ctrl-r). Windows separators included, since these
 # labels come from Windows folders.
 list="docker ps --filter label=devcontainer.local_folder --format '$fmt' \
   | awk -F'\t' '{ n = \$2; sub(/[\\\\\\/]\$/, \"\", n); sub(/.*[\\\\\\/]/, \"\", n)
@@ -337,11 +425,9 @@ fi
 
 id=${pick%% *}
 [ -n "$id" ] || die 'no container selected'
-folder=$(docker inspect "$id" --format \
-    '{{ index .Config.Labels "devcontainer.local_folder" }}' 2>/dev/null)
-# The worktree name, for the sidebar label -- the same segment the list shows.
-[ -n "$label" ] || label=$(printf '%s\n' "$folder" \
-    | sed 's![\\/]$!!; s!.*[\\/]!!')
+# The worktree name, for the sidebar label -- the same segment the list shows,
+# and the same name the *.dc alias is built from.
+[ -n "$label" ] || label=$(worktree_name "$id")
 [ -n "$label" ] || label=$(docker inspect "$id" --format '{{ .Name }}' \
     | sed 's!^/!!')
 
@@ -350,15 +436,22 @@ folder=$(docker inspect "$id" --format \
 # connection, a connection before a version, and a version before herdr is
 # asked to do anything.
 
-addr=$(published_addr "$id" "$port")
-[ -n "$addr" ] || die "container $label does not publish port $port" \
-    'its devcontainer.json needs the port, e.g.' \
-    '  "appPort": ["127.0.0.1:2222:2222"]' \
-    'and the container has to be *recreated* for that, not restarted' \
-    "another port: --port N" \
+res=$(resolve_target "$id" "$port" "$user") || die "no way to reach $label" \
+    "neither resolves: the *.dc alias on this host, nor a published port $port" \
+    'the alias, once per host:  devcontainer-ssh-setup.sh' \
+    'a published port needs its devcontainer.json to say so, and a *recreate*' \
+    "another port or user: --port N, --user U" \
     'see the "herdr from the host" section of .devcontainer/README.md'
+mode=${res%% *} res=${res#* }
+target=${res%% *} addr=${res#* }
 
-target=$(ssh_target "$addr" "$user")
+if [ "$mode" = bridge ]; then
+    dups=$(same_name_count "${target%.dc}")
+    [ "$dups" -le 1 ] || die "$dups running containers carry the worktree name ${target%.dc}" \
+        'the proxy behind the alias would take the first one, and a machine saved' \
+        'under that name would switch containers with it; stop the other one first:' \
+        "  docker ps --filter label=devcontainer.local_folder"
+fi
 
 if herdr machine list --json 2>/dev/null | grep -Fq "\"$target\""; then
     printf '%s%s is already a saved machine (%s)%s\n' \
@@ -394,16 +487,28 @@ herdr_remote=$(probe -o BatchMode=yes) || {
                 "  docker exec $id command -v herdr"
             ;;
         *)
+            hint_proxy=
+            [ "$mode" != bridge ] \
+                || hint_proxy="or the proxy on its own: devcontainer-ssh-proxy.sh $target $port </dev/null"
             die "ssh $target failed" "$herdr_remote" \
-                'the container publishes the port, so this is authentication or' \
-                'the sshd itself: docker exec '"$id"' pgrep -x sshd' \
-                'and its log: docker exec '"$id"' tail /var/log/sshd.log'
+                "reached as $mode ($addr), so this is authentication or the sshd" \
+                'itself: docker exec '"$id"' pgrep -x sshd' \
+                'and its log: docker exec '"$id"' tail /var/log/sshd.log' \
+                ${hint_proxy:+"$hint_proxy"}
             ;;
     esac
 }
 
-version_ge_090 "$herdr_remote" || die \
-    "herdr in $label is ${herdr_remote:-missing} -- saved machines need 0.9.0" \
+# ssh's own chatter arrives on the same stream as the answer -- "Warning:
+# Permanently added ..." right after the accept above -- so keep only the line
+# shaped like a version, as remote_herdr_version does for `docker exec`.
+herdr_version=$(printf '%s\n' "$herdr_remote" | LC_ALL=C awk '
+    $1 == "herdr" && $2 ~ /^[0-9]+\.[0-9]+/ { print $1 " " $2; exit }')
+[ -n "$herdr_version" ] || die "ssh $target works, but 'herdr --version' said:" \
+    "$herdr_remote"
+
+version_ge_090 "$herdr_version" || die \
+    "herdr in $label is $herdr_version -- saved machines need 0.9.0" \
     'bump HERDR_VERSION in its .devcontainer/Dockerfile and rebuild' \
     'a 0.9.0 client can only show an older server as Attention'
 
@@ -413,7 +518,7 @@ set -- machine add "$target" --label "$label"
 [ -z "$session" ] || set -- "$@" --remote-session "$session"
 
 printf '%s%s%s  %s%s -> %s%s\n' \
-    "$c_hdr" "$label" "$c_off" "$c_dim" "$herdr_remote" "$target" "$c_off"
+    "$c_hdr" "$label" "$c_off" "$c_dim" "$herdr_version" "$target" "$c_off"
 
 if [ -n "$dry" ]; then
     printf '%swould run: herdr %s%s\n' "$c_dim" "$*" "$c_off"

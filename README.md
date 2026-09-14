@@ -755,8 +755,10 @@ since herdr 0.9.0 there is a second way in, and it does not go through a
 launcher at all: `herdr machine add <ssh-target>` registers a container as a
 *saved machine*, and its workspaces and agents then live in this machine's
 herdr window, next to the local ones. the container needs an sshd and the
-same herdr version for that -- firstx-master's devcontainer has both, see the
-"herdr from the host" section of its `.devcontainer/README.md`.
+same herdr version for that -- the firstx devcontainer has both, see the
+"herdr from the host" section of its `.devcontainer/README.md` -- and this
+host needs a way to reach that sshd, see "reaching a devcontainer over ssh"
+below.
 
 which config governs what differs between the two. nested, through
 `devcontainer-herdr.sh`, `.herdr-devcontainer/` is the whole config, theme and
@@ -836,15 +838,23 @@ identity, `herdr agent prompt`, all of it. (`HERDR_AGENT=claude docker exec
 ... claude` is the documented way to make the panel see a wrapped agent, and
 it does work, but it hands over no session identity.)
 
-the ssh target is derived rather than configured. the container's published
-port gives a `host:port`, and `ssh -G` is asked whether any `Host` block in
-`~/.ssh/config` resolves to exactly that address, port and user; a match wins
-because that is where the identity file and `HostKeyAlias` live, and only when
-nothing matches does it fall back to a bare `ssh://user@host:port`.
+the ssh target is derived rather than configured, and there are two shapes
+it can take. preferred is `<worktree>.dc` -- the alias
+`devcontainer-ssh-setup.sh` installs on this host (next section), which
+reaches the container on the docker bridge by *name*: `ssh -G` is asked
+whether that name resolves to the proxy, with the port and user this run
+wants, and if so nothing about the container's ports matters. otherwise the
+container's published port gives a `host:port`, and `ssh -G` is asked whether
+any `Host` block in `~/.ssh/config` resolves to exactly that address, port and
+user; a match wins because that is where the identity file lives, and only
+when nothing matches does it fall back to a bare `ssh://user@host:port`. the
+alias is preferred because it names the container rather than an address: a
+rebuild changes the address, and a saved machine pointing at one goes stale.
 
 the preview is the readiness check, and every probe in it is local docker or
 local ssh config -- no dialing, so moving the cursor cannot hang on a network
-timeout. it shows the published port, whether sshd is up in there, the
+timeout. it shows how the container is reached (the alias and its bridge
+address, or the published port, or neither), whether sshd is up in there, the
 container's herdr version against the 0.9.0 floor that saved machines need,
 the target that would be used, whether it is already registered, and the
 agents already running inside. two of those probes filter what they read
@@ -858,10 +868,91 @@ never seen leaves the machine sitting in *Attention* instead of asking -- so
 the script does the trust-on-first-use itself, and prints that the fingerprint
 should match the one the container's `init-sshd.sh` logged when it started.
 
-the container side needs an sshd and herdr 0.9.0 for any of this;
-firstx-master's devcontainer has both, and its `.devcontainer/README.md`
-explains the port, the key path and the per-worktree port slots under "herdr
-from the host".
+the container side needs an sshd and herdr 0.9.0 for any of this; the firstx
+devcontainer has both, and its `.devcontainer/README.md` explains the sshd,
+the key path and the per-worktree host key under "herdr from the host".
+
+## reaching a devcontainer over ssh
+
+the host side of the same story, done once per machine:
+
+> devcontainer-ssh-setup.sh [-n]
+
+after it, `ssh <worktree>.dc` reaches the running devcontainer built for that
+worktree -- `ssh firstx-wa.dc`, `herdr machine add firstx-wa.dc` -- and that
+is the target `herdr-machine.sh` registers.
+
+why a name and not a port. a devcontainer's sshd could be *published* on a
+host port, and that is how this started: `"appPort": ["127.0.0.1:2222:2222"]`
+in devcontainer.json. but every worktree of a project shares one tracked
+devcontainer.json, and a published port cannot be shared, so two worktree
+containers running at once needed two different values of a line that is the
+same file in both -- a permanent dirty diff per worktree and a conflict on
+every sync from master. docker here is native to the distro, so a container's
+address on the bridge (`172.17.0.x`) is reachable from wsl directly, and
+nothing needs publishing at all.
+
+what the script writes is small. `~/.ssh/config.d/devcontainers.conf` holds
+one block:
+
+    Host *.dc
+        Port 2222
+        User vscode
+        IdentityFile ~/.ssh/id_ed25519
+        IdentitiesOnly yes
+        ProxyCommand .../devcontainer-ssh-proxy.sh %h %p
+
+and `~/.ssh/config` gets `Include config.d/*.conf` as its first line -- first,
+because an `Include` that follows a `Host` block belongs to that block. that
+one insertion is the only edit to a hand-written file, a `config.bak-<date>`
+is taken before it, and the include file is generated from the script, so
+re-running the script is how it is updated. the block is *not* a stow package
+on purpose: `~/.ssh` is the one directory here that should stay the machine's
+own, and the ProxyCommand carries an absolute path anyway -- herdr's
+background connections start from herdr, not from a login shell, so the
+proxy cannot rely on `$PATH`.
+
+the proxy, `devcontainer-ssh-proxy.sh`, is what makes the name stable. on
+every connection it finds the running container whose
+`devcontainer.local_folder` label ends in the worktree name -- the same
+segment `herdr-machine.sh` lists and `dsh` shows, windows and wsl path forms
+alike -- reads its bridge address, and hands the connection to `nc`. a
+container that is stopped, rebuilt or replaced changes address; the name does
+not, and neither does the saved machine that points at it. stdout of a
+ProxyCommand *is* the connection, so everything the proxy has to say goes to
+stderr, where ssh shows it as the reason the connection failed: "no running
+devcontainer for worktree 'firstx-wa'" is the message when the container is
+down.
+
+there is no `HostKeyAlias` in that block, and that is deliberate. with no
+`HostName`, the alias itself is the name ssh files the host key under
+(`[firstx-wa.dc]:2222`, port-qualified because it is not 22), so
+`firstx-wa.dc` and `firstx-master.dc` get separate `known_hosts` entries for
+free -- and separate entries are only worth something if the keys differ,
+which is why the firstx devcontainer keeps its host key in a volume named
+per worktree (`firstx-sshd-hostkeys-${localWorkspaceFolderBasename}`). a
+connection that lands in the wrong container -- the proxy picking the wrong
+one, say -- then fails as a host key mismatch instead of silently opening the
+wrong workspace. (`HostKeyAlias %h` would have been the alternative, but
+`HostKeyAlias` is not among the keywords that take tokens.) one accept per
+worktree, on the first connection, which `herdr-machine.sh` does in the
+foreground.
+
+what it checks before writing, and refuses on: `nc` (the openbsd netcat
+ubuntu ships), the proxy on `$PATH` (stow-deploy.sh first), and that the
+bridge gateway docker reports is an interface of *this* distro. under docker
+desktop it is not -- the bridge lives in the desktop vm -- and the whole path
+is unavailable; a published port and `herdr-machine.sh`'s fallback still
+work there. two things are lost with the bridge and worth knowing: the
+container is no longer reachable from windows as `localhost:2222` (a side
+effect of the published port that nothing relied on), and a container that
+still publishes the port is reached on the bridge all the same -- the rebuild
+only drops the publish, so nothing has to happen in a particular order.
+
+the script also reports what the published-port scheme left behind -- a
+`Host` block that resolves to `127.0.0.1:2222`, a saved machine whose target
+is not a `.dc` name -- with the commands to remove them, and removes neither:
+those are hand-written config and client state.
 
 ## rebuilding a devcontainer
 

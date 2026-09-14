@@ -155,3 +155,7 @@ end
 if status is-interactive; and test -f $__fish_config_dir/themes/catppuccin-mocha.theme
   fish_config theme choose catppuccin-mocha
 end
+
+# bun
+set --export BUN_INSTALL "$HOME/.bun"
+set --export PATH $BUN_INSTALL/bin $PATH

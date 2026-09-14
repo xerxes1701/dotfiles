@@ -23,11 +23,20 @@ local function resize(direction)
 		local win = require("smart-splits.win")
 		local full = horizontal and win.is_full_width() or win.is_full_height()
 		if in_herdr and full then
-			vim.system({
-				"herdr-resize-pane.sh",
-				direction,
-				"--mux-only",
-			})
+			-- On Windows the shell script cannot run, and nothing puts
+			-- ~/.local/bin on the PATH there, so its .ps1 twin is called
+			-- through pwsh by full path. See README, section "windows".
+			local cmd
+			if vim.fn.has("win32") == 1 then
+				cmd = {
+					"pwsh", "-NoLogo", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
+					"-File", vim.fn.expand("~/.local/bin/herdr-resize-pane.ps1"),
+				}
+			else
+				cmd = { "herdr-resize-pane.sh" }
+			end
+			vim.list_extend(cmd, { direction, "--mux-only" })
+			vim.system(cmd)
 			return
 		end
 		require("smart-splits")["resize_" .. direction]()

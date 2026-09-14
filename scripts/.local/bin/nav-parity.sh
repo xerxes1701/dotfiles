@@ -32,6 +32,7 @@ nvim_yaml=$root/nvim/.config/nvim/keybindings.yaml
 tmux_conf=$root/tmux/.config/tmux/tmux.conf
 herdr_host=$root/herdr/.config/herdr/config.toml
 herdr_dc=$root/.herdr-devcontainer/.config/herdr/config.toml
+herdr_win=$root/.herdr-windows/.config/herdr/config.toml
 
 # --- the table -------------------------------------------------------------
 # action | nvim key | tmux key | tmux key-table | herdr key
@@ -154,6 +155,20 @@ if diff -q <(block "$herdr_host") <(block "$herdr_dc") >/dev/null; then
 else
     printf '  keys block   DRIFT between herdr/ and .herdr-devcontainer/:\n'
     diff <(block "$herdr_host") <(block "$herdr_dc") | sed 's/^/               /'
+    status=1
+fi
+
+# The windows config binds the same keys to different commands on purpose --
+# the .ps1 twins through pwsh, since cmd.exe cannot run the bash scripts -- and
+# says so in comments of its own. So it is compared with the `command =` lines,
+# the comments and the blank lines taken out: the keys must agree, the
+# commands may not.
+block_keys() { block "$1" | grep -vE '^[[:space:]]*(#|$)|^command = '; }
+if diff -q <(block_keys "$herdr_host") <(block_keys "$herdr_win") >/dev/null; then
+    printf '  keys block   identical in herdr/ and .herdr-windows/ (commands aside)\n'
+else
+    printf '  keys block   DRIFT between herdr/ and .herdr-windows/:\n'
+    diff <(block_keys "$herdr_host") <(block_keys "$herdr_win") | sed 's/^/               /'
     status=1
 fi
 

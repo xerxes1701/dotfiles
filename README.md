@@ -10,28 +10,34 @@ relative to `~`, so `nvim/.config/nvim/init.lua` is linked as
 
 > scripts/.local/bin/stow-deploy.sh
 
-and inside a devcontainer, which replaces two of the packages with its own:
+inside a devcontainer, which replaces two of the packages with its own:
 
 > scripts/.local/bin/stow-deploy-devcontainer.sh
+
+and on a windows machine, from git bash, which replaces one -- see
+[windows](#windows):
+
+> scripts/.local/bin/stow-deploy-windows.sh
 
 `scripts/` is a package like the others: its executables live in `.local/bin`
 and the libraries they source in `.local/lib/dotfiles`, so after the first
 deploy every script here is on `PATH` under its bare name and the rest of this
 file calls them that way.
 
-both are `stow */` with the two things that instruction gets wrong. stow folds
-a package into a single symlink when its target directory does not exist yet,
-so `~/.config/fish`, `~/.config/herdr` and `~/.ssh` become links into this
+all three are `stow */` with the two things that instruction gets wrong. stow
+folds a package into a single symlink when its target directory does not exist
+yet, so `~/.config/fish`, `~/.config/herdr` and `~/.ssh` become links into this
 repository and everything those tools write there -- fisher's plug-ins, herdr's
 socket, logs and session, ssh's keys and known_hosts -- lands in the working
 tree; the scripts stow all three unfolded. and a container leaves `git` and
 `herdr` out, in favour of the packages it replaces them with, and `ssh` out
-because it mounts the host's `~/.ssh` as it is.
+because it mounts the host's `~/.ssh` as it is; windows leaves `herdr` out for
+`.herdr-windows`.
 
 `-n` shows what would happen and changes nothing, `--list` the packages a
 script deploys, `-R` re-creates the links after a package lost a file, `-D`
 removes them, `--target` deploys somewhere other than `~`, `--help` explains
-the rest. either script refuses to run in the other's environment. naming
+the rest. each script refuses to run in another's environment. naming
 packages deploys only those:
 
 > stow-deploy.sh nvim tmux
@@ -531,6 +537,9 @@ two gaps in that plugin are filled here:
                                         next_workspace holds alt+j, so
                                         C-a j goes through this
 
+each of the three herdr scripts has a `.ps1` twin next to it, which the
+windows herdr config binds instead -- see [windows](#windows).
+
 no side wraps at the outer edge: `at_edge = "stop"` in nvim,
 `@smart-splits_no_wrap` in tmux, and the herdr plugin does not wrap at all.
 anything else would make the edge depend on which app owns the pane.
@@ -659,6 +668,61 @@ shows both machines. if a saved machine ever shows "attention", `herdr
 the custom keys of this config (`C-a j`, `C-a Tab` and the resize keys) are
 shell commands, and those run on the server side: against another machine
 they work only if this repository is deployed there too.
+
+# windows
+
+the windows machine runs this repository natively, from git bash, and differs
+from the linux hosts in one package and two mechanics.
+
+> stow-deploy-windows.sh
+
+deploys the set of `stow-deploy.sh` with `herdr/` swapped for
+`.herdr-windows/`, the way a container swaps in `.herdr-devcontainer/` (and
+hidden for the same reason, see [devcontainer](#devcontainer)). `herdr/` is
+written for a linux host: fish as the pane shell, and the custom commands
+behind ctrl+arrows, `C-a <Tab>` and `C-a j/k` call bash scripts by bare name
+through `/bin/sh -lc`. herdr on windows can run neither -- a missing shell
+makes every new pane fail, and custom commands go through `cmd.exe /d /c`. so
+the windows config names `pwsh` (herdr's own fallback is "PowerShell", and
+its binary knows both `powershell.exe` and `pwsh.exe`) and binds the `.ps1`
+twins of the three scripts:
+
+    scripts/.local/bin/herdr-resize-pane.ps1
+    scripts/.local/bin/herdr-cycle-tab.ps1
+    scripts/.local/bin/herdr-cycle-workspace.ps1
+
+same decisions as the `.sh` next to each, with `ConvertFrom-Json` in place of
+jq, process names stripped of their `.exe` before the vim regex sees them, and
+the resize fraction formatted culture-invariant. they are called through pwsh
+by full path under `%USERPROFILE%\.local\bin`, because nothing puts that
+directory on the windows PATH; nvim's smart-splits spec calls the resize twin
+the same way for its `--mux-only` case. `nav-parity.sh` compares the keys
+block of `.herdr-windows/` against `herdr/` with the command lines left out,
+so the keys cannot drift while the commands differ on purpose.
+
+a machine that had `herdr/` deployed before the swap has to let go of it
+first, or stow aborts the whole run with "stowed to a different package":
+
+> stow --dir ~/dotfiles --target ~ -D herdr
+
+symlinks are the first mechanic. msys *copies* files instead of linking them
+unless `MSYS=winsymlinks:nativestrict` is set, and creating a native link
+needs developer mode (settings > system > for developers) or an elevated
+shell. the launcher sets the variable and probes for the privilege before stow
+runs, and stops with that hint when it cannot; `-n` needs neither.
+
+where the tools look is the second. nvim and nushell follow `XDG_CONFIG_HOME`,
+set once in the user environment to `c:/Users/<user>/.config`. bat does not
+read it on windows, so `BAT_CONFIG_DIR` points at `%USERPROFILE%\.config\bat`
+the same way, followed by one `bat cache --build` for the theme. nvim keeps
+its data under `%LOCALAPPDATA%\nvim-data` rather than `~/.local/share`, so
+`nav-setup.sh` does not apply here; the herdr half of it is one command:
+
+> herdr plugin link "$LOCALAPPDATA/nvim-data/lazy/smart-splits.nvim"
+
+what runs from wsl instead: `nu-regen-init.nu` (this nu spells `$nu.home-dir`
+`home-path`), `claude-bootstrap.sh` (the windows jq emits CRLF, which leaves
+a `\r` on the plugin name) and `nav-parity.sh` (tmux).
 
 # devcontainer
 

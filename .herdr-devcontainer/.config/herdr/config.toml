@@ -94,7 +94,10 @@ last_pane = "prefix+backslash"
 # tmux (spelled there with tmux's own inverted -h and -v flags).
 split_vertical = "prefix+v"
 split_horizontal = "prefix+minus"
-close_pane = "prefix+x"
+# Both closing keys sit one modifier out from their plain letter: bare x next
+# to z turned a slipped zoom into a closed pane, so shift+x closes the inner
+# thing and ctrl+x the outer one. tmux spells the pair X and C-x.
+close_pane = "prefix+shift+x"
 zoom = "prefix+z"
 cycle_pane_next = "prefix+o"
 cycle_pane_previous = "prefix+shift+o"
@@ -107,7 +110,7 @@ resize_mode = "prefix+r"
 new_tab = "prefix+c"
 next_tab = "prefix+n"
 previous_tab = "prefix+p"
-close_tab = "prefix+shift+x"
+close_tab = "prefix+ctrl+x"
 rename_tab = "prefix+comma"
 switch_tab = "prefix+1..9"
 

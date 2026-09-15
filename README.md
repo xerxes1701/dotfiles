@@ -452,14 +452,14 @@ sends a literal `C-a` for the shell's beginning-of-line, in both.
     previous pane       C-\               C-a \        C-a \
     split right         <Space>sv         C-a v        C-a v
     split below         <Space>s-         C-a -        C-a -
-    close pane          <Space>sx         C-a x        C-a x
+    close pane          <Space>sx         C-a X        C-a X
     zoom pane           <Space>sz         C-a z        C-a z
     equalize panes      <Space>se         C-a e        --
     cycle pane          <Space>so         C-a o        C-a o
     new tab             <Space>tc         C-a c        C-a c
     next / prev tab     <Space>tn tp      C-a n p      C-a n p
     next / prev tab     <Space><Tab>/<S-Tab>  C-a <Tab>/<S-Tab>  (the same)
-    close tab           <Space>tx         C-a X        C-a X
+    close tab           <Space>tx         C-a C-x      C-a C-x
     tab 1..9            <Space>1..9       C-a 1..9     C-a 1..9
     session picker      <Space>ww         C-a w        C-a w
     next / prev session --                C-a j k      C-a j k
@@ -470,8 +470,9 @@ sends a literal `C-a` for the shell's beginning-of-line, in both.
     detach              --                C-a Q        C-a Q
     help                <Space>?          C-a ?        C-a ?
 
-two conventions carry the weight: `x` closes the inner thing and `X` the outer
-one, and `Tab` means tab at every level.
+two conventions carry the weight: the closing keys go one modifier out from
+their plain letter, `X` for the inner thing and `C-x` for the outer one, so that
+a slipped `C-a z` cannot close anything; and `Tab` means tab at every level.
 
 the last two rows are herdr's alone. moving between workspaces is frequent
 enough to want it off the prefix, so it is `alt` with the same `j` and `k`;

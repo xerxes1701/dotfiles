@@ -116,3 +116,5 @@
 	path = ~/.gitconfig.local
 [gc]
 	auto = 0
+[http "https://gitlab.klafka-hinz.de/"]
+	sslCAInfo = /usr/local/share/ca-certificates/klafka-hinz-ca-bundle.crt

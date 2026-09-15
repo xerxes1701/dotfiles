@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+# Give claude-hud its own copy of the git index.
+#
+# Why: claude-hud runs `git diff --numstat HEAD` on every statusline refresh to
+# show the +/- line counts. Despite --no-optional-locks that command creates
+# <gitdir>/index.lock while it refreshes the index. On a large repo (firstx:
+# ~92k index entries, index on the 9p /mnt/c mount) it holds that lock 50-105 ms
+# per refresh. Anything else writing the index at that moment fails -- notably
+# FX-Autobuild, whose LibGit2Sharp Commands.Stage() then dies with
+# "LockedFileException: the index is locked".
+#
+# Pointing GIT_INDEX_FILE at a private copy makes the statusline lock the copy
+# instead. Output is byte-identical (verified for diff --numstat HEAD and
+# status --porcelain); the real index is never touched.
+#
+# Usage: claude-hud-git-index-shim <command> [args...]
+set -u
+
+real=$(git rev-parse --git-path index 2>/dev/null) || real=""
+if [ -n "$real" ]; then
+  case "$real" in
+    /*) ;;
+    *) real="$PWD/$real" ;;
+  esac
+  if [ -f "$real" ]; then
+    cache_dir="${XDG_CACHE_HOME:-$HOME/.cache}/claude-hud/index"
+    if mkdir -p "$cache_dir" 2>/dev/null; then
+      key=$(printf '%s' "$real" | sha256sum | cut -c1-32)
+      copy="$cache_dir/$key"
+      # Refresh only when the real index actually changed, so the common case
+      # costs nothing. Copy to a temp name first so a concurrent refresh never
+      # sees a half-written index.
+      if [ ! -f "$copy" ] || [ "$real" -nt "$copy" ]; then
+        if cp -f "$real" "$copy.tmp.$$" 2>/dev/null; then
+          mv -f "$copy.tmp.$$" "$copy" 2>/dev/null || rm -f "$copy.tmp.$$" 2>/dev/null
+        else
+          rm -f "$copy.tmp.$$" 2>/dev/null
+        fi
+      fi
+      # Only redirect if the copy is usable; otherwise fall back to normal
+      # behaviour rather than breaking the statusline.
+      [ -s "$copy" ] && export GIT_INDEX_FILE="$copy"
+    fi
+  fi
+fi
+
+exec "$@"

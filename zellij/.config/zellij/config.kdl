@@ -1,15 +1,94 @@
-// If you'd like to override the default keybindings completely, be sure to change "keybinds" to "keybinds clear-defaults=true"
+// --- unified navigation scheme ---------------------------------------------
+// Layers 0 and 1 of the scheme nvim, tmux and herdr already speak. The prefix
+// picks the level, the letter picks the action: no prefix reaches the pane grid
+// (layer 0), Ctrl a reaches panes and tabs (layer 1), and inside nvim <Space>
+// reaches the same actions one level in. The letter after Ctrl a here is the
+// letter after C-a in tmux and after the prefix in herdr.
+// See ~/dotfiles/README.md, section "navigation".
+//
+// zellij differs from the other two in three ways, all of them stated in the
+// parity table nav-parity.sh checks:
+//
+//   * it starts locked, which is this config's own choice and is kept. Ctrl z
+//     unlocks. Layer 0 is bound in locked as well, so the pane grid crosses app
+//     boundaries either way; the prefix ladder needs the unlock first.
+//   * it is modal, and its own Ctrl p/n/t/s/o mode switches are still here
+//     underneath. Only Ctrl h had to go -- that key is layer 0's in all four
+//     apps -- so move mode is on Ctrl a m instead.
+//   * it has no session actions to bind. Ctrl a j/k/N/D/W are dead here, and so
+//     is equalize; those rows are n/a for zellij.
+//
+// Additive on purpose: these blocks override zellij's defaults key by key
+// rather than clearing them, so everything not named here still works as it
+// did. The tmux mode is the one exception -- it is cleared, because its
+// defaults are tmux-emulation keys (" and % for splits) that say the opposite
+// of what this scheme says.
 keybinds {
+    // Ctrl b was zellij's own prefix: one prefix for all three multiplexers, and
+    // it is Ctrl a. Alt hjkl because alt is the workspace level in herdr, and a
+    // key cannot mean "next workspace" there and "pane below" here.
+    unbind "Ctrl b" "Alt h" "Alt j" "Alt k" "Alt l" "Alt Left" "Alt Down" "Alt Up" "Alt Right"
+
     normal {
         // uncomment this and adjust key if using copy_on_select=false
         // bind "Alt c" { Copy; }
     }
+    // Layer 0, and the reason locked mode is still usable: these eight keys are
+    // bound here as well as everywhere else. smart-splits.nvim has no zellij
+    // back-end of its own -- zellij has no @pane-is-vim to branch on -- so the
+    // vim-zellij-navigator plugin makes the same decision, forwarding the key
+    // when the focused pane holds an editor and moving zellij's focus
+    // otherwise. nav-setup.sh installs it; the alias is in `plugins` below.
     locked {
         bind "Ctrl z" { SwitchToMode "Normal"; }
-        bind "Alt h" "Alt Left" { MoveFocusOrTab "Left"; }
-        bind "Alt l" "Alt Right" { MoveFocusOrTab "Right"; }
-        bind "Alt j" "Alt Down" { MoveFocus "Down"; }
-        bind "Alt k" "Alt Up" { MoveFocus "Up"; }
+        bind "Ctrl h" {
+            MessagePlugin "vim-zellij-navigator" {
+                name "move_focus"
+                payload "left"
+            };
+        }
+        bind "Ctrl j" {
+            MessagePlugin "vim-zellij-navigator" {
+                name "move_focus"
+                payload "down"
+            };
+        }
+        bind "Ctrl k" {
+            MessagePlugin "vim-zellij-navigator" {
+                name "move_focus"
+                payload "up"
+            };
+        }
+        bind "Ctrl l" {
+            MessagePlugin "vim-zellij-navigator" {
+                name "move_focus"
+                payload "right"
+            };
+        }
+        bind "Ctrl Left" {
+            MessagePlugin "vim-zellij-navigator" {
+                name "resize"
+                payload "left"
+            };
+        }
+        bind "Ctrl Down" {
+            MessagePlugin "vim-zellij-navigator" {
+                name "resize"
+                payload "down"
+            };
+        }
+        bind "Ctrl Up" {
+            MessagePlugin "vim-zellij-navigator" {
+                name "resize"
+                payload "up"
+            };
+        }
+        bind "Ctrl Right" {
+            MessagePlugin "vim-zellij-navigator" {
+                name "resize"
+                payload "right"
+            };
+        }
     }
     resize {
         bind "Ctrl n" { SwitchToMode "Normal"; }
@@ -155,40 +234,131 @@ keybinds {
             SwitchToMode "Normal"
         }
     }
-    tmux {
-        bind "[" { SwitchToMode "Scroll"; }
-        bind "Ctrl b" { Write 2; SwitchToMode "Normal"; }
-        bind "\"" { NewPane "Down"; SwitchToMode "Normal"; }
-        bind "%" { NewPane "Right"; SwitchToMode "Normal"; }
+    // Layer 1 and 2: the prefix mode. zellij calls it "tmux" because it ships it
+    // as a tmux emulation; here it is the same ladder tmux and herdr climb, so
+    // the defaults are cleared rather than bent -- " and % would contradict the
+    // v and minus that nvim's :vsplit and :split gave the other three.
+    //
+    // Every binding returns to normal mode, except the ones meant to repeat:
+    // o cycles panes, r and m hand over to zellij's own resize and move modes.
+    tmux clear-defaults=true {
+        // The shell keeps its beginning-of-line: the prefix pressed twice sends
+        // a literal Ctrl a, which is byte 1. tmux does the same with send-prefix.
+        bind "Ctrl a" { Write 1; SwitchToMode "Normal"; }
+
+        // panes. v puts the new pane to the right and minus puts it below, which
+        // is what :vsplit and :split do in nvim. X rather than x: bare x sits
+        // next to z, and a slipped zoom must not close a pane.
+        bind "\\" { FocusLastPane; SwitchToMode "Normal"; }
+        bind "v" { NewPane "Right"; SwitchToMode "Normal"; }
+        bind "-" { NewPane "Down"; SwitchToMode "Normal"; }
+        bind "X" { CloseFocus; SwitchToMode "Normal"; }
         bind "z" { ToggleFocusFullscreen; SwitchToMode "Normal"; }
-        bind "c" { NewTab; SwitchToMode "Normal"; }
-        bind "," { SwitchToMode "RenameTab"; }
-        bind "p" { GoToPreviousTab; SwitchToMode "Normal"; }
-        bind "n" { GoToNextTab; SwitchToMode "Normal"; }
-        bind "Left" { MoveFocus "Left"; SwitchToMode "Normal"; }
-        bind "Right" { MoveFocus "Right"; SwitchToMode "Normal"; }
-        bind "Down" { MoveFocus "Down"; SwitchToMode "Normal"; }
-        bind "Up" { MoveFocus "Up"; SwitchToMode "Normal"; }
-        bind "h" { MoveFocus "Left"; SwitchToMode "Normal"; }
-        bind "l" { MoveFocus "Right"; SwitchToMode "Normal"; }
-        bind "j" { MoveFocus "Down"; SwitchToMode "Normal"; }
-        bind "k" { MoveFocus "Up"; SwitchToMode "Normal"; }
         bind "o" { FocusNextPane; }
-        bind "d" { Detach; }
-        bind "Space" { NextSwapLayout; }
-        bind "x" { CloseFocus; SwitchToMode "Normal"; }
+        bind "O" { FocusPreviousPane; }
+        bind "e" { EditScrollback; SwitchToMode "Normal"; }
+        bind "r" { SwitchToMode "Resize"; }
+        bind "P" { SwitchToMode "RenamePane"; PaneNameInput 0; }
+        bind "m" { SwitchToMode "Move"; }
+        bind "[" { SwitchToMode "Scroll"; }
+
+        // tabs. Tab means tab at every level: <Space><Tab> in nvim, C-a <Tab>
+        // in tmux and herdr. Ctrl x rather than X, because X is the pane above.
+        bind "c" { NewTab; SwitchToMode "Normal"; }
+        bind "n" { GoToNextTab; SwitchToMode "Normal"; }
+        bind "p" { GoToPreviousTab; SwitchToMode "Normal"; }
+        bind "Tab" { GoToNextTab; SwitchToMode "Normal"; }
+        bind "Shift Tab" { GoToPreviousTab; SwitchToMode "Normal"; }
+        bind "Ctrl x" { CloseTab; SwitchToMode "Normal"; }
+        bind "," { SwitchToMode "RenameTab"; TabNameInput 0; }
+        bind "1" { GoToTab 1; SwitchToMode "Normal"; }
+        bind "2" { GoToTab 2; SwitchToMode "Normal"; }
+        bind "3" { GoToTab 3; SwitchToMode "Normal"; }
+        bind "4" { GoToTab 4; SwitchToMode "Normal"; }
+        bind "5" { GoToTab 5; SwitchToMode "Normal"; }
+        bind "6" { GoToTab 6; SwitchToMode "Normal"; }
+        bind "7" { GoToTab 7; SwitchToMode "Normal"; }
+        bind "8" { GoToTab 8; SwitchToMode "Normal"; }
+        bind "9" { GoToTab 9; SwitchToMode "Normal"; }
+
+        // layer 2: sessions. The picker and detach are all of it -- zellij has
+        // no action for cycling, creating, renaming or killing a session from
+        // inside one, so C-a j/k/N/D/W have nothing to bind to.
+        bind "w" {
+            LaunchOrFocusPlugin "session-manager" {
+                floating true
+                move_to_focused_tab true
+            };
+            SwitchToMode "Normal"
+        }
+        bind "Q" { Detach; }
+
+        // The nearest thing zellij has to tmux's list-keys and herdr's help
+        // overlay: the configuration plugin, which renders the live keybindings.
+        bind "?" {
+            LaunchOrFocusPlugin "configuration" {
+                floating true
+                move_to_focused_tab true
+            };
+            SwitchToMode "Normal"
+        }
     }
     shared_except "locked" {
+        bind "Ctrl a" { SwitchToMode "Tmux"; }
+        bind "Ctrl h" {
+            MessagePlugin "vim-zellij-navigator" {
+                name "move_focus"
+                payload "left"
+            };
+        }
+        bind "Ctrl j" {
+            MessagePlugin "vim-zellij-navigator" {
+                name "move_focus"
+                payload "down"
+            };
+        }
+        bind "Ctrl k" {
+            MessagePlugin "vim-zellij-navigator" {
+                name "move_focus"
+                payload "up"
+            };
+        }
+        bind "Ctrl l" {
+            MessagePlugin "vim-zellij-navigator" {
+                name "move_focus"
+                payload "right"
+            };
+        }
+        bind "Ctrl Left" {
+            MessagePlugin "vim-zellij-navigator" {
+                name "resize"
+                payload "left"
+            };
+        }
+        bind "Ctrl Down" {
+            MessagePlugin "vim-zellij-navigator" {
+                name "resize"
+                payload "down"
+            };
+        }
+        bind "Ctrl Up" {
+            MessagePlugin "vim-zellij-navigator" {
+                name "resize"
+                payload "up"
+            };
+        }
+        bind "Ctrl Right" {
+            MessagePlugin "vim-zellij-navigator" {
+                name "resize"
+                payload "right"
+            };
+        }
         bind "Ctrl z" { SwitchToMode "Locked"; }
         bind "Ctrl q" { Quit; }
         bind "Alt f" { ToggleFloatingPanes; }
         bind "Alt n" { NewPane; }
         bind "Alt i" { MoveTab "Left"; }
         bind "Alt o" { MoveTab "Right"; }
-        bind "Alt h" "Alt Left" { MoveFocusOrTab "Left"; }
-        bind "Alt l" "Alt Right" { MoveFocusOrTab "Right"; }
-        bind "Alt j" "Alt Down" { MoveFocus "Down"; }
-        bind "Alt k" "Alt Up" { MoveFocus "Up"; }
         bind "Alt =" "Alt +" { Resize "Increase"; }
         bind "Alt -" { Resize "Decrease"; }
         bind "Alt [" { PreviousSwapLayout; }
@@ -214,12 +384,6 @@ keybinds {
     shared_except "tab" "locked" {
         bind "Ctrl t" { SwitchToMode "Tab"; }
     }
-    shared_except "move" "locked" {
-        bind "Ctrl h" { SwitchToMode "Move"; }
-    }
-    shared_except "tmux" "locked" {
-        bind "Ctrl b" { SwitchToMode "Tmux"; }
-    }
 }
 
 // Plugin aliases - can be used to change the implementation of Zellij
@@ -239,6 +403,12 @@ plugins {
     configuration location="zellij:configuration"
     plugin-manager location="zellij:plugin-manager"
     about location="zellij:about"
+
+    // Layer 0 of the navigation scheme, and the one part of it zellij
+    // cannot do alone. nav-setup.sh installs the wasm at this path and
+    // pins the version; nav-parity.sh checks that it is there. The alias
+    // keeps the path in one place -- the keybinds above name only this.
+    vim-zellij-navigator location="file:~/.local/share/zellij/plugins/vim-zellij-navigator.wasm"
 }
 
 // Plugins to load in the background when a new session starts

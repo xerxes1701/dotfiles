@@ -422,10 +422,10 @@ a linux machine. bash does not get the alias -- `~/.bashrc` is not stowed here
 
 # navigation
 
-nvim, tmux and herdr all have panes and all have tabs, and each of them used
-to name those things with different keys. this is one scheme across all five
-combinations -- nvim alone, tmux alone, herdr alone, tmux+nvim, herdr+nvim.
-nvim took precedence wherever the three disagreed.
+nvim, tmux, herdr and zellij all have panes and all have tabs, and each of them
+used to name those things with different keys. this is one scheme across all
+seven combinations -- nvim alone, each multiplexer alone, and each multiplexer
+with nvim inside it. nvim took precedence wherever the four disagreed.
 
 the prefix picks the *level*, the letter picks the *action*:
 
@@ -439,42 +439,59 @@ the prefix picks the *level*, the letter picks the *action*:
 
 so `C-a v` opens a new multiplexer pane to the right and `<Space>s v` a new
 nvim split to the right: same letter, and the level is whichever prefix your
-left hand reached for. one prefix serves both multiplexers because tmux and
-herdr are alternatives here, never nested -- and `C-a` is the one nvim had
-already given up (increment lives on `<Space>+`), which leaves `C-b` free for
-nvim's page-up instead of being swallowed by herdr's default prefix. `C-a C-a`
-sends a literal `C-a` for the shell's beginning-of-line, in both.
+left hand reached for. one prefix serves all three multiplexers because they
+are alternatives here, never nested -- and `C-a` is the one nvim had already
+given up (increment lives on `<Space>+`), which leaves `C-b` free for nvim's
+page-up instead of being swallowed by herdr's or zellij's default prefix.
+`C-a C-a` sends a literal `C-a` for the shell's beginning-of-line, in all of
+them.
 
-    action              nvim              tmux         herdr
-    ------------------  ----------------  -----------  ----------------
-    focus a pane        C-h C-j C-k C-l   (the same)   (the same)
-    resize a pane       C-arrows          (the same)   (the same)
-    previous pane       C-\               C-a \        C-a \
-    split right         <Space>sv         C-a v        C-a v
-    split below         <Space>s-         C-a -        C-a -
-    close pane          <Space>sx         C-a X        C-a X
-    zoom pane           <Space>sz         C-a z        C-a z
-    equalize panes      <Space>se         C-a e        --
-    cycle pane          <Space>so         C-a o        C-a o
-    new tab             <Space>tc         C-a c        C-a c
-    next / prev tab     <Space>tn tp      C-a n p      C-a n p
-    next / prev tab     <Space><Tab>/<S-Tab>  C-a <Tab>/<S-Tab>  (the same)
-    close tab           <Space>tx         C-a C-x      C-a C-x
-    tab 1..9            <Space>1..9       C-a 1..9     C-a 1..9
-    session picker      <Space>ww         C-a w        C-a w
-    next / prev session --                C-a j k      C-a j k
-    next / prev space   --                --           M-j / M-k
-    next / prev agent   --                --           M-S-j / M-S-k
-    new session         <Space>wN         C-a N        C-a N
-    close session       <Space>wD         C-a D        C-a D
-    detach              --                C-a Q        C-a Q
-    help                <Space>?          C-a ?        C-a ?
+    action               nvim                  tmux               herdr          zellij
+    -------------------  --------------------  -----------------  -------------  ----------
+    focus a pane         C-h C-j C-k C-l       (the same)         (the same)     (the same)
+    resize a pane        C-arrows              (the same)         (the same)     (the same)
+    previous pane        C-\                   C-a \              C-a \          C-a \
+    split right          <Space>sv             C-a v              C-a v          C-a v
+    split below          <Space>s-             C-a -              C-a -          C-a -
+    close pane           <Space>sx             C-a X              C-a X          C-a X
+    zoom pane            <Space>sz             C-a z              C-a z          C-a z
+    equalize panes       <Space>se             C-a e              --             --
+    cycle pane           <Space>so             C-a o              C-a o          C-a o
+    new tab              <Space>tc             C-a c              C-a c          C-a c
+    next / prev tab      <Space>tn tp          C-a n p            C-a n p        C-a n p
+    next / prev tab      <Space><Tab>/<S-Tab>  C-a <Tab>/<S-Tab>  (the same)     (the same)
+    close tab            <Space>tx             C-a C-x            C-a C-x        C-a C-x
+    tab 1..9             <Space>1..9           C-a 1..9           C-a 1..9       C-a 1..9
+    session picker       <Space>ww             C-a w              C-a w          C-a w
+    next / prev session  --                    C-a j k            C-a j k        --
+    next / prev space    --                    --                 M-j / M-k      --
+    next / prev agent    --                    --                 M-S-j / M-S-k  --
+    new session          <Space>wN             C-a N              C-a N          --
+    close session        <Space>wD             C-a D              C-a D          --
+    detach               --                    C-a Q              C-a Q          C-a Q
+    help                 <Space>?              C-a ?              C-a ?          C-a ?
+    lock / unlock        --                    --                 --             C-z
 
 two conventions carry the weight: the closing keys go one modifier out from
 their plain letter, `X` for the inner thing and `C-x` for the outer one, so that
 a slipped `C-a z` cannot close anything; and `Tab` means tab at every level.
 
-the last two rows are herdr's alone. moving between workspaces is frequent
+zellij is the one that starts locked, which is its own habit and not the
+scheme's: `C-z` unlocks it, `C-z` locks it again, and until it is unlocked the
+prefix ladder does nothing. layer 0 is bound in locked mode as well, so the pane
+grid crosses app boundaries either way -- that is the part you want before you
+have decided you are doing anything. it is also modal underneath, and its own
+`C-p`, `C-n`, `C-t`, `C-s` and `C-o` mode switches are left alone; only `C-h`
+had to go, because that key is layer 0's in all four apps, so move mode is on
+`C-a m` instead.
+
+the rows zellij cannot fill are the session level. it can pick a session and it
+can detach, and that is all: there is no action for cycling, creating, renaming
+or killing a session from inside one, so `C-a j k N D W` have nothing to bind
+to. `C-a e` is the other gap, in a different direction -- zellij has no equalize
+action, and `e` there is herdr's `edit-scrollback` instead.
+
+the two `M-` rows are herdr's alone. moving between workspaces is frequent
 enough to want it off the prefix, so it is `alt` with the same `j` and `k`;
 `C-a j` and `C-a k` still work, through `herdr-cycle-workspace.sh` -- herdr
 binds one key per action, and keeping the prefix form is what keeps that rung
@@ -498,12 +515,32 @@ and clears when it exits, and herdr runs a plugin that inspects the focused
 pane's foreground process. it replaced `vim-tmux-navigator`, which only knew
 tmux and decided by matching `ps` output against a regex.
 
-one checkout serves all three. nvim pins it in
+one checkout serves those three. nvim pins it in
 `nvim/.config/nvim/lua/plugins/smart-splits.lua` and `lazy-lock.json`,
 `tmux/.config/tmux/navigation.conf` sources the tmux side straight out of
 nvim's checkout instead of letting tpm clone a second copy at master HEAD, and
 herdr links its plugin against the same directory. three sides of one
 protocol; pinning two of them and not the third is how they would drift.
+
+zellij is the fourth side and the only one that checkout cannot serve: there is
+nothing in zellij for it to branch on, no pane-local option nvim can set on load
+and clear on exit. so layer 0 there runs through `vim-zellij-navigator`, a wasm
+plugin that makes the same decision from the other side -- it asks zellij which
+client is focused and forwards the key when that pane is running an editor. it
+is a release artifact rather than a checkout, so it is pinned by version and
+checksum in `nav-setup.sh`, which is also what installs it; `config.kdl` names
+it once, as a plugin alias, and the eight layer-0 binds go through that alias.
+the version pinned is the one the pinned `smart-splits.nvim` documents, and not
+the newest, for the same reason tmux does not clone its own copy.
+
+that plugin needs one thing said out loud, because nothing else in this scheme
+does: zellij grants a plugin its permissions at a `(y/n)` prompt, once per
+machine, and the prompt is only raised when something first messages the plugin
+-- so it appears on the first `C-h`, in a pane you did not ask for. answer `y`
+there. until you do, `C-h` loads the plugin and moves nothing, which from the
+keyboard is indistinguishable from a binding that was never there.
+`nav-parity.sh` looks for the answer in `~/.cache/zellij/permissions.kdl` and
+fails while it is missing.
 
 that also means smart-splits.nvim must not be lazy-loaded: `@pane-is-vim`
 stays unset until the plugin loads, and until then tmux would move its own
@@ -542,8 +579,9 @@ each of the three herdr scripts has a `.ps1` twin next to it, which the
 windows herdr config binds instead -- see [windows](#windows).
 
 no side wraps at the outer edge: `at_edge = "stop"` in nvim,
-`@smart-splits_no_wrap` in tmux, and the herdr plugin does not wrap at all.
-anything else would make the edge depend on which app owns the pane.
+`@smart-splits_no_wrap` in tmux, and neither the herdr plugin nor the zellij one
+wraps at all. anything else would make the edge depend on which app owns the
+pane.
 
 ## after a fresh deploy
 
@@ -553,9 +591,10 @@ matters once. `nav-setup.sh` is that order:
 > nav-setup.sh
 
 it runs `nvim --headless "+Lazy! install" +qa`, links herdr's plugin against
-the checkout that produces, and reports how many actions herdr ended up with
--- four, or `ctrl+hjkl` is still dead. it is idempotent, so it is also what to
-run after a `git pull` moved the pinned commit.
+the checkout that produces, downloads zellij's `vim-zellij-navigator` at the
+version and checksum pinned in the script, and reports how many actions herdr
+ended up with -- four, or `ctrl+hjkl` is still dead. it is idempotent, so it is
+also what to run after a `git pull` moved the pinned commit.
 
 it stops short of restarting the herdr server. a running server picks up the
 new plugin from `reload-config`, which the script does, but a changed prefix
@@ -577,6 +616,16 @@ reads only `~/.config/herdr/config.toml` and has no include mechanism, so those
 keys are duplicated on purpose and nothing but a check keeps them equal -- and
 verifies that the pinned commit, the checkout on disk and herdr's plugin link
 still agree.
+
+zellij is the one side it cannot ask. there is no `list-keys` there, and
+`zellij setup --check` only says whether the file parses -- which is worth
+having, since one misspelt key name takes the whole config down and not just
+that line, but it is not an inventory. so its keys are read out of the KDL,
+and to make up for that it is the one side checked in both directions: every
+key its prefix mode binds, and every `ctrl` key its shared and locked blocks
+bind, has to be a row of the table. a binding added to zellij alone is exactly
+how it drifted out of this scheme in the first place, and it is the one kind of
+drift that reading a config for named keys cannot see.
 
 # claude code
 

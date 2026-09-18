@@ -227,8 +227,10 @@ fi
 # the .ps1 twins through pwsh, since cmd.exe cannot run the bash scripts -- and
 # says so in comments of its own. So it is compared with the `command =` lines,
 # the comments and the blank lines taken out: the keys must agree, the
-# commands may not.
-block_keys() { block "$1" | grep -vE '^[[:space:]]*(#|$)|^command = '; }
+# commands may not. `type =` goes with them, because layer 0 differs in the
+# mechanism as well: the host reaches a plugin_action, and windows a shell
+# command, since smart-splits.nvim's herdr plugin is linux and macos only.
+block_keys() { block "$1" | grep -vE '^[[:space:]]*(#|$)|^(command|type) = '; }
 if diff -q <(block_keys "$herdr_host") <(block_keys "$herdr_win") >/dev/null; then
     printf '  keys block   identical in herdr/ and .herdr-windows/ (commands aside)\n'
 else

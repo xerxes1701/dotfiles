@@ -487,10 +487,6 @@ if ($DryRun) {
     if ($RealProfile -and ($Actions | Where-Object { $_.Kind -eq 'env' -or $_.Kind -eq 'unsetenv' })) {
         Write-Note 'environment variables changed: they reach terminals opened from now on, not this one'
     }
-    if (-not $Remove -and $Selected.Contains('herdr')) {
-        Write-Note 'herdr layer 0 goes through nvim''s smart-splits checkout, which only nvim creates:'
-        Write-Hint 'herdr plugin link "$env:LOCALAPPDATA\nvim-data\lazy\smart-splits.nvim"'
-    }
     if (-not $Remove -and $Selected.Contains('nushell') -and (Get-Command nu -ErrorAction SilentlyContinue)) {
         Write-Note "nushell's starship and zoxide inits are generated: nu-regen-init.nu, see the shells section of the README"
     }

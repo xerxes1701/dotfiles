@@ -118,46 +118,52 @@ goto = "prefix+g"
 settings = "prefix+s"
 edit_scrollback = "prefix+e"
 
-# Layer 0, navigation. Provided by smart-splits.nvim's bundled herdr plugin,
-# which forwards the key when the focused pane holds an editor and moves herdr
-# focus otherwise -- the same decision tmux makes through @pane-is-vim. Link it
-# once with:  herdr plugin link ~/.local/share/nvim/lazy/smart-splits.nvim
+# Layer 0, navigation. The linux configs name smart-splits.nvim's bundled herdr
+# plugin here, which forwards the key when the focused pane holds an editor and
+# moves herdr focus otherwise -- the same decision tmux makes through
+# @pane-is-vim. The plugin cannot serve this side: its manifest says
+# platforms = ["linux", "macos"], and its four actions run
+# `bash scripts/herdr-navigate.sh` with jq. herdr-navigate.ps1 makes the same
+# decision natively; the keys and what they do are unchanged, which is the
+# whole of what nav-parity.sh compares.
+#
+# On Windows herdr runs a command through `cmd.exe /d /c`, which can run
+# neither the bash scripts nor a .ps1 on its own, so each command is pwsh with
+# the .ps1 twin of the script (same name, same arguments, in the scripts
+# package next to the .sh). Full path rather than bare name: nothing puts
+# ~/.local/bin on the Windows PATH, and cmd expands %USERPROFILE% before pwsh
+# sees it. -NoProfile keeps the startup cost to pwsh itself; -ExecutionPolicy
+# Bypass because a deployed file is a symlink or sits in a junctioned
+# directory, and the policy of a machine set to RemoteSigned is not worth
+# depending on for a keybinding.
 [[keys.command]]
 key = "ctrl+h"
-type = "plugin_action"
-command = "smart-splits.nvim.left"
+type = "shell"
+command = 'pwsh -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "%USERPROFILE%\.local\bin\herdr-navigate.ps1" left'
 description = "goto left pane/split"
 
 [[keys.command]]
 key = "ctrl+j"
-type = "plugin_action"
-command = "smart-splits.nvim.down"
+type = "shell"
+command = 'pwsh -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "%USERPROFILE%\.local\bin\herdr-navigate.ps1" down'
 description = "goto lower pane/split"
 
 [[keys.command]]
 key = "ctrl+k"
-type = "plugin_action"
-command = "smart-splits.nvim.up"
+type = "shell"
+command = 'pwsh -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "%USERPROFILE%\.local\bin\herdr-navigate.ps1" up'
 description = "goto upper pane/split"
 
 [[keys.command]]
 key = "ctrl+l"
-type = "plugin_action"
-command = "smart-splits.nvim.right"
+type = "shell"
+command = 'pwsh -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "%USERPROFILE%\.local\bin\herdr-navigate.ps1" right'
 description = "goto right pane/split"
 
-# Layer 0, resizing. That plugin ships no resize actions, and herdr's own
+# Layer 0, resizing. The plugin ships no resize actions, and herdr's own
 # resize_pane_* would take the keys before an nvim pane could resize its own
-# splits, so this makes the same nvim-or-not decision first.
-#
-# On Windows herdr runs these through `cmd.exe /d /c`, which can run neither
-# the bash scripts nor a .ps1 on its own, so each command is pwsh with the
-# .ps1 twin of the script (same name, same arguments, in the scripts package
-# next to the .sh). Full path rather than bare name: nothing puts ~/.local/bin
-# on the Windows PATH, and cmd expands %USERPROFILE% before pwsh sees it.
-# -NoProfile keeps the startup cost to pwsh itself; -ExecutionPolicy Bypass
-# because a stowed file is a symlink, and the policy of a machine set to
-# RemoteSigned is not worth depending on for a keybinding.
+# splits, so this makes the same nvim-or-not decision first, in the twin next
+# to the one above.
 [[keys.command]]
 key = "ctrl+left"
 type = "shell"

@@ -582,7 +582,9 @@ two gaps in that plugin are filled here:
                                         C-a j goes through this
 
 each of the three herdr scripts has a `.ps1` twin next to it, which the
-windows herdr config binds instead -- see [windows](#windows).
+windows herdr config binds instead -- and layer 0 has a fourth twin there,
+`herdr-navigate.ps1`, because the plugin that provides it here is linux and
+macos only. see [windows](#windows).
 
 no side wraps at the outer edge: `at_edge = "stop"` in nvim,
 `@smart-splits_no_wrap` in tmux, and neither the herdr plugin nor the zellij one
@@ -796,23 +798,33 @@ commands behind ctrl+arrows, `C-a <Tab>` and `C-a j/k` call bash scripts by
 bare name through `/bin/sh -lc`. herdr on windows can run neither -- a missing
 shell makes every new pane fail, and custom commands go through `cmd.exe /d
 /c`. so the windows config names `pwsh` (herdr's own fallback is "PowerShell",
-and its binary knows both `powershell.exe` and `pwsh.exe`) and binds the `.ps1`
-twins of the three scripts:
+and its binary knows both `powershell.exe` and `pwsh.exe`) and binds `.ps1`
+twins:
 
     scripts/.local/bin/herdr-resize-pane.ps1
     scripts/.local/bin/herdr-cycle-tab.ps1
     scripts/.local/bin/herdr-cycle-workspace.ps1
+    scripts/.local/bin/herdr-navigate.ps1
 
 same decisions as the `.sh` next to each, with `ConvertFrom-Json` in place of
 jq, process names stripped of their `.exe` before the vim regex sees them, and
-the resize fraction formatted culture-invariant. they are called through pwsh
+the resize fraction formatted culture-invariant. the fourth has no `.sh` here
+because its original is not ours: layer 0 on linux is smart-splits.nvim's
+bundled herdr plugin, whose manifest reads `platforms = ["linux", "macos"]` and
+whose four actions run `bash scripts/herdr-navigate.sh` with jq. neither half
+of that is available to herdr on windows, which runs a command through
+`cmd.exe`, so `herdr-navigate.ps1` makes the plugin's decision itself -- vim in
+the pane gets the key, otherwise the neighbouring pane gets the focus, and at
+the edge of the grid the key falls back into the pane so that `ctrl+l` still
+clears. they are called through pwsh
 by full path under `%USERPROFILE%\.local\bin`, because nothing puts that
 directory on the windows PATH; nvim's smart-splits spec calls the resize twin
 the same way for its `--mux-only` case. that path is also why the powershell
 script deploys `scripts` although most of it is bash -- the keys have to find
 the twins where stow puts them. `nav-parity.sh` compares the keys block of
-`.herdr-windows/` against `herdr/` with the command lines left out, so the keys
-cannot drift while the commands differ on purpose.
+`.herdr-windows/` against `herdr/` with the `command =` and `type =` lines left
+out, so the keys cannot drift while the mechanism behind them differs on
+purpose.
 
 the powershell script points `HERDR_CONFIG_PATH` at that file (herdr honours it
 since 0.9.1) rather than junctioning `~\.config\herdr`: herdr writes its
@@ -834,10 +846,10 @@ those three the same way. variables written to the user environment reach
 terminals opened after the deploy, not the one it ran in.
 
 nvim keeps its data under `%LOCALAPPDATA%\nvim-data` rather than
-`~/.local/share`, so `nav-setup.sh` does not apply here; the herdr half of it
-is one command, and layer 0 stays dead until it has run:
-
-> herdr plugin link "$LOCALAPPDATA/nvim-data/lazy/smart-splits.nvim"
+`~/.local/share`, so `nav-setup.sh` does not apply here -- and neither does its
+herdr half: that links a plugin this platform cannot load, which is why layer 0
+is a twin instead. nothing on the windows side needs the smart-splits checkout,
+so nothing there needs nvim.
 
 what runs from wsl instead: `nu-regen-init.nu` (this nu spells `$nu.home-dir`
 `home-path`), `claude-bootstrap.sh` (the windows jq emits CRLF, which leaves

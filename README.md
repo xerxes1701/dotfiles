@@ -19,6 +19,12 @@ and on a windows machine, from git bash, which replaces one -- see
 
 > scripts/.local/bin/stow-deploy-windows.sh
 
+on a windows account that may not create symlinks, that one cannot run, and a
+powershell script deploys the same set with junctions and environment variables
+instead:
+
+> scripts/.local/bin/deploy-windows-noadmin.ps1
+
 `scripts/` is a package like the others: its executables live in `.local/bin`
 and the libraries they source in `.local/lib/dotfiles`, so after the first
 deploy every script here is on `PATH` under its bare name and the rest of this
@@ -612,10 +618,11 @@ it reads nvim's `keybindings.yaml`, starts a throwaway tmux server on a private
 socket and asks it to `list-keys`, and reads both herdr configs, then reports
 every row of the table above that is missing on a side that should have it. it
 also diffs the keys block of `herdr/` against `.herdr-devcontainer/` -- herdr
-reads only `~/.config/herdr/config.toml` and has no include mechanism, so those
-keys are duplicated on purpose and nothing but a check keeps them equal -- and
-verifies that the pinned commit, the checkout on disk and herdr's plugin link
-still agree.
+has no include mechanism, so those keys are duplicated on purpose and nothing
+but a check keeps them equal -- and the same block against `.herdr-windows/`
+with the `command =` lines taken out, since there the same keys reach the
+`.ps1` twins. and it verifies that the pinned commit, the checkout on disk and
+herdr's plugin link still agree.
 
 zellij is the one side it cannot ask. there is no `list-keys` there, and
 `zellij setup --check` only says whether the file parses -- which is worth
@@ -721,20 +728,75 @@ they work only if this repository is deployed there too.
 
 # windows
 
-the windows machine runs this repository natively, from git bash, and differs
-from the linux hosts in one package and two mechanics.
+the windows machine runs this repository natively, out of its own checkout at
+`%USERPROFILE%\dotfiles`, and differs from the linux hosts in one package and
+two mechanics. it has two launchers, and which one a machine uses is a question
+about the account rather than about the packages: they end in the same layout.
 
 > stow-deploy-windows.sh
 
-deploys the set of `stow-deploy.sh` with `herdr/` swapped for
-`.herdr-windows/`, the way a container swaps in `.herdr-devcontainer/` (and
-hidden for the same reason, see [devcontainer](#devcontainer)). `herdr/` is
-written for a linux host: fish as the pane shell, and the custom commands
-behind ctrl+arrows, `C-a <Tab>` and `C-a j/k` call bash scripts by bare name
-through `/bin/sh -lc`. herdr on windows can run neither -- a missing shell
-makes every new pane fail, and custom commands go through `cmd.exe /d /c`. so
-the windows config names `pwsh` (herdr's own fallback is "PowerShell", and
-its binary knows both `powershell.exe` and `pwsh.exe`) and binds the `.ps1`
+the one to prefer, run from git bash. it deploys the set of `stow-deploy.sh`
+with `herdr/` swapped for `.herdr-windows/`, the way a container swaps in
+`.herdr-devcontainer/` (and hidden for the same reason, see
+[devcontainer](#devcontainer)).
+
+symlinks are the first mechanic, and what this launcher needs. msys *copies*
+files instead of linking them unless `MSYS=winsymlinks:nativestrict` is set,
+and creating a native link needs developer mode (settings > system > for
+developers) or an elevated shell. the launcher sets the variable and probes for
+the privilege before stow runs, and stops with that hint when it cannot; `-n`
+needs neither.
+
+a machine that had `herdr/` deployed before the swap has to let go of it
+first, or stow aborts the whole run with "stowed to a different package":
+
+> stow --dir ~/dotfiles --target ~ -D herdr
+
+> deploy-windows-noadmin.ps1
+
+the fallback for an account that may not create symlinks at all -- a work
+machine that is neither its own administrator nor in developer mode, which is
+what this one is. `-n`, `-List`, `-Remove` and package names work as with the
+stow script; the policy-bypass call is in the script's header. two things need
+no privilege and cover every package windows reads:
+
+- a directory package -- `nvim`, `wezterm`, `komorebi`, `kmonad`, `scoop`,
+  `nushell`, `yazi`, `fastfetch`, `bat`, `scripts` -- becomes an ntfs junction
+  under the profile into the checkout: the folded link stow makes for it on
+  linux.
+- a single-file package is pointed at with the variable its tool reads,
+  `STARSHIP_CONFIG` and `WHKD_CONFIG_HOME`. git gets a two-line `~\.gitconfig`
+  that includes `git\.gitconfig` from the checkout, because tortoisegit and
+  other libgit2 clients read the file and know nothing of `GIT_CONFIG_GLOBAL`.
+
+what the two of them leave behind is the same, which is what lets one set of
+configs serve both:
+
+    stow-deploy-windows.sh              deploy-windows-noadmin.ps1
+    ~\.config\<pkg>        symlink      ~\.config\<pkg>       junction
+    ~\.local\bin\<file>    symlinks     ~\.local\bin          junction
+    ~\.config\herdr\...    symlink      HERDR_CONFIG_PATH
+    ~\.gitconfig           symlink      ~\.gitconfig          include stub
+    ~\.config\starship...  symlink      STARSHIP_CONFIG
+
+they write the same paths, so a machine keeps one of them at a time: undeploy
+the other first, with `stow-deploy-windows.sh -D` or
+`deploy-windows-noadmin.ps1 -Remove`. each reports the other's links as a
+conflict with that hint rather than replacing them.
+
+the packages the powershell script leaves on the linux side, and why, are
+listed in its table. `claude` is one of them: `~\.claude` on windows is a
+separate claude code install with its own settings and a powershell hook, where
+this package's hook and status line are bash and bun.
+
+## the herdr package
+
+`herdr/` is written for a linux host: fish as the pane shell, and the custom
+commands behind ctrl+arrows, `C-a <Tab>` and `C-a j/k` call bash scripts by
+bare name through `/bin/sh -lc`. herdr on windows can run neither -- a missing
+shell makes every new pane fail, and custom commands go through `cmd.exe /d
+/c`. so the windows config names `pwsh` (herdr's own fallback is "PowerShell",
+and its binary knows both `powershell.exe` and `pwsh.exe`) and binds the `.ps1`
 twins of the three scripts:
 
     scripts/.local/bin/herdr-resize-pane.ps1
@@ -746,33 +808,56 @@ jq, process names stripped of their `.exe` before the vim regex sees them, and
 the resize fraction formatted culture-invariant. they are called through pwsh
 by full path under `%USERPROFILE%\.local\bin`, because nothing puts that
 directory on the windows PATH; nvim's smart-splits spec calls the resize twin
-the same way for its `--mux-only` case. `nav-parity.sh` compares the keys
-block of `.herdr-windows/` against `herdr/` with the command lines left out,
-so the keys cannot drift while the commands differ on purpose.
+the same way for its `--mux-only` case. that path is also why the powershell
+script deploys `scripts` although most of it is bash -- the keys have to find
+the twins where stow puts them. `nav-parity.sh` compares the keys block of
+`.herdr-windows/` against `herdr/` with the command lines left out, so the keys
+cannot drift while the commands differ on purpose.
 
-a machine that had `herdr/` deployed before the swap has to let go of it
-first, or stow aborts the whole run with "stowed to a different package":
+the powershell script points `HERDR_CONFIG_PATH` at that file (herdr honours it
+since 0.9.1) rather than junctioning `~\.config\herdr`: herdr writes its
+socket, logs and session next to its config, and a junction would put all of it
+in the checkout -- the same reason the stow deploys keep herdr unfolded. a
+running server has to be restarted to see the variable (`herdr server stop`,
+then launch again); `herdr server reload-config` re-reads only the file it
+started with.
 
-> stow --dir ~/dotfiles --target ~ -D herdr
+## where the tools look
 
-symlinks are the first mechanic. msys *copies* files instead of linking them
-unless `MSYS=winsymlinks:nativestrict` is set, and creating a native link
-needs developer mode (settings > system > for developers) or an elevated
-shell. the launcher sets the variable and probes for the privilege before stow
-runs, and stops with that hint when it cannot; `-n` needs neither.
+nvim, nushell, scoop and fastfetch follow `XDG_CONFIG_HOME`, set in the user
+environment to `%USERPROFILE%\.config` -- by hand after a stow deploy, by the
+powershell script otherwise. komorebi and yazi have no xdg lookup at all and
+need `KOMOREBI_CONFIG_HOME` and `YAZI_CONFIG_HOME`, and bat does not read it on
+windows either, so `BAT_CONFIG_DIR` points at `%USERPROFILE%\.config\bat`
+followed by one `bat cache --build` for the theme; the powershell script sets
+those three the same way. variables written to the user environment reach
+terminals opened after the deploy, not the one it ran in.
 
-where the tools look is the second. nvim and nushell follow `XDG_CONFIG_HOME`,
-set once in the user environment to `c:/Users/<user>/.config`. bat does not
-read it on windows, so `BAT_CONFIG_DIR` points at `%USERPROFILE%\.config\bat`
-the same way, followed by one `bat cache --build` for the theme. nvim keeps
-its data under `%LOCALAPPDATA%\nvim-data` rather than `~/.local/share`, so
-`nav-setup.sh` does not apply here; the herdr half of it is one command:
+nvim keeps its data under `%LOCALAPPDATA%\nvim-data` rather than
+`~/.local/share`, so `nav-setup.sh` does not apply here; the herdr half of it
+is one command, and layer 0 stays dead until it has run:
 
 > herdr plugin link "$LOCALAPPDATA/nvim-data/lazy/smart-splits.nvim"
 
 what runs from wsl instead: `nu-regen-init.nu` (this nu spells `$nu.home-dir`
 `home-path`), `claude-bootstrap.sh` (the windows jq emits CRLF, which leaves
 a `\r` on the plugin name) and `nav-parity.sh` (tmux).
+
+## junctions, and line endings
+
+two things to know about a junction. git run inside `~\.config\nvim` does not
+find the checkout, because windows reports the junction path as the working
+directory and there is no `.git` above it -- run git in the checkout. and
+whatever a tool writes into its junctioned directory lands in the checkout,
+exactly as with a folded stow link; nushell's generated files are covered by
+`.gitignore`, and `~\.local\bin` belongs to the repository entirely, so
+anything else that wants a place in there wants `~\.local\bin` on the linux
+side instead. a junction whose package moved inside the checkout is repaired by
+the next run, like a stow link is.
+
+`.gitattributes` pins every file to lf, so git for windows -- `core.autocrlf =
+true` in its system config -- does not check the shell scripts out with crlf,
+and an editor that saves crlf does not turn into a whole-file diff.
 
 # devcontainer
 
@@ -846,9 +931,10 @@ one of its own:
 `herdr/` is the herdr config for this machine, `.herdr-devcontainer/` the
 one for a container: a different theme, a different accent and a
 `DEVCONTAINER` badge in the tab bar, so the two instances are never mistaken
-for each other. a second config is the only way to get that -- herdr reads
-only `~/.config/herdr/config.toml`, with no include mechanism, no
-config-path variable and no project-local file.
+for each other. a second config is the only way to get that -- herdr has no
+include mechanism and no project-local file. (since 0.9.1 it does honour a
+`HERDR_CONFIG_PATH` variable, which is how the windows side gets its own
+config, see [windows](#windows); the container keeps the stow route.)
 
 that second package has to be a *hidden* directory. `stow */` matches no
 dot-directory, so this machine deploys `herdr/` and ignores it; two visible

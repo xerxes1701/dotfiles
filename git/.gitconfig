@@ -63,6 +63,7 @@
 	ds    = dshow
 	dl    = dlog
 	dmm   = "!git d $(git merge-base $(git main-branch) HEAD) HEAD"
+	ddmm  = "!git dd $(git merge-base $(git main-branch) HEAD) HEAD"
 	dmmf  = "!f() { git dmm --name-only | fzf -m --preview 'git dmm -- {} | delta --width $FZF_PREVIEW_COLUMNS' --preview-window 'up,80%'; }; f"
 
 	# --- log ---

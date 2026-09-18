@@ -13,6 +13,13 @@
 # variable and probes for the privilege before stow touches anything, because
 # stow's own failure modes for both are a silent copy or a half-done run.
 #
+# An account that has neither -- a work machine that is not its own admin --
+# deploys with deploy-windows-noadmin.ps1 instead, which reaches the same
+# layout with junctions and environment variables. This one is the launcher to
+# prefer where the privilege is there. Both write the same paths, so a machine
+# has one of them at a time: undeploy the other first, with `-D` here or
+# `-Remove` there.
+#
 # Stowing is not the whole story for the navigation scheme: herdr consumes
 # nvim's smart-splits.nvim checkout, which only nvim can create -- on Windows
 # under %LOCALAPPDATA%\nvim-data, not ~/.local/share, so nav-setup.sh does not

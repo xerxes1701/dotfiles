@@ -113,6 +113,7 @@
 	incoming-first-pretty = !git log -1 --oneline --decorate $(git rev-list --reverse HEAD..@{u} | head -n1)
 	incoming-first-hash = !git log -1 --format=%h $(git rev-list --reverse HEAD..@{u} | head -n1)
 	check-ff = merge-base --is-ancestor HEAD 
+	zp = "!f() { b=$(git symbolic-ref --quiet --short HEAD 2>/dev/null || git rev-parse --short HEAD); b=$(printf %s \"$b\" | tr / -); s=$(git rev-parse --short HEAD); n=\"$b@$s\"; git archive --format=zip -o \"$n.zip\" HEAD && echo \"$n.zip\"; }; f"
 
 # Machine-local: user.email and the platform-specific `fh`. Kept last so it wins.
 [include]

@@ -1,0 +1,13 @@
+# Every file is text with LF endings, on every platform. The Windows checkout
+# is what deploy-windows.ps1 links into the profile, and git for windows ships
+# core.autocrlf=true in its system config, which would otherwise check the
+# shell scripts out with CRLF -- bash rejects those -- and turn a file an
+# editor saved with CRLF into a whole-file diff. PowerShell reads LF fine.
+* text=auto eol=lf
+
+# Binary content is left alone.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary

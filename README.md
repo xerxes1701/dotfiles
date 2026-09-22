@@ -871,6 +871,49 @@ the next run, like a stow link is.
 true` in its system config -- does not check the shell scripts out with crlf,
 and an editor that saves crlf does not turn into a whole-file diff.
 
+## ssh into the windows host from wsl
+
+`ssh win` from the wsl distro reaches the windows account it runs under, for
+files, `pwsh`, and everything a shell over there does. the account is not its
+own administrator, so the openssh server windows ships as an optional feature
+-- a system service on port 22, a firewall rule, `HKLM` -- is out of reach,
+and two scripts stand in for it:
+
+> windows-sshd-user.ps1 [-Install | -Status | -Stop]
+
+the windows side. `-Install`, once, fetches the win32-openssh release zip into
+`%LOCALAPPDATA%\Programs\OpenSSH-Win64` (the client windows ships has no
+`sshd.exe`), makes a host key and an `sshd_config` under `~\.ssh\sshd`, and
+checks the config with `sshd -t`. without a switch it starts `sshd.exe` as a
+hidden process of the logged-on user, on port 2222, bound to the `vEthernet
+(WSL ...)` adapter alone: nothing on the lan can reach it, and no firewall rule
+is needed. a non-system sshd can log in only the account it runs as, with a
+key, which is all this is for -- the wsl `~/.ssh/id_ed25519.pub` goes into
+`~\.ssh\authorized_keys` on windows by hand. nothing autostarts it, because a
+process of the session dies with the session and the wsl adapter it binds to
+exists only while wsl runs; instead:
+
+> windows-host-ssh-proxy.sh
+
+the wsl side, a `ProxyCommand` like the devcontainer one (see [reaching a
+devcontainer over ssh](#reaching-a-devcontainer-over-ssh)): before every
+connection it runs the launcher through interop, which is a no-op while sshd
+is up and a restart when the adapter's address moved, then pipes to that
+address -- the default gateway of the distro, looked up rather than written
+down. `~/.ssh/config.d/windows-host.conf` holds the block, per machine:
+
+    Host win
+        Port 2222
+        User <windows account>
+        IdentityFile ~/.ssh/id_ed25519
+        IdentitiesOnly yes
+        ProxyCommand ~/dotfiles/scripts/.local/bin/windows-host-ssh-proxy.sh %h %p
+
+`HKLM:\SOFTWARE\OpenSSH\DefaultShell` is not writable either, so a session
+lands in `cmd.exe`; `ssh win pwsh` gets the other one. wsl2 in nat mode is
+assumed -- under `networkingMode=mirrored` the host is `127.0.0.1` and the
+proxy's gateway lookup is the wrong address.
+
 # devcontainer
 
 the devcontainers of the projects here stow this repo and install neovim and

@@ -37,6 +37,12 @@ self=$(readlink -f -- "$0" 2>/dev/null) || self=$0
 # other values the alias is skipped and only a published port can be used.
 user=${HERDR_MACHINE_USER-vscode}
 port=${HERDR_MACHINE_PORT-2222}
+# Whether that port was named rather than assumed. A devcontainer the CLI built
+# gets 2222 from its own .devcontainer; one docker compose built publishes its
+# sshd from port 22 instead, and cannot use 2222 on this machine at all --
+# Windows and WSL share one loopback and the Windows sshd already holds it. So
+# 22 is tried after 2222 unless --port settled the question.
+port_explicit=
 
 US=$(printf '\037')
 RS=$(printf '\036')
@@ -109,6 +115,11 @@ published_addr() {
               print host ":" $NF; exit }'
 }
 
+# The ports sshd may be listening on inside the container, most likely first.
+candidate_ports() {
+    if [ -n "$port_explicit" ]; then printf '%s\n' "$1"; else printf '%s\n22\n' "$1"; fi
+}
+
 # A Host block in ~/.ssh/config whose resolved hostname, port and user are the
 # ones we would dial. `ssh -G` is what does the resolving, so an alias that
 # reaches the container through an Include, a Match block or a HostName
@@ -159,6 +170,20 @@ worktree_name() {
         | sed 's![\\/]$!!; s!.*[\\/]!!'
 }
 
+# The name a container is known by here: its worktree, and -- for a container
+# docker compose created, which carries no local_folder label because the
+# devcontainer CLI never made it -- the compose project and service, which is
+# `activitytracer-frontend`, the same name the project's own ssh alias has.
+machine_name() {
+    mn_name=$(worktree_name "$1")
+    if [ -z "$mn_name" ]; then
+        mn_name=$(docker inspect "$1" --format \
+            '{{ index .Config.Labels "com.docker.compose.project" }}{{ if index .Config.Labels "com.docker.compose.service" }}-{{ index .Config.Labels "com.docker.compose.service" }}{{ end }}' \
+            2>/dev/null)
+    fi
+    printf '%s\n' "$mn_name"
+}
+
 # Whether ssh resolves `<name>.dc` to the alias devcontainer-ssh-setup.sh
 # installs -- the proxy as ProxyCommand, and the port and user this run wants,
 # since the alias hard-codes both. Asked of `ssh -G`, like ssh_config_host, so
@@ -194,7 +219,10 @@ resolve_target() {
         printf 'bridge %s %s\n' "$rt_name.dc" "${rt_ip:-?}:$rt_port"
         return 0
     fi
-    rt_addr=$(published_addr "$rt_id" "$rt_port")
+    for rt_p in $(candidate_ports "$rt_port"); do
+        rt_addr=$(published_addr "$rt_id" "$rt_p")
+        [ -z "$rt_addr" ] || break
+    done
     if [ -n "$rt_addr" ]; then
         printf 'published %s %s\n' "$(ssh_target "$rt_addr" "$rt_user")" "$rt_addr"
         return 0
@@ -303,7 +331,10 @@ H${US}user${US}{{ if .Config.User }}{{ .Config.User }}{{ else }}root{{ end }}${R
 
     pv_herdr=$(remote_herdr_version "$pv_id")
     if [ -z "$pv_herdr" ]; then
-        printf '  %-9s %snot installed%s\n' herdr "$c_bad" "$c_off"
+        # Not a blocker since 0.9.0: `herdr machine add` installs the server it
+        # needs on the other side, after asking.
+        printf '  %-9s %snot installed -- machine add offers to install it%s\n' \
+            herdr "$c_dim" "$c_off"
     elif version_ge_090 "$pv_herdr"; then
         printf '  %-9s %s%s%s\n' herdr "$c_ok" "$pv_herdr" "$c_off"
     else
@@ -349,7 +380,8 @@ query= exact= label= session= dry=
 while [ $# -gt 0 ]; do
     case $1 in
         -u|--user)      [ $# -ge 2 ] || die "$1 needs a user";      user=$2;    shift 2 ;;
-        -p|--port)      [ $# -ge 2 ] || die "$1 needs a port";      port=$2;    shift 2 ;;
+        -p|--port)      [ $# -ge 2 ] || die "$1 needs a port";      port=$2
+                        port_explicit=1; shift 2 ;;
         -l|--label)     [ $# -ge 2 ] || die "$1 needs a label";     label=$2;   shift 2 ;;
         -s|--session)   [ $# -ge 2 ] || die "$1 needs a name";      session=$2; shift 2 ;;
         -c|--container) [ $# -ge 2 ] || die "$1 needs a filter";    query=$2;   shift 2 ;;
@@ -373,18 +405,29 @@ version_ge_090 "$herdr_local" || die \
     'detach from the session, then: herdr update'
 
 # --- the list --------------------------------------------------------------
-# Only devcontainers, by the label the dc_ launchers pick by, and only running
-# ones: there is no sshd to reach in a stopped container. Use
-# devcontainer-herdr.sh (which starts one) or dsh if that is what you meant.
+# Only devcontainers, and only running ones: there is no sshd to reach in a
+# stopped container. Use devcontainer-herdr.sh (which starts one) or dsh if
+# that is what you meant.
+#
+# Two labels, because there are two ways a devcontainer gets created. The CLI
+# and VS Code stamp `devcontainer.local_folder` on the containers they build --
+# the label the dc_ launchers pick by. A container docker compose brought up
+# from a `dockerComposeFile` devcontainer.json never passes through that code
+# path and carries only `devcontainer.metadata`, from its image. Both are
+# listed, deduplicated on the id, because a container can carry both.
 
-fmt='{{.ID}}\t{{.Label "devcontainer.local_folder"}}\t{{.Names}}\t{{.Status}}'
-# The label is a host path, and its last segment -- the worktree -- is the part
-# that identifies the container (worktree_name, inlined here because fzf
-# re-runs this string on ctrl-r). Windows separators included, since these
+fmt='{{.ID}}\t{{.Label "devcontainer.local_folder"}}\t{{.Label "com.docker.compose.project"}}\t{{.Label "com.docker.compose.service"}}\t{{.Names}}\t{{.Status}}'
+# The local_folder label is a host path, and its last segment -- the worktree --
+# is the part that identifies the container; a compose container has the
+# project and service instead. That is machine_name, inlined here because fzf
+# re-runs this string on ctrl-r. Windows separators included, since these
 # labels come from Windows folders.
-list="docker ps --filter label=devcontainer.local_folder --format '$fmt' \
-  | awk -F'\t' '{ n = \$2; sub(/[\\\\\\/]\$/, \"\", n); sub(/.*[\\\\\\/]/, \"\", n)
-                  print \$1 \"\t\" n \"\t\" \$3 \"\t\" \$4 }' \
+list="{ docker ps --filter label=devcontainer.local_folder --format '$fmt'
+    docker ps --filter label=devcontainer.metadata --format '$fmt'; } \
+  | awk -F'\t' '!seen[\$1]++ {
+                  n = \$2; sub(/[\\\\\\/]\$/, \"\", n); sub(/.*[\\\\\\/]/, \"\", n)
+                  if (n == \"\") n = (\$3 == \"\" ? \$5 : \$3 \"-\" \$4)
+                  print \$1 \"\t\" n \"\t\" \$5 \"\t\" \$6 }' \
   | column -t -s '$TAB'"
 
 rows=$(eval "$list") || die 'docker ps failed'
@@ -427,7 +470,7 @@ id=${pick%% *}
 [ -n "$id" ] || die 'no container selected'
 # The worktree name, for the sidebar label -- the same segment the list shows,
 # and the same name the *.dc alias is built from.
-[ -n "$label" ] || label=$(worktree_name "$id")
+[ -n "$label" ] || label=$(machine_name "$id")
 [ -n "$label" ] || label=$(docker inspect "$id" --format '{{ .Name }}' \
     | sed 's!^/!!')
 
@@ -478,13 +521,17 @@ herdr_remote=$(probe -o BatchMode=yes) || {
                 "ssh $target failed" "$herdr_remote"
             ;;
         *'herdr: command not found'*|*'herdr: not found'*)
-            # ssh itself worked -- this is the remote PATH, which for a
+            # ssh itself worked, so this is only the remote PATH -- which for a
             # non-interactive session comes from /etc/environment and sshd's
-            # own default, not from the container's shell config.
-            die "ssh $target works, but herdr is not on its PATH" \
-                "$herdr_remote" \
-                'the image installs it in /usr/local/bin; check the container:' \
-                "  docker exec $id command -v herdr"
+            # own default, not from the container's shell config. An image that
+            # installs herdr (in /usr/local/bin, as the firstx devcontainer
+            # does) answers here. One that does not is no longer a dead end:
+            # since 0.9.0 `herdr machine add` installs the server it needs on
+            # the other side, and asks before it does. So say it, do not stop.
+            printf '%sherdr is not installed in %s -- machine add will offer\n' \
+                "$c_dim" "$label"
+            printf 'to install it; answer its prompt%s\n' "$c_off"
+            herdr_remote=
             ;;
         *)
             hint_proxy=
@@ -502,15 +549,20 @@ herdr_remote=$(probe -o BatchMode=yes) || {
 # ssh's own chatter arrives on the same stream as the answer -- "Warning:
 # Permanently added ..." right after the accept above -- so keep only the line
 # shaped like a version, as remote_herdr_version does for `docker exec`.
-herdr_version=$(printf '%s\n' "$herdr_remote" | LC_ALL=C awk '
-    $1 == "herdr" && $2 ~ /^[0-9]+\.[0-9]+/ { print $1 " " $2; exit }')
-[ -n "$herdr_version" ] || die "ssh $target works, but 'herdr --version' said:" \
-    "$herdr_remote"
+# set -u is on, and the summary below prints this whether or not there was a
+# remote herdr to ask.
+herdr_version="no herdr yet"
+if [ -n "$herdr_remote" ]; then
+    herdr_version=$(printf '%s\n' "$herdr_remote" | LC_ALL=C awk '
+        $1 == "herdr" && $2 ~ /^[0-9]+\.[0-9]+/ { print $1 " " $2; exit }')
+    [ -n "$herdr_version" ] || die "ssh $target works, but 'herdr --version' said:" \
+        "$herdr_remote"
 
-version_ge_090 "$herdr_version" || die \
-    "herdr in $label is $herdr_version -- saved machines need 0.9.0" \
-    'bump HERDR_VERSION in its .devcontainer/Dockerfile and rebuild' \
-    'a 0.9.0 client can only show an older server as Attention'
+    version_ge_090 "$herdr_version" || die \
+        "herdr in $label is $herdr_version -- saved machines need 0.9.0" \
+        'bump HERDR_VERSION in its .devcontainer/Dockerfile and rebuild' \
+        'a 0.9.0 client can only show an older server as Attention'
+fi
 
 # --- add -------------------------------------------------------------------
 

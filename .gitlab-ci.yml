@@ -1,0 +1,28 @@
+# Compiles the Typst fixture that verify/check.lua opens, so a broken fixture
+# (or a typst release that stops accepting it) shows up in the pipeline and
+# not only when someone runs the neovim verify script locally.
+
+stages:
+  - build
+
+variables:
+  TYPST_ROOT: nvim/.config/nvim/verify/fixture-typst
+  TYPST_MAIN: main.typ
+
+typst:compile:
+  stage: build
+  image:
+    name: ghcr.io/typst/typst:latest
+    entrypoint: [""]
+  script:
+    - typst --version
+    - typst compile --root "$TYPST_ROOT" "$TYPST_ROOT/$TYPST_MAIN" "$TYPST_ROOT/main.pdf"
+  artifacts:
+    paths:
+      - $TYPST_ROOT/main.pdf
+    expire_in: 1 week
+  rules:
+    - changes:
+        - .gitlab-ci.yml
+        - nvim/.config/nvim/verify/fixture-typst/**/*
+    - if: $CI_PIPELINE_SOURCE == "web"

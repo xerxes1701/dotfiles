@@ -38,8 +38,14 @@ export OLLAMA_KEEP_ALIVE=30m
 # socket exists and nothing has set SSH_AUTH_SOCK already -- a devcontainer
 # forwards the host's agent and a desktop session may bring its own -- so this
 # never displaces an agent, it only supplies one where there was none.
-if [ -z "${SSH_AUTH_SOCK:-}" ] && [ -S "${XDG_RUNTIME_DIR:-/nonexistent}/ssh-agent.socket" ]; then
-  export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"
+#
+# XDG_RUNTIME_DIR is unset on a WSL distro that logs in without pam_systemd,
+# while the socket is there all the same, so /run/user/<uid> -- the path the
+# unit's %t expands to -- is the fallback.
+if [ -z "${SSH_AUTH_SOCK:-}" ]; then
+  agent_dir=${XDG_RUNTIME_DIR:-/run/user/$(id -u)}
+  [ -S "$agent_dir/ssh-agent.socket" ] && export SSH_AUTH_SOCK="$agent_dir/ssh-agent.socket"
+  unset agent_dir
 fi
 
 # ===== path =====

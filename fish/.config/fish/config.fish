@@ -45,8 +45,18 @@ set -gx OLLAMA_KEEP_ALIVE 30m
 # socket exists and nothing has set SSH_AUTH_SOCK already -- a devcontainer
 # forwards the host's agent and a desktop session may bring its own -- so this
 # never displaces an agent, it only supplies one where there was none.
-if not set -q SSH_AUTH_SOCK; and set -q XDG_RUNTIME_DIR; and test -S "$XDG_RUNTIME_DIR/ssh-agent.socket"
-  set -gx SSH_AUTH_SOCK "$XDG_RUNTIME_DIR/ssh-agent.socket"
+#
+# The unit puts the socket in XDG_RUNTIME_DIR (%t in the unit file), but a WSL
+# distro that logs in without pam_systemd never sets that variable while the
+# socket is there all the same -- so /run/user/<uid>, the path %t expands to,
+# is the fallback. Without it `ssh-add` has no agent to talk to and herdr's
+# background connections never get an unlocked key.
+if not set -q SSH_AUTH_SOCK
+  set -l agent_dir $XDG_RUNTIME_DIR
+  test -n "$agent_dir"; or set agent_dir /run/user/(id -u)
+  if test -S "$agent_dir/ssh-agent.socket"
+    set -gx SSH_AUTH_SOCK "$agent_dir/ssh-agent.socket"
+  end
 end
 
 # ===== path =====

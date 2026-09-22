@@ -41,8 +41,16 @@ $env.OLLAMA_KEEP_ALIVE = "30m"
 # forwards the host's agent and a desktop session may bring its own -- so this
 # never displaces an agent, it only supplies one where there was none. An `if`
 # block is not a closure, so the assignment inside it reaches the shell.
-if ($env.SSH_AUTH_SOCK? | is-empty) and ($env.XDG_RUNTIME_DIR? | is-not-empty) {
-    let sock = ($env.XDG_RUNTIME_DIR | path join "ssh-agent.socket")
+# XDG_RUNTIME_DIR is unset on a WSL distro that logs in without pam_systemd,
+# while the socket is there all the same, so /run/user/<uid> -- the path the
+# unit's %t expands to -- is the fallback.
+if ($env.SSH_AUTH_SOCK? | is-empty) {
+    let agent_dir = if ($env.XDG_RUNTIME_DIR? | is-not-empty) {
+        $env.XDG_RUNTIME_DIR
+    } else {
+        $"/run/user/(^id -u | str trim)"
+    }
+    let sock = ($agent_dir | path join "ssh-agent.socket")
     if ($sock | path exists) { $env.SSH_AUTH_SOCK = $sock }
 }
 

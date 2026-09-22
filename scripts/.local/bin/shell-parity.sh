@@ -218,7 +218,8 @@ for var in "${ENVVARS[@]}"; do
     # The shells export SSH_AUTH_SOCK only for a socket that exists. Where the
     # ssh-agent unit is not running, all three leave it unset -- a fact about
     # the machine, not a difference between the configs, so do not measure it.
-    if [ "$var" = SSH_AUTH_SOCK ] && [ ! -S "${XDG_RUNTIME_DIR:-/nonexistent}/ssh-agent.socket" ]; then
+    if [ "$var" = SSH_AUTH_SOCK ] \
+       && [ ! -S "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/ssh-agent.socket" ]; then
         printf '  %-12s skipped (no ssh-agent socket on this machine)\n' "$var"
         continue
     fi

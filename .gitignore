@@ -6,3 +6,8 @@ nvim/.config/nvim/pending-updates/
 nushell/.config/nushell/zoxide.nu
 nushell/.config/nushell/autoload/
 nushell/.config/nushell/history.txt
+
+# windows: ~\.local\bin is a junction into scripts\.local\bin, and the claude
+# code native installer puts its binary at ~\.local\bin\claude.exe and updates
+# it there. It is that machine's install, not a script of this repository.
+scripts/.local/bin/claude.exe

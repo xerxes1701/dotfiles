@@ -426,6 +426,29 @@ outside wsl the script falls through to `xdg-open`, so the same alias works on
 a linux machine. bash does not get the alias -- `~/.bashrc` is not stowed here
 -- but `browse.sh` is on `PATH` there like every other script in `scripts/`.
 
+# archives
+
+> archive.sh -c [-f FILE]... [-d DIR]... [-o ARCHIVE] [-n] [-F] [FILE...]
+> archive.sh -u [-o DIR] [-n] [-F] ARCHIVE...
+
+one front end for tar, zip, 7z, rar and the single-file compressors. the
+format comes from the file name -- of `--out` when packing, of each archive
+when unpacking -- and the tool from whatever is installed, 7zz before 7z
+before bsdtar and so on; a missing one is named with the package that ships
+it before anything runs. `-f` takes a quoted glob, `**` included, and repeats;
+`-d` packs a directory; `-n` prints the commands instead.
+
+    archive.sh -u foo.tar.gz bar.zip -o out    both into out/
+    archive.sh -c -d src -f '*.md' -o x.7z     a directory and some files
+    archive.sh -c -d notes                     notes.tar.gz
+
+every tool has its own answer to a file that is already there -- tar
+overwrites, unzip asks on the terminal, and zip, 7z and rar add to an existing
+archive instead of replacing it. the script gives them one: nothing existing
+is touched without `-F`. a new archive is written under a scratch name and
+moved into place when it is complete, so a failure or ctrl-c leaves neither
+half an archive nor a damaged old one.
+
 # navigation
 
 nvim, tmux, herdr and zellij all have panes and all have tabs, and each of them

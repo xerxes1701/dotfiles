@@ -989,16 +989,18 @@ proxy's gateway lookup is the wrong address.
 
 the devcontainers of the projects here stow this repo and install neovim and
 herdr, so both tools inside a container are the ones configured here. to open
-one of them in the container:
+one of them in the container, or just a shell -- fish, with the same
+`config.fish` and the same aliases as on the host:
 
 > devcontainer-nvim.sh [options] [--] [nvim args...]
 > devcontainer-herdr.sh [options] [--] [herdr args...]
+> devcontainer-fish.sh [options] [--] [fish args...]
 
 herdr keeps a persistent server of its own, so where it is started matters:
 run in the container, its session, its agents and its worktrees all live next
 to the code they work on, inside the sandbox the devcontainer sets up.
 
-both launchers only name their tool. everything they share lives in
+the launchers only name their tool. everything they share lives in
 `scripts/.local/lib/dotfiles/devcontainer-lib.sh`, which is sourced, not run:
 it picks the
 container, the remote user (`remoteUser` from the container's devcontainer
@@ -1053,6 +1055,7 @@ one of its own:
 
 > devcontainer-nvim.sh -- --headless +qa
 > devcontainer-herdr.sh -- --session firstx
+> devcontainer-fish.sh -- -c 'dotnet build'
 
 `herdr/` is the herdr config for this machine, `.herdr-devcontainer/` the
 one for a container: a different theme, a different accent and a

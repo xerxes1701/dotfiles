@@ -118,6 +118,12 @@ alias dsh='docker-shell.sh'
 # `fzf` prints. Takes targets or stdin: `br datei.html`, `fzf | br`.
 alias br='browse.sh'
 
+# Save the image on the clipboard as a file: `pimg` for ./clipboard-<stamp>.png,
+# `pimg images/` for that directory, `pimg name.png` for exactly that file. A
+# script for the same reason as br: on WSL the clipboard is only reachable
+# through Windows PowerShell, and elsewhere through wl-paste or xclip.
+alias pimg='paste-image.sh'
+
 alias cls='clear'
 
 # RDP to the Windows box. The password is piped in from 1Password rather than

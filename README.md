@@ -426,6 +426,54 @@ outside wsl the script falls through to `xdg-open`, so the same alias works on
 a linux machine. bash does not get the alias -- `~/.bashrc` is not stowed here
 -- but `browse.sh` is on `PATH` there like every other script in `scripts/`.
 
+# pasting an image
+
+the other direction of the same problem: a screenshot (win+shift+s), an image
+copied from a browser or an image file copied in explorer all sit on the
+windows clipboard, and no linux tool can see it from inside wsl -- xsel only
+knows text, wl-paste and xclip need a display server. the clipboard is read on
+the windows side, with windows powershell 5.1 (the one in system32, on every
+windows install; System.Windows.Forms is where the clipboard api lives).
+
+> paste-image.sh [-f] [--] [path]
+
+aliased to `pimg` in all three shells. with no path the image lands in the
+current directory as `clipboard-YYYYMMDD-HHMMSS.png`; a directory (or anything
+ending in a slash) gets that name inside it; anything else is the file to
+write, and its extension picks the format -- png when there is none, or jpg,
+gif, bmp, tif. an existing file is not overwritten without `-f`, missing parent
+directories are created, and the path written is printed on stdout so it can
+be handed on:
+
+> pimg
+> pimg images/
+> pimg images/setup.png
+> pimg | xargs br
+
+exit status 3 means "no image on the clipboard", which a script can tell apart
+from a real error.
+
+three measured details are why this is a script and not an alias:
+
+    the target path    powershell writes the file itself, straight to
+                       `\\wsl.localhost\<distro>\...` (wslpath -w of the
+                       absolute path), so nothing is copied twice. the path
+                       travels as an environment variable through `WSLENV`
+                       rather than being spliced into the command, so quotes
+                       and spaces in a file name cannot break it
+    the PNG stream     snipping tool and browsers put a "PNG" format next to
+                       the bitmap. Clipboard.GetImage() renders the bitmap and
+                       drops transparency; the stream is the original bytes
+                       and is written as-is when a .png is asked for
+    a copied file      copying an image file in explorer puts a file list on
+                       the clipboard, not an image. that file is copied
+                       instead of failing -- and keeps its own extension when
+                       the name was auto-generated
+
+outside wsl the script reads wl-paste (wayland) or xclip (x11), so the same
+alias works on the linux machine. there a non-png target needs imagemagick to
+convert; on wsl .NET does the encoding.
+
 # archives
 
 > archive.sh -c [-f FILE]... [-d DIR]... [-o ARCHIVE] [-n] [-F] [FILE...]

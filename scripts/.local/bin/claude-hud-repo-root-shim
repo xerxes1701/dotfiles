@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# Show the git repo folder in claude-hud's project badge, and the actual
+# working directory on a line of its own.
+#
+# Why: claude-hud names the project after the last segment of the session cwd,
+# so a session sitting in a subfolder (e.g. ~/SWProjecte/firstx-b/src) shows
+# "src". This rewrites the statusline JSON's cwd to the repo's top-level folder
+# before claude-hud reads it, so the badge shows "firstx-b". The real cwd is
+# then printed as an extra line below claude-hud's output: relative to the repo
+# root inside a repo ("./src", "." at the root), absolute outside one (where
+# the JSON passes through unchanged).
+#
+# Usage: claude-hud-repo-root-shim <command> [args...]   (statusline JSON on stdin)
+set -u
+
+input=$(cat)
+cwd=$(jq -r '.cwd // empty' <<<"$input" 2>/dev/null)
+dir_line=$cwd
+if [ -n "$cwd" ]; then
+  root=$(git -C "$cwd" rev-parse --show-toplevel 2>/dev/null)
+  if [ -n "$root" ]; then
+    # --show-prefix instead of stripping $root off $cwd: stays right when the
+    # cwd is reached through a symlink and git reports the resolved root.
+    prefix=$(git -C "$cwd" rev-parse --show-prefix 2>/dev/null)
+    prefix=${prefix%/}
+    dir_line=".${prefix:+/$prefix}"
+    if [ "$root" != "$cwd" ]; then
+      rewritten=$(jq -c --arg root "$root" '.cwd = $root | if .workspace then .workspace.current_dir = $root else . end' <<<"$input" 2>/dev/null)
+      [ -n "$rewritten" ] && input=$rewritten
+    fi
+  fi
+fi
+
+printf '%s' "$input" | "$@"
+status=$?
+
+# Same look as claude-hud's own lines: dim label, project-coloured value.
+[ -n "$dir_line" ] && printf '\033[2mDir\033[0m \033[33m%s\033[0m' "$dir_line"
+exit $status

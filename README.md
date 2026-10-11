@@ -345,6 +345,21 @@ hello pin, which is device-local and cannot travel over rdp. an account set to
 passwordless has no credential nla can send and must have a password restored
 before it will connect at all.
 
+## node.js
+
+javascript runtime, runs the claude code statusline, see
+[claude code](#claude-code). the native claude code installer does not bring
+it along.
+[node.js home page](https://nodejs.org/)
+
+install
+
+> sudo apt install nodejs
+
+on windows
+
+> winget install --exact --id OpenJS.NodeJS.LTS
+
 ## shells
 
 fish, nushell and zsh are configured to behave the same way. each config is
@@ -709,14 +724,15 @@ drift that reading a config for named keys cannot see.
 
 # claude code
 
-`claude/` carries the four files of `~/.claude` that are configuration rather
+`claude/` carries the five files of `~/.claude` that are configuration rather
 than state -- `settings.json`, the `SessionStart` hook that reports the session
-to herdr, the `prompt-pop` theme and the display options of the claude-hud
-statusline:
+to herdr, the `prompt-pop` theme, the statusline script and the display options
+of the claude-hud statusline it replaced:
 
     claude/.claude/settings.json
     claude/.claude/hooks/herdr-agent-state.sh
     claude/.claude/themes/prompt-pop.json
+    claude/.claude/status-band/statusline.mjs
     claude/.claude/plugins/claude-hud/config.json
 
 everything else in `~/.claude` -- sessions, history, `projects/`, the plugin
@@ -726,9 +742,27 @@ that would land in the working tree. claude code rewrites `settings.json` in
 place rather than replacing it, so the link survives a `/theme` or a
 `/plugin install` and the change shows up here as a diff.
 
-nothing in the two files may name `/home/entwickler`: both the statusline
+nothing in the package may name `/home/entwickler`: both the statusline
 command and the hook are run through a shell, so they use `$HOME` and
-`${CLAUDE_CONFIG_DIR:-$HOME/.claude}` instead.
+`${CLAUDE_CONFIG_DIR:-$HOME/.claude}` instead, and the statusline script asks
+node for the home directory.
+
+## statusline
+
+`status-band/statusline.mjs` draws model and effort, directory and branch, then
+the context window and the 5-hour and weekly limits with their resets. it runs
+on node (see [node.js](#nodejs)) and uses only node's own modules, so there is
+nothing to `npm install`.
+
+claude code leaves a limit out of what it sends until the limit has usage
+again, so the script keeps the last readings in
+`~/.claude/status-band/limits.json`. that is the directory of the link, not of
+the file here: node runs a linked script from where the link points, so the
+script names `${CLAUDE_CONFIG_DIR:-~/.claude}` itself and the cache stays out
+of the working tree.
+
+claude-hud is switched off in `settings.json` rather than removed, which keeps
+its display options in the package for the day it is switched back on.
 
 ## plugins, once per machine
 

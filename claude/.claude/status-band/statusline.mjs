@@ -1,6 +1,6 @@
 // Status line for Claude Code: model and effort, directory, branch, then the
-// context window and the 5-hour and weekly limits, then the session name and
-// output style. Reads the status line JSON on stdin and prints ANSI-coloured
+// context window and the 5-hour and weekly limits, then the output style and
+// session name. Reads the status line JSON on stdin and prints ANSI-coloured
 // lines.
 import { execFileSync } from 'node:child_process'
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
@@ -185,8 +185,8 @@ function render(input) {
   ].join(` ${SEP} `)
   // Claude Code sends session_name only once the session has one (/rename).
   const third = [
-    `${LABEL('Session')} ${input.session_name ? CLAUDE(input.session_name) : dim('–')}`,
     `${LABEL('Style')} ${input.output_style?.name ?? dim('–')}`,
+    `${LABEL('Session')} ${input.session_name ?? dim('–')}`,
   ].join(` ${SEP} `)
   const rule = dim('─'.repeat(columns > 0 ? columns : 80))
 

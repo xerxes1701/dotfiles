@@ -1,5 +1,8 @@
 {
-  "model": "claude-fable-5-1[1m]",
+  "permissions": {
+    "defaultMode": "auto"
+  },
+  "model": "opus",
   "hooks": {
     "SessionStart": [
       {
@@ -33,9 +36,6 @@
     },
     "claude-fable-5-1": {
       "effortLevel": "high"
-    },
-    "claude-opus-5-5": {
-      "effortLevel": "xhigh"
     }
   },
   "theme": "custom:prompt-pop",

@@ -441,6 +441,38 @@ outside wsl the script falls through to `xdg-open`, so the same alias works on
 a linux machine. bash does not get the alias -- `~/.bashrc` is not stowed here
 -- but `browse.sh` is on `PATH` there like every other script in `scripts/`.
 
+# explorer, worktrees, branches
+
+the wsl ports of `e`, `gz` and `gsw` from the windows powershell profile
+(`Documents/PowerShell/Shared_profile.ps1`).
+
+> e.sh [--] [path...]
+
+aliased to `e` in all three shells. opens each path in windows explorer -- a
+directory as a folder window, a file with its default program -- and the
+current directory when none is given. it has the same four obstacles as
+`browse.sh` (full `explorer.exe` path, relative paths untranslated, missing
+paths opening a dialog, exit status always 1). outside wsl it uses `xdg-open`.
+
+> gz [search text]
+> gsw
+
+`gz` lists the worktrees of `$GZ_REPO` (default `~/SWProjekte/firstx-wa`) in
+fzf and changes into the chosen one; with a search text the first match is
+taken without asking. `gsw` lists the local branches with the commits each has
+on top of `origin/master` as preview: a branch checked out in a worktree
+changes into that worktree, any other is `git switch`ed to in place.
+
+both have to change the shell's directory, which a script cannot do. so the
+fzf pick lives in `gz.sh` and `gsw.sh`, which print the directory to go to,
+and `gz`/`gsw` are small functions in each shell that `cd` there (checked by
+`shell-parity.sh` under FUNCS). the worktrees windows git created record
+windows paths, which wsl git prints glued onto the gitdir
+(`.../.git/worktrees/firstx-b/C:/SWProjekte/firstx-b`); the scripts take the
+part from the drive letter on and translate it with `wslpath`. wsl git cannot
+work inside those worktrees, so `gz` previews the log through the repository
+by commit id instead.
+
 # pasting an image
 
 the other direction of the same problem: a screenshot (win+shift+s), an image

@@ -109,6 +109,11 @@ alias br='browse.sh'
 # through Windows PowerShell, and elsewhere through wl-paste or xclip.
 alias pimg='paste-image.sh'
 
+# Open a path in Windows Explorer, like `e` in the Windows PowerShell profile:
+# a directory as a folder window, a file with its default program, `.` when no
+# path is given. A script for the same reason as br.
+alias e='e.sh'
+
 alias cls='clear'
 
 # RDP to the Windows box. The password is piped in from 1Password rather than
@@ -136,6 +141,22 @@ alias grubup='sudo grub-mkconfig -o /boot/grub/grub.cfg'
 ssh-agent-start() {
   eval "$(ssh-agent -s)"
   ssh-add "$HOME/.ssh/id_rsa"
+}
+
+# Jump to a FirstX worktree (gz) or to a branch (gsw), like the functions of the
+# same names in the Windows PowerShell profile. The fzf pick is done by gz.sh
+# and gsw.sh, which print the directory to go to; only the `cd` has to live in
+# the shell, because a script cannot change its parent's directory.
+gz() {
+  local dir
+  dir=$(gz.sh "$@") || return
+  [ -n "$dir" ] && cd -- "$dir"
+}
+
+gsw() {
+  local dir
+  dir=$(gsw.sh "$@") || return
+  [ -n "$dir" ] && cd -- "$dir"
 }
 
 # ===== shell-specific =====

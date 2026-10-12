@@ -74,6 +74,11 @@ alias br = browse.sh
 # through Windows PowerShell, and elsewhere through wl-paste or xclip.
 alias pimg = paste-image.sh
 
+# Open a path in Windows Explorer, like `e` in the Windows PowerShell profile:
+# a directory as a folder window, a file with its default program, `.` when no
+# path is given. A script for the same reason as br.
+alias e = e.sh
+
 alias cls = clear
 
 # RDP to the Windows box. A `def` rather than an alias: nushell mis-parses an
@@ -115,6 +120,20 @@ def --env ssh-agent-start [] {
     | reduce --fold {} {|it, acc| $acc | upsert $it.name $it.value }
     | load-env
     ssh-add ($nu.home-dir | path join ".ssh" "id_rsa")
+}
+
+# Jump to a FirstX worktree (gz) or to a branch (gsw), like the functions of the
+# same names in the Windows PowerShell profile. The fzf pick is done by gz.sh
+# and gsw.sh, which print the directory to go to; only the `cd` has to live in
+# the shell, because a script cannot change its parent's directory.
+def --env gz [...search: string] {
+    let dir = (^gz.sh ...$search | str trim)
+    if ($dir | is-not-empty) { cd $dir }
+}
+
+def --env gsw [] {
+    let dir = (^gsw.sh | str trim)
+    if ($dir | is-not-empty) { cd $dir }
 }
 
 # ===== shell-specific =====

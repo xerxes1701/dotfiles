@@ -1,8 +1,12 @@
 #!/usr/bin/env pwsh
-# Status line for Claude Code: model and effort, directory, branch, then the
-# context window and the 5-hour and weekly limits, then the output style and
-# session name. Reads the status line JSON on stdin and prints ANSI-coloured
-# lines.
+# Status line for Claude Code, drawn as chevrons in muted colours: every line
+# is one powerline strip, coloured bands first, then dark greys, fading out
+# into the background. Model and effort, each coloured from green (the
+# smallest model, the lowest effort) to red, then directory and git; then the
+# context window and the 5-hour and weekly limits; then the output style and
+# session name. All text is tinted like its band and has a contrast of at
+# least 4.6 against it. Reads the status line JSON on stdin and prints
+# ANSI-coloured lines.
 #
 # The Windows twin of statusline.mjs, for the Claude Code install on Windows,
 # where there is no Node to run that one. The lines are the same; keep the two
@@ -10,8 +14,17 @@
 # stays ASCII -- every other character is spelled as a code point -- because
 # 5.1 reads a script without a byte order mark in the ANSI code page.
 #
+# The git band's counters come from `starship module git_status` with
+# git-status.toml beside this file, in the background: at most one scan per
+# repository at a time, a refresh during a scan only queues one rerun, and
+# every refresh shows the last result. A `git fetch` runs the same way, at most
+# every two minutes, so the commits to pull stay current. Either job shows an
+# icon once it has run for two seconds. The jobs are this script again,
+# started with -Scan or -Fetch.
+#
 # Usage, as the statusLine command in settings.json:
 #   pwsh -NoProfile -File <checkout>\claude\.claude\status-band\statusline.ps1
+param([string]$Scan, [string]$Fetch, [string]$Base)
 
 $ErrorActionPreference = 'Stop'
 $utf8 = New-Object Text.UTF8Encoding $false
@@ -24,30 +37,89 @@ $configDir = if ($env:CLAUDE_CONFIG_DIR) { $env:CLAUDE_CONFIG_DIR } else {
     Join-Path ([Environment]::GetFolderPath('UserProfile')) '.claude'
 }
 $stateDir = Join-Path $configDir 'status-band'
+$scanDir = Join-Path $stateDir 'git'
+$gitStatusConfig = Join-Path $PSScriptRoot 'git-status.toml'
+
+$fetchEveryMs = 2 * 60000
+$slowMs = 2000
 
 $esc = [char]27
-function Rgb([int]$R, [int]$G, [int]$B, [string]$Text) { "$esc[38;2;$R;$G;${B}m$Text$esc[39m" }
+$reset = "$esc[0m"
+function Glyph([int]$Code) { [char]::ConvertFromUtf32($Code) }
+
+# Muted colours on the prompt's One Half Dark, as in the .mjs. A coloured band
+# has one brightness (2.0 against the background) and a text of its own hue at
+# 4.6 against it; the scale runs green, lime, yellow, orange, red in even hue
+# steps. The text colours for the dark bands reach 4.6 against `surface`.
+$bands = @{
+    green = @{ bg = @(72, 96, 64); text = @(181, 222, 167) }
+    lime = @{ bg = @(87, 93, 62); text = @(205, 217, 155) }
+    yellow = @{ bg = @(96, 89, 64); text = @(222, 210, 168) }
+    orange = @{ bg = @(106, 85, 71); text = @(230, 205, 188) }
+    red = @{ bg = @(118, 79, 84); text = @(235, 202, 207) }
+    blue = @{ bg = @(72, 92, 109); text = @(193, 213, 231) }
+    cyan = @{ bg = @(65, 94, 98); text = @(171, 218, 223) }
+    grey = @{ bg = @(86, 90, 97); text = @(208, 211, 215) }
+}
+$colors = @{
+    surface = @(62, 68, 81); deep = @(53, 58, 69); overlay = @(90, 99, 116)
+    subtext = @(175, 179, 187); red = @(213, 167, 171); orange = @(201, 174, 147); yellow = @(215, 193, 152)
+    green = @(161, 186, 142); cyan = @(140, 187, 193); blue = @(143, 183, 215); purple = @(201, 167, 211)
+}
+function Sgr([int]$Code, [int[]]$Rgb) { "$esc[$Code;2;$($Rgb -join ';')m" }
+function Fg([string]$Name) { Sgr 38 $colors[$Name] }
 function Bold([string]$Text) { "$esc[1m$Text$esc[22m" }
-function Dim([string]$Text) { "$esc[2m$Text$esc[22m" }
+# JavaScript's Math.round, as Round-Half below.
+function Mix([int[]]$A, [int[]]$B, [double]$T) {
+    , @(0..2 | ForEach-Object { [int][Math]::Floor($A[$_] + ($B[$_] - $A[$_]) * $T + 0.5) })
+}
 
-function Claude([string]$Text) { Rgb 215 119 87 $Text }
-function Label([string]$Text) { Rgb 107 107 107 $Text }
-function Limit([string]$Text) { Rgb 97 175 239 $Text }
-function Success([string]$Text) { Rgb 78 186 101 $Text }
-function Warning([string]$Text) { Rgb 255 193 7 $Text }
-function Error([string]$Text) { Rgb 255 107 128 $Text }
+# Green for the smallest model and the lowest effort, red for the largest and
+# the highest.
+$modelScale = @{ haiku = 'green'; sonnet = 'yellow'; opus = 'orange'; fable = 'red' }
+$effortScale = @{ low = 'green'; medium = 'lime'; high = 'yellow'; xhigh = 'orange'; max = 'red' }
 
-$dash = [string][char]0x2013
-$sep = Dim '|'
-$blankLines = 2
-
+$glyphs = @{
+    capLeft = Glyph 0xE0B6; arrow = Glyph 0xE0B0; thinArrow = Glyph 0xE0B1
+    model = Glyph 0xF06C4; folder = Glyph 0xF024B; branch = Glyph 0xF418; commit = Glyph 0xF417
+    context = Glyph 0xF035B; fiveHour = Glyph 0xF0150; weekly = Glyph 0xF0A33; style = Glyph 0xF03D8
+    session = Glyph 0xF0EDE; fetching = Glyph 0xF063F; scanning = Glyph 0xF0C7D
+}
 # Fills up with the level: low is almost empty, max is full.
 $effortIcons = @{
-    low    = [string][char]0x25D4
-    medium = [string][char]0x25D1
-    high   = [string][char]0x25D5
-    xhigh  = [string][char]0x25C9
-    max    = [string][char]0x25CF
+    low = Glyph 0xF0A9F; medium = Glyph 0xF0AA1; high = Glyph 0xF0AA3; xhigh = Glyph 0xF0AA4; max = Glyph 0xF0AA5
+}
+$noEffortIcon = Glyph 0xF0A9E
+$dash = [string][char]0x2013
+$gaugeChar = [string][char]0x2501
+$blankLines = 2
+
+# One powerline strip: bands of @(rgb, text) joined by arrows, rounded at the
+# start. An empty band is just its arrow, so the dark bands at the end always
+# fade out in steps. Two bands of one colour (Opus at xhigh) are parted by a
+# thin arrow in a lighter tint, since a full one would vanish. Whatever resets
+# the background inside a band (the git counters do) is covered by setting it
+# again before the band's last space.
+function Strip([object[]]$Bands) {
+    $out = "$(Sgr 38 $Bands[0][0])$($glyphs.capLeft)"
+    for ($i = 0; $i -lt $Bands.Count; $i++) {
+        $rgb = $Bands[$i][0]; $text = $Bands[$i][1]
+        $out += "$(Sgr 48 $rgb)$text"
+        if ($text) { $out += "$(Sgr 48 $rgb) " }
+        if ($i + 1 -ge $Bands.Count) {
+            $out += "$reset$(Sgr 38 $rgb)$($glyphs.arrow)$reset"
+        } elseif (($Bands[$i + 1][0] -join ',') -eq ($rgb -join ',')) {
+            $out += "$(Sgr 38 (Mix $rgb @(255, 255, 255) 0.3))$($glyphs.thinArrow)"
+        } else {
+            $out += "$(Sgr 38 $rgb)$(Sgr 48 $Bands[$i + 1][0])$($glyphs.arrow)"
+        }
+    }
+    $out
+}
+
+# A coloured band: its background, and the text in its own tint.
+function Band([string]$Name, [string]$Text) {
+    , @($bands[$Name].bg, "$(Sgr 38 $bands[$Name].text)$Text")
 }
 
 # A property of a parsed JSON object, or $null: its name may hold brackets
@@ -72,14 +144,24 @@ function Capitalize([string]$Word) {
     $Word.Substring(0, 1).ToUpperInvariant() + $Word.Substring(1).ToLowerInvariant()
 }
 
+$modelIdPattern = '(?i)(opus|sonnet|haiku|fable)-(\d+)(?:-(\d{1,2}))?(?:-\d{8})?$'
+
 function Pretty-Model([string]$Id, [string]$DisplayName) {
     $isLongContext = $Id -match '\[1m\]'
     $bare = ($Id -replace '\[.*?\]', '').Trim()
-    $name = if ($bare -match '(?i)(opus|sonnet|haiku|fable)-(\d+)(?:-(\d{1,2}))?(?:-\d{8})?$') {
+    $name = if ($bare -match $modelIdPattern) {
         $minor = if ($Matches[3]) { ".$($Matches[3])" } else { '' }
         "$(Capitalize $Matches[1]) $($Matches[2])$minor"
     } elseif ($DisplayName) { $DisplayName } elseif ($bare) { $bare } else { 'unknown' }
     if ($isLongContext -and $name -notmatch '(?i)1m') { "$name (1M)" } else { $name }
+}
+
+function Model-Scale([string]$Id, [string]$DisplayName) {
+    $bare = ($Id -replace '\[.*?\]', '').Trim()
+    $family = if ($bare -match $modelIdPattern) { $Matches[1] }
+              elseif ($DisplayName -match '(?i)opus|sonnet|haiku|fable') { $Matches[0] } else { '' }
+    $scale = $modelScale[$family.ToLowerInvariant()]
+    if ($scale) { $scale } else { 'grey' }
 }
 
 function Configured-Effort([string]$ModelId) {
@@ -94,8 +176,14 @@ function Configured-Effort([string]$ModelId) {
     $null
 }
 
-# git with the .mjs's two-second limit, so a slow share cannot hold the line.
-function Git-Line([string]$Cwd, [string[]]$Arguments) {
+function Read-Text([string]$Path) {
+    try { ([IO.File]::ReadAllText($Path)).Trim() } catch { $null }
+}
+
+# A git process with its arguments, killed after $TimeoutMs; its output, also
+# when git fails (a new repository's HEAD makes rev-parse stop after the lines
+# before it), or $null when it timed out.
+function Run-Git([string]$Cwd, [string[]]$Arguments, [int]$TimeoutMs) {
     $info = New-Object Diagnostics.ProcessStartInfo 'git'
     $info.Arguments = (@('-C', "`"$Cwd`"") + $Arguments) -join ' '
     $info.UseShellExecute = $false
@@ -105,16 +193,135 @@ function Git-Line([string]$Cwd, [string[]]$Arguments) {
     $git = [Diagnostics.Process]::Start($info)
     $out = $git.StandardOutput.ReadToEndAsync()
     [void]$git.StandardError.ReadToEndAsync()
-    if (-not $git.WaitForExit(2000)) { try { $git.Kill() } catch {}; throw 'git timed out' }
-    if ($git.ExitCode -ne 0) { throw "git exited $($git.ExitCode)" }
-    $out.Result.Trim()
+    if (-not $git.WaitForExit($TimeoutMs)) { try { $git.Kill() } catch {}; return $null }
+    $out.Result
 }
 
-function Branch-Of([string]$Cwd) {
+# What starship's git_state shows, from the files git leaves in its directory.
+function Git-State([string]$GitDir) {
+    function At([string]$Name) { Join-Path $GitDir $Name }
+    function Progress([string]$Current, [string]$Total) {
+        $c = Read-Text (At $Current); $t = Read-Text (At $Total)
+        if ($c -and $t) { " $c/$t" } else { '' }
+    }
+    if (Test-Path -LiteralPath (At 'rebase-merge')) { return "REBASING$(Progress 'rebase-merge/msgnum' 'rebase-merge/end')" }
+    if (Test-Path -LiteralPath (At 'rebase-apply')) {
+        $kind = if (Test-Path -LiteralPath (At 'rebase-apply/rebasing')) { 'REBASING' }
+                elseif (Test-Path -LiteralPath (At 'rebase-apply/applying')) { 'AM' } else { 'AM/REBASE' }
+        return "$kind$(Progress 'rebase-apply/next' 'rebase-apply/last')"
+    }
+    if (Test-Path -LiteralPath (At 'MERGE_HEAD')) { return 'MERGING' }
+    if (Test-Path -LiteralPath (At 'CHERRY_PICK_HEAD')) { return 'CHERRY-PICKING' }
+    if (Test-Path -LiteralPath (At 'REVERT_HEAD')) { return 'REVERTING' }
+    if (Test-Path -LiteralPath (At 'BISECT_LOG')) { return 'BISECTING' }
+    $null
+}
+
+# One git call for the repository's root, its git directory and the short
+# commit, with the .mjs's two-second limit; the branch is read from HEAD.
+function Git-Head([string]$Cwd) {
     try {
-        $branch = Git-Line $Cwd @('branch', '--show-current')
-        if ($branch) { $branch } else { '@' + (Git-Line $Cwd @('rev-parse', '--short', 'HEAD')) }
+        $out = Run-Git $Cwd @('rev-parse', '--show-toplevel', '--absolute-git-dir', '--short', 'HEAD') 2000
+        if (-not $out) { return $null }
+        $lines = @($out -split "`n" | ForEach-Object { $_.Trim() })
+        if ($lines.Count -lt 2 -or -not $lines[0] -or -not $lines[1]) { return $null }
+        $head = Read-Text (Join-Path $lines[1] 'HEAD')
+        $branch = if ($head -match '^ref: refs/heads/(.+)$') { $Matches[1] } else { $null }
+        $hash = if ($lines.Count -gt 2 -and $lines[2] -match '^[0-9a-f]+$') { $lines[2] } else { $null }
+        @{ root = $lines[0]; branch = $branch; hash = $hash; state = (Git-State $lines[1]) }
     } catch { $null }
+}
+
+# A background job holds a lock file with its pid; one that died without
+# removing it no longer counts.
+function Job-Running([string]$Lock) {
+    try {
+        $text = Read-Text $Lock
+        # Claimed but its pid not written yet: give the claimant a moment.
+        if (-not $text) { return (([DateTime]::UtcNow - [IO.File]::GetLastWriteTimeUtc($Lock)).TotalSeconds -lt 10) }
+        [bool](Get-Process -Id ([int]$text) -ErrorAction SilentlyContinue)
+    } catch { $false }
+}
+
+# Running for longer than $slowMs, by the lock's age.
+function Job-Slow([string]$Lock) {
+    if (-not (Test-Path -LiteralPath $Lock)) { return $false }
+    (([DateTime]::UtcNow - [IO.File]::GetLastWriteTimeUtc($Lock)).TotalMilliseconds -gt $slowMs) -and (Job-Running $Lock)
+}
+
+# Start this script with -MODE root -Base base in the background unless a job
+# holds the lock; returns whether it started one.
+function Start-Background([string]$Mode, [string]$Lock, [string]$Root, [string]$BasePath) {
+    for ($attempt = 0; $attempt -lt 2; $attempt++) {
+        try {
+            $stream = [IO.File]::Open($Lock, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::Read)
+        } catch {
+            if (Job-Running $Lock) { return $false }
+            Remove-Item -LiteralPath $Lock -Force -ErrorAction SilentlyContinue
+            continue
+        }
+        try {
+            $shell = (Get-Process -Id $PID).Path
+            $arguments = @('-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', "`"$PSCommandPath`"",
+                "-$Mode", "`"$Root`"", '-Base', "`"$BasePath`"")
+            $child = Start-Process -FilePath $shell -ArgumentList $arguments -WindowStyle Hidden -PassThru
+            $bytes = $utf8.GetBytes([string]$child.Id)
+            $stream.Write($bytes, 0, $bytes.Length)
+        } finally {
+            $stream.Dispose()
+        }
+        return $true
+    }
+    $false
+}
+
+# A scan during a scan only queues one rerun.
+function Request-Scan([string]$Root, [string]$BasePath) {
+    if (-not (Start-Background 'Scan' "$BasePath.lock" $Root $BasePath)) {
+        [IO.File]::WriteAllText("$BasePath.rerun", '')
+    }
+}
+
+# A fetch at most every $fetchEveryMs, counted from the last one's start, so a
+# failing remote isn't retried on every refresh.
+function Request-Fetch([string]$Root, [string]$BasePath) {
+    $stamp = "$BasePath.fetched"
+    if ((Test-Path -LiteralPath $stamp) -and
+        ([DateTime]::UtcNow - [IO.File]::GetLastWriteTimeUtc($stamp)).TotalMilliseconds -lt $fetchEveryMs) { return }
+    if (Start-Background 'Fetch' "$BasePath.fetch.lock" $Root $BasePath) { [IO.File]::WriteAllText($stamp, '') }
+}
+
+# The last counters for this repository and an icon for each slow job, and
+# background jobs to refresh them.
+function Git-Async([string]$Root) {
+    $sha = [Security.Cryptography.SHA1]::Create()
+    $hex = -join ($sha.ComputeHash($utf8.GetBytes($Root)) | ForEach-Object { $_.ToString('x2') })
+    $basePath = Join-Path $scanDir $hex.Substring(0, 16)
+    # Opened so that the scan can still swap a new result in meanwhile.
+    $last = try {
+        $file = [IO.File]::Open("$basePath.status", [IO.FileMode]::Open, [IO.FileAccess]::Read,
+            [IO.FileShare]::ReadWrite -bor [IO.FileShare]::Delete)
+        try { (New-Object IO.StreamReader($file, $utf8)).ReadToEnd() } finally { $file.Dispose() }
+    } catch { '' }
+    try {
+        [void][IO.Directory]::CreateDirectory($scanDir)
+        Request-Scan $Root $basePath
+        Request-Fetch $Root $basePath
+    } catch {}
+    if (Job-Slow "$basePath.fetch.lock") { $last += "$(Fg 'cyan') $($glyphs.fetching)" }
+    if (Job-Slow "$basePath.lock") { $last += "$(Fg 'yellow') $($glyphs.scanning)" }
+    $last
+}
+
+# The git band's text, empty outside a repository.
+function Git-Text([string]$Cwd) {
+    $head = Git-Head $Cwd
+    if ($null -eq $head) { return '' }
+    $branch = if ($head.branch) { $head.branch } else { 'HEAD' }
+    $text = "$(Fg 'purple') $($glyphs.branch) $branch"
+    if ($head.hash) { $text += "$(Fg 'yellow') $($glyphs.commit) $($head.hash)" }
+    if ($head.state) { $text += "$(Fg 'orange')$(Bold " $($head.state)")" }
+    $text + (Git-Async $head.root)
 }
 
 function Compact-Tokens([double]$N) {
@@ -123,13 +330,14 @@ function Compact-Tokens([double]$N) {
     "$N"
 }
 
-function Bar([double]$Percent, [int]$Width = 10) {
+# A slim gauge: the filled part in one colour, the rest in a quieter track.
+function Gauge([double]$Percent, [int[]]$Color, [int[]]$Track, [int]$Width = 10) {
     $filled = [int][Math]::Min($Width, [Math]::Max(0, (Round-Half ($Percent / 100 * $Width))))
-    ([string][char]0x2588) * $filled + ([string][char]0x2591) * ($Width - $filled)
+    "$(Sgr 38 $Color)$($gaugeChar * $filled)$(Sgr 38 $Track)$($gaugeChar * ($Width - $filled))"
 }
 
-function Used-Color([double]$Percent, [string]$Text) {
-    if ($Percent -ge 80) { Error $Text } elseif ($Percent -ge 50) { Warning $Text } else { Success $Text }
+function Used-Scale([double]$Percent) {
+    if ($Percent -ge 80) { 'red' } elseif ($Percent -ge 50) { 'yellow' } else { 'green' }
 }
 
 $now = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
@@ -200,33 +408,46 @@ function Resolve-Window([string]$Kind, $Live, [hashtable]$Cache) {
     @{ used = $(if ($null -ne $used) { $used } else { 0 }); resetsAt = $now + $span }
 }
 
-function Limit-Part([string]$Name, [hashtable]$Window) {
+# How much of a limit is left, and when it resets, as text for a dark band.
+function Limit-Text([string]$Name, [string]$Icon, [hashtable]$Window) {
     $left = [Math]::Max(0, (Round-Half (100 - $Window.used)))
-    "$(Label $Name) $(Limit "$(Bar $left) $(Bold "$left%")") $(Dim "($(Time-Until $Window.resetsAt))")"
+    "$(Fg 'blue') $Icon $Name $(Gauge $left $colors.blue $colors.overlay) " +
+    "$(Fg 'blue')$(Bold "$left%") $(Fg 'subtext')$(Time-Until $Window.resetsAt)"
 }
 
-function Context-Part($Window) {
+# How much of the context window is used: a band coloured by how full it is.
+function Context-Band($Window) {
     $percent = Num (Prop $Window 'used_percentage')
     $size = Num (Prop $Window 'context_window_size')
     if ($null -eq $percent) {
-        return "$(Label 'Context') $(Dim $(if ($null -eq $size) { $dash } else { "$dash of $(Compact-Tokens $size)" }))"
+        $text = if ($null -eq $size) { $dash } else { "$dash of $(Compact-Tokens $size)" }
+        return Band 'grey' " $($glyphs.context) ctx $text"
     }
     $rounded = Round-Half $percent
-    "$(Label 'Context') $(Used-Color $rounded "$(Bar $rounded) $rounded%")"
+    $band = $bands[(Used-Scale $rounded)]
+    $gauge = Gauge $rounded $band.text (Mix $band.bg $band.text 0.3)
+    , @($band.bg, "$(Sgr 38 $band.text) $($glyphs.context) ctx $gauge $(Sgr 38 $band.text)$(Bold "$rounded%")")
+}
+
+function Value-Or($Value, [string]$Color) {
+    if ($null -eq $Value) { "$(Fg 'subtext') $dash" } else { "$(Fg $Color) $Value" }
 }
 
 function Render($Data) {
     $model = Prop $Data 'model'
     $modelId = [string](Prop $model 'id')
+    $displayName = [string](Prop $model 'display_name')
     $level = Prop (Prop $Data 'effort') 'level'
     if ($null -eq $level) { $level = Configured-Effort $modelId }
     if ($null -eq $level) { $level = 'default' }
-    $icon = $effortIcons[([string]$level).ToLowerInvariant()]
-    if (-not $icon) { $icon = [string][char]0x25CB }
+    $effort = ([string]$level).ToLowerInvariant()
+    $effortIcon = $effortIcons[$effort]
+    if (-not $effortIcon) { $effortIcon = $noEffortIcon }
+    $effortBand = $effortScale[$effort]
+    if (-not $effortBand) { $effortBand = 'grey' }
     $cwd = Prop (Prop $Data 'workspace') 'current_dir'
     if (-not $cwd) { $cwd = Prop $Data 'cwd' }
     if (-not $cwd) { $cwd = (Get-Location).ProviderPath }
-    $branch = Branch-Of $cwd
     $columns = 0
     [void][int]::TryParse($env:COLUMNS, [ref]$columns)
     $cache = Read-Cache
@@ -239,27 +460,87 @@ function Render($Data) {
     } catch {}
 
     $leaf = [IO.Path]::GetFileName($cwd.TrimEnd('\', '/'))
-    $first = @(
-        (Bold (Claude "[$(Pretty-Model $modelId ([string](Prop $model 'display_name'))) $icon $level]")),
-        "$(Label 'Dir') $(if ($leaf) { $leaf } else { $cwd })",
-        $(if ($null -eq $branch) { Dim '--' } else { Success $branch })
-    ) -join " $sep "
-    $second = @(
-        (Context-Part (Prop $Data 'context_window')),
-        (Limit-Part '5h' $fiveHour),
-        (Limit-Part 'Weekly' $weekly)
-    ) -join " $sep "
+    # Each line fades out over the two dark greys; the git band is the first of
+    # them, so outside a repository it is only the fade.
+    $first = Strip @(
+        (Band (Model-Scale $modelId $displayName) (Bold " $($glyphs.model) $(Pretty-Model $modelId $displayName)")),
+        (Band $effortBand " $effortIcon $level"),
+        (Band 'blue' " $($glyphs.folder) $(if ($leaf) { $leaf } else { $cwd })"),
+        @($colors.surface, (Git-Text $cwd)),
+        @($colors.deep, '')
+    )
+    $second = Strip @(
+        (Context-Band (Prop $Data 'context_window')),
+        @($colors.surface, (Limit-Text '5h' $glyphs.fiveHour $fiveHour)),
+        @($colors.deep, (Limit-Text '7d' $glyphs.weekly $weekly))
+    )
     # Claude Code sends session_name only once the session has one (/rename).
     $style = Prop (Prop $Data 'output_style') 'name'
-    $session = Prop $Data 'session_name'
-    $third = @(
-        "$(Label 'Style') $(if ($null -ne $style) { $style } else { Dim $dash })",
-        "$(Label 'Session') $(if ($null -ne $session) { $session } else { Dim $dash })"
-    ) -join " $sep "
-    $rule = Dim (([string][char]0x2500) * $(if ($columns -gt 0) { $columns } else { 80 }))
+    $third = Strip @(
+        (Band 'cyan' " $($glyphs.style) $(if ($null -ne $style) { $style } else { $dash })"),
+        @($colors.surface, "$(Fg 'yellow') $($glyphs.session)$(Value-Or (Prop $Data 'session_name') 'yellow')"),
+        @($colors.deep, '')
+    )
+    $rule = "$esc[2m$(([string][char]0x2500) * $(if ($columns -gt 0) { $columns } else { 80 }))$esc[22m"
 
     # A line of one no-break space survives where an empty line would be dropped.
     (@($first, $second, $third) + @([string][char]0x00A0) * $blankLines + @($rule)) -join "`n"
+}
+
+# The background side: scan, and scan again while refreshes asked for it.
+# GIT_OPTIONAL_LOCKS=0 keeps `git status` from holding .git/index.lock, which
+# would make your own git commands fail while it runs.
+if ($Scan) {
+    $rerun = "$Base.rerun"
+    $ErrorActionPreference = 'Continue'
+    try {
+        $env:STARSHIP_CONFIG = $gitStatusConfig
+        $env:GIT_OPTIONAL_LOCKS = '0'
+        Remove-Item Env:STARSHIP_SHELL -ErrorAction SilentlyContinue
+        do {
+            Remove-Item -LiteralPath $rerun -Force -ErrorAction SilentlyContinue
+            $out = (& starship module git_status --path $Scan 2>$null) -join "`n"
+            [IO.File]::WriteAllText("$Base.tmp", $out, $utf8)
+            # A render reading the last result blocks the swap for a moment.
+            for ($try = 1; ; $try++) {
+                try {
+                    if (Test-Path -LiteralPath "$Base.status") {
+                        # [NullString]: a plain $null reaches .NET as "", an empty backup path.
+                        [IO.File]::Replace("$Base.tmp", "$Base.status", [NullString]::Value)
+                    } else {
+                        [IO.File]::Move("$Base.tmp", "$Base.status")
+                    }
+                    break
+                } catch {
+                    if ($try -ge 20) { throw }
+                    Start-Sleep -Milliseconds 50
+                }
+            }
+        } while (Test-Path -LiteralPath $rerun)
+    } catch {
+    } finally {
+        Remove-Item -LiteralPath "$Base.lock" -Force -ErrorAction SilentlyContinue
+    }
+    exit 0
+}
+
+# The other background side: fetch, then scan so the counters show the new
+# commits to pull. Nothing may prompt: no terminal, no credential window, no
+# ssh passphrase; a remote that would need one just isn't fetched.
+if ($Fetch) {
+    $ErrorActionPreference = 'Continue'
+    try {
+        $env:GIT_TERMINAL_PROMPT = '0'
+        $env:GCM_INTERACTIVE = 'never'
+        $sshCommand = Run-Git $Fetch @('config', 'core.sshCommand') 10000
+        if (-not "$sshCommand".Trim() -and -not $env:GIT_SSH_COMMAND) { $env:GIT_SSH_COMMAND = 'ssh -o BatchMode=yes' }
+        [void](Run-Git $Fetch @('fetch', '--quiet') 120000)
+    } catch {
+    } finally {
+        Remove-Item -LiteralPath "$Base.fetch.lock" -Force -ErrorAction SilentlyContinue
+    }
+    try { Request-Scan $Fetch $Base } catch {}
+    exit 0
 }
 
 $data = $null

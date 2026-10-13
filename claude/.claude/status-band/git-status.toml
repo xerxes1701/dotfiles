@@ -1,0 +1,37 @@
+# What the status line's background scan runs `starship module git_status`
+# with: the git band's counters, a coloured sign and count per kind of change
+# and arrows for commits to push and to pull, on the band's colour. The prompt's
+# symbols (git_status in the starship.toml, or the background config
+# conf.d/starship-async-git.fish writes) in the status line's muted colours;
+# keep the symbols in step with the prompt and the colours with statusline.mjs.
+# A long timeout costs nothing: the scan runs off the status line's path.
+
+command_timeout = 300000
+palette = 'one_half_dark'
+
+[git_status]
+format = '$conflicted$staged$renamed$modified$deleted$typechanged$untracked$stashed$ahead_behind'
+conflicted = '[ =${count}](bg:surface fg:orange)'
+staged = '[ +${count}](bg:surface fg:green)'
+renamed = '[ »${count}](bg:surface fg:purple)'
+modified = '[ ~${count}](bg:surface fg:yellow)'
+deleted = '[ -${count}](bg:surface fg:red)'
+typechanged = '[ t${count}](bg:surface fg:purple)'
+untracked = '[ ?${count}](bg:surface fg:subtext)'
+stashed = '[ ≡${count}](bg:surface fg:blue)'
+ahead = '[ 󱦲${count}](bg:surface fg:cyan)'
+behind = '[ 󱦳${count}](bg:surface fg:cyan)'
+diverged = '[ 󱦲${ahead_count}](bg:surface fg:cyan)[ 󱦳${behind_count}](bg:surface fg:cyan)'
+up_to_date = ''
+
+[palettes.one_half_dark]
+# statusline.mjs's text colours for the dark bands (4.6 or more against surface)
+surface = '#3E4451'
+subtext = '#AFB3BB'
+red = '#D5A7AB'
+orange = '#C9AE93'
+yellow = '#D7C198'
+green = '#A1BA8E'
+cyan = '#8CBBC1'
+blue = '#8FB7D7'
+purple = '#C9A7D3'

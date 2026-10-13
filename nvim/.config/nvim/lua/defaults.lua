@@ -33,8 +33,15 @@ opt.completeopt = {
 vim.opt.shortmess = vim.opt.shortmess + { c = true }
 vim.cmd([[
 set signcolumn=yes
-autocmd CursorHold * lua vim.diagnostic.open_float(nil, { focusable = false })
 ]])
+-- Diagnostics float on hover; `<leader>ld tf` toggles it (unset counts as on).
+api.nvim_create_autocmd("CursorHold", {
+	callback = function()
+		if vim.g.diagnostic_float_enabled ~= false then
+			vim.diagnostic.open_float(nil, { focusable = false })
+		end
+	end,
+})
 
 -- linenumbers / signcolumn
 opt.number = true --Make line numbers default

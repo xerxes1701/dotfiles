@@ -15,7 +15,7 @@ _Generated from `keybindings.yaml` by `keybindings-to-md.cs`._
 > 🔹 marks a **Neovim built-in** default — a core editor command that is
 > not defined via a keymap (it never appears in `:map`/`nvim_get_keymap`).
 >
-> Totals: **537** keybindings — **250** explicit, **146** implicit defaults (🔸), **141** built-ins (🔹).
+> Totals: **539** keybindings — **252** explicit, **146** implicit defaults (🔸), **141** built-ins (🔹).
 
 ## Table of Contents
 
@@ -186,12 +186,14 @@ Configures: `hydra.nvim`
 | `D` | hydra(diagnostics) | Previous diagnostic                                                              | `goto previous diagnostic`               |  |
 | `e` | hydra(diagnostics) | Next error                                                                       | `goto next ERROR diagnostic`             |  |
 | `E` | hydra(diagnostics) | Previous error                                                                   | `goto previous ERROR diagnostic`         |  |
+| `f` | hydra(diagnostics) | Show the line's diagnostics                                                      | `vim.diagnostic.open_float (line)`       |  |
 | `h` | hydra(diagnostics) | Next hint                                                                        | `goto next HINT diagnostic`              |  |
 | `H` | hydra(diagnostics) | Previous hint                                                                    | `goto previous HINT diagnostic`          |  |
 | `i` | hydra(diagnostics) | Next info                                                                        | `goto next INFO diagnostic`              |  |
 | `I` | hydra(diagnostics) | Previous info                                                                    | `goto previous INFO diagnostic`          |  |
 | `q` | hydra(diagnostics) | Leave the hydra                                                                  | `exit hydra`                             |  |
 | `tc` | hydra(diagnostics) | Toggle CodeLenses                                                                | `toggle codelens_enabled`                |  |
+| `tf` | hydra(diagnostics) | Toggle diagnostic float on hover                                                 | `toggle diagnostic_float_enabled`        |  |
 | `ti` | hydra(diagnostics) | Toggle inlay hints                                                               | `toggle inlay hints`                     |  |
 | `tl` | hydra(diagnostics) | Toggle linting (filetype)                                                        | `toggle nvim-lint for the buffer's filet…` |  |
 | `tv` | hydra(diagnostics) | Toggle virtual_lines                                                             | `toggle diagnostic virtual_lines`        |  |
@@ -786,6 +788,7 @@ Defined in: `lua/config/hydra-codenav.lua`, `lua/config/hydra-diagnostics.lua`
 | `E` | hydra(diagnostics) | Previous error                                                                   | `goto previous ERROR diagnostic`         |  |
 | `f` | hydra(treewalker) | Next call (outer)                                                                | `goto_next_start @call.outer`            |  |
 | `F` | hydra(treewalker) | Previous call (outer)                                                            | `goto_previous_start @call.outer`        |  |
+| `f` | hydra(diagnostics) | Show the line's diagnostics                                                      | `vim.diagnostic.open_float (line)`       |  |
 | `h` | hydra(treewalker) | Move left / ascend                                                               | `<cmd>Treewalker Left<cr>`               |  |
 | `h` | hydra(diagnostics) | Next hint                                                                        | `goto next HINT diagnostic`              |  |
 | `H` | hydra(diagnostics) | Previous hint                                                                    | `goto previous HINT diagnostic`          |  |
@@ -811,6 +814,7 @@ Defined in: `lua/config/hydra-codenav.lua`, `lua/config/hydra-diagnostics.lua`
 | `t` | hydra(treewalker) | Next class (outer)                                                               | `goto_next_start @class.outer`           |  |
 | `T` | hydra(treewalker) | Previous class (outer)                                                           | `goto_previous_start @class.outer`       |  |
 | `tc` | hydra(diagnostics) | Toggle CodeLenses                                                                | `toggle codelens_enabled`                |  |
+| `tf` | hydra(diagnostics) | Toggle diagnostic float on hover                                                 | `toggle diagnostic_float_enabled`        |  |
 | `ti` | hydra(diagnostics) | Toggle inlay hints                                                               | `toggle inlay hints`                     |  |
 | `tl` | hydra(diagnostics) | Toggle linting (filetype)                                                        | `toggle nvim-lint for the buffer's filet…` |  |
 | `tv` | hydra(diagnostics) | Toggle virtual_lines                                                             | `toggle diagnostic virtual_lines`        |  |
@@ -1301,12 +1305,14 @@ plugin.
 | `D` | hydra(diagnostics) | Previous diagnostic                                                              | `goto previous diagnostic`               | `hydra.nvim` |  |
 | `e` | hydra(diagnostics) | Next error                                                                       | `goto next ERROR diagnostic`             | `hydra.nvim` |  |
 | `E` | hydra(diagnostics) | Previous error                                                                   | `goto previous ERROR diagnostic`         | `hydra.nvim` |  |
+| `f` | hydra(diagnostics) | Show the line's diagnostics                                                      | `vim.diagnostic.open_float (line)`       | `hydra.nvim` |  |
 | `h` | hydra(diagnostics) | Next hint                                                                        | `goto next HINT diagnostic`              | `hydra.nvim` |  |
 | `H` | hydra(diagnostics) | Previous hint                                                                    | `goto previous HINT diagnostic`          | `hydra.nvim` |  |
 | `i` | hydra(diagnostics) | Next info                                                                        | `goto next INFO diagnostic`              | `hydra.nvim` |  |
 | `I` | hydra(diagnostics) | Previous info                                                                    | `goto previous INFO diagnostic`          | `hydra.nvim` |  |
 | `q` | hydra(diagnostics) | Leave the hydra                                                                  | `exit hydra`                             | `hydra.nvim` |  |
 | `tc` | hydra(diagnostics) | Toggle CodeLenses                                                                | `toggle codelens_enabled`                | `hydra.nvim` |  |
+| `tf` | hydra(diagnostics) | Toggle diagnostic float on hover                                                 | `toggle diagnostic_float_enabled`        | `hydra.nvim` |  |
 | `ti` | hydra(diagnostics) | Toggle inlay hints                                                               | `toggle inlay hints`                     | `hydra.nvim` |  |
 | `tl` | hydra(diagnostics) | Toggle linting (filetype)                                                        | `toggle nvim-lint for the buffer's filet…` | `hydra.nvim` |  |
 | `tv` | hydra(diagnostics) | Toggle virtual_lines                                                             | `toggle diagnostic virtual_lines`        | `hydra.nvim` |  |
@@ -2188,6 +2194,7 @@ Every keybinding in one flat table, sorted by key then mode.
 | `E` | hydra(diagnostics) | Previous error                                                                   | `goto previous ERROR diagnostic`         | `hydra.nvim` |  |
 | `e` | n,x,o | Forward to end of word                                                           | `(motion)`                               | _core_ | 🔹 |
 | `E` | n,x,o | Forward to end of WORD                                                           | `(motion)`                               | _core_ | 🔹 |
+| `f` | hydra(diagnostics) | Show the line's diagnostics                                                      | `vim.diagnostic.open_float (line)`       | `hydra.nvim` |  |
 | `f` | hydra(treewalker) | Next call (outer)                                                                | `goto_next_start @call.outer`            | `hydra.nvim` |  |
 | `F` | hydra(treewalker) | Previous call (outer)                                                            | `goto_previous_start @call.outer`        | `hydra.nvim` |  |
 | `f` | n,x,o | Flash: enhanced f, jump to char (dot-repeat)                                     | `enhanced f (flash char)`                | `flash.nvim` | 🔸 |
@@ -2351,6 +2358,7 @@ Every keybinding in one flat table, sorted by key then mode.
 | `t` | n,x,o | Flash: enhanced t, jump till char                                                | `enhanced t (flash till)`                | `flash.nvim` | 🔸 |
 | `T` | n,x,o | Flash: enhanced T, backward jump till char                                       | `enhanced T (flash till back)`           | `flash.nvim` | 🔸 |
 | `tc` | hydra(diagnostics) | Toggle CodeLenses                                                                | `toggle codelens_enabled`                | `hydra.nvim` |  |
+| `tf` | hydra(diagnostics) | Toggle diagnostic float on hover                                                 | `toggle diagnostic_float_enabled`        | `hydra.nvim` |  |
 | `ti` | hydra(diagnostics) | Toggle inlay hints                                                               | `toggle inlay hints`                     | `hydra.nvim` |  |
 | `tl` | hydra(diagnostics) | Toggle linting (filetype)                                                        | `toggle nvim-lint for the buffer's filet…` | `hydra.nvim` |  |
 | `tv` | hydra(diagnostics) | Toggle virtual_lines                                                             | `toggle diagnostic virtual_lines`        | `hydra.nvim` |  |

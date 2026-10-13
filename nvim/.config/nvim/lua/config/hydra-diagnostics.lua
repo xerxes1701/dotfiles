@@ -145,6 +145,20 @@ function M.setup()
 		vim.diagnostic.config({ virtual_lines = nc })
 	end
 
+	-- Read by the CursorHold autocmd in defaults.lua. Turning it on or off shows
+	-- nothing until the next hover, so say which way it went.
+	local function toggle_float()
+		vim.g.diagnostic_float_enabled = not (vim.g.diagnostic_float_enabled ~= false)
+		vim.notify("diagnostic float on hover " .. (vim.g.diagnostic_float_enabled and "on" or "off"))
+	end
+
+	-- The same float the hover shows, on demand; works while the hover is off.
+	local function open_float()
+		if not vim.diagnostic.open_float(nil, { focusable = false }) then
+			vim.notify("No diagnostics on this line", vim.log.levels.WARN)
+		end
+	end
+
 	-- Both flags are global (lspconfig.lua honours them on LspAttach), so the toggle
 	-- has to be global too: omitting bufnr makes enable() walk every attached buffer.
 	-- `~= false` treats an unset flag as on, matching the default set on attach.
@@ -208,9 +222,9 @@ function M.setup()
  _d_/_D_: next/prev diagnostic   _}_/_{_: last/first
  _e_/_E_: next/prev error   _w_/_W_: next/prev warning
  _i_/_I_: next/prev info    _h_/_H_: next/prev hint
- _b_: toggle scope (buffer/project)
+ _f_: show line's diagnostics   _b_: toggle scope (buffer/project)
  _x_/_X_: Trouble diagnostics workspace/buffer
- _tv_/_tc_/_ti_/_tl_: toggle virtual_lines/codelens/inlay/lint
+ _tv_/_tf_/_tc_/_ti_/_tl_: toggle virtual_lines/float/codelens/inlay/lint
  _q_/_<Esc>_: exit
 ]]
 
@@ -242,12 +256,14 @@ function M.setup()
 			{ "h", diag_nav(true, severity.HINT), { desc = "next hint" } },
 			{ "H", diag_nav(false, severity.HINT), { desc = "prev hint" } },
 
+			{ "f", open_float, { desc = "show line's diagnostics" } },
 			{ "b", toggle_scope, { desc = "toggle scope" } },
 
 			{ "x", "<cmd>Trouble diagnostics toggle<cr>", { desc = "Trouble (workspace)", silent = true } },
 			{ "X", "<cmd>Trouble diagnostics toggle filter.buf=0<cr>", { desc = "Trouble (buffer)", silent = true } },
 
 			{ "tv", toggle_virtual_lines, { desc = "toggle virtual_lines" } },
+			{ "tf", toggle_float, { desc = "toggle float on hover" } },
 			{ "tc", toggle_codelens, { desc = "toggle codelens" } },
 			{ "ti", toggle_inlay_hints, { desc = "toggle inlay hints" } },
 			{ "tl", toggle_lint, { desc = "toggle linting (filetype)" } },

@@ -5,8 +5,8 @@
 # is lost.
 #
 # git_status runs in the prompt here. A fish that renders it in the
-# background can keep this look by disabling git_status and putting an
-# env_var module with the same format and style in its place.
+# background can keep this look by running git_status there with the same
+# symbols and passing the result through an env_var module in its place.
 
 palette = 'one_half_dark'
 
@@ -20,8 +20,21 @@ $line_break\
 $jobs$character"""
 
 [git_status]
-format = '([ $all_status$ahead_behind]($style))'   # hidden when clean
-style = 'bg:surface fg:red bold'
+# A coloured sign and count per kind of change, and arrows for commits to push
+# and to pull, each on the git badge's label colour; hidden when clean.
+format = '$conflicted$staged$renamed$modified$deleted$typechanged$untracked$stashed$ahead_behind'
+conflicted = '[ =${count}](bg:surface fg:orange)'
+staged = '[ +${count}](bg:surface fg:green)'
+renamed = '[ »${count}](bg:surface fg:purple)'
+modified = '[ ~${count}](bg:surface fg:yellow)'
+deleted = '[ -${count}](bg:surface fg:red)'
+typechanged = '[ t${count}](bg:surface fg:purple)'
+untracked = '[ ?${count}](bg:surface fg:subtext)'
+stashed = '[ ≡${count}](bg:surface fg:blue)'
+ahead = '[ 󱦲${count}](bg:surface fg:cyan)'
+behind = '[ 󱦳${count}](bg:surface fg:cyan)'
+diverged = '[ 󱦲${ahead_count}](bg:surface fg:cyan)[ 󱦳${behind_count}](bg:surface fg:cyan)'
+up_to_date = ''
 
 [username]
 format = '[ $user]($style)'

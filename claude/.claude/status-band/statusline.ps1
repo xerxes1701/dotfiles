@@ -202,7 +202,7 @@ function Resolve-Window([string]$Kind, $Live, [hashtable]$Cache) {
 
 function Limit-Part([string]$Name, [hashtable]$Window) {
     $left = [Math]::Max(0, (Round-Half (100 - $Window.used)))
-    "$(Label $Name) $(Limit "$(Bar $left) $(Bold "$left% left")") $(Dim "($(Time-Until $Window.resetsAt))")"
+    "$(Label $Name) $(Limit "$(Bar $left) $(Bold "$left%")") $(Dim "($(Time-Until $Window.resetsAt))")"
 }
 
 function Context-Part($Window) {

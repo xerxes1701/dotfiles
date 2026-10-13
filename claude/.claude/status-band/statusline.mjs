@@ -143,7 +143,7 @@ function resolveWindow(kind, live, cache, now) {
 function limit(label, { used, resetsAt }) {
   const left = Math.max(0, Math.round(100 - used))
 
-  return `${LABEL(label)} ${LIMIT(`${bar(left)} ${bold(`${left}% left`)}`)} ${dim(`(${timeUntil(resetsAt)})`)}`
+  return `${LABEL(label)} ${LIMIT(`${bar(left)} ${bold(`${left}%`)}`)} ${dim(`(${timeUntil(resetsAt)})`)}`
 }
 
 function context(window) {

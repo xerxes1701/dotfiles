@@ -254,6 +254,7 @@ Tags: `entry` `options` `keymaps` `plugin-spec` `generated` `inventory`
 | `lua/statuscolumn.lua`             | Custom statuscolumn with a gradient fold column.                                                  | ui             |
 | `lua/statusline_git.lua`           | The status line's git band: what the prompt's git badge shows, from a background `git status`.    | ui             |
 | `lua/oil_status.lua`               | Modified-buffer indicator column for oil.nvim.                                                    | ui             |
+| `lua/session_guard.lua`            | Names a stale auto-session session before it is restored and offers to delete it.                 | ui             |
 | `lua/plugins.lua`                  | Specs for the two shared libraries nvim-web-devicons and plenary.nvim.                            | plugin-spec    |
 | `lua/config/lazy.lua`              | lazy.nvim bootstrap and setup. Imports `lua/plugins/`.                                            | plugin-spec    |
 | `lua/config/hydra-codenav.lua`     | Treesitter code-navigation hydra. Body key `S`.                                                   | hydra, keymaps |

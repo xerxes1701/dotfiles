@@ -16,6 +16,19 @@ return {
 		{ "<leader>wD", "<cmd>SessionDelete<CR>", desc = "session delete" },
 	},
 	config = function()
+		-- Before setup(), so this VimEnter handler runs ahead of the one that
+		-- restores. Only a bare `nvim` restores at startup: oil rewrites a
+		-- directory argument to an oil:// buffer before VimEnter, so `nvim .`
+		-- never reaches auto-session as a directory. Headless has no one to ask.
+		vim.api.nvim_create_autocmd("VimEnter", {
+			group = vim.api.nvim_create_augroup("session_stale_guard", { clear = true }),
+			once = true,
+			callback = function()
+				if vim.fn.argc() == 0 and #vim.api.nvim_list_uis() > 0 then
+					require("session_guard").guard()
+				end
+			end,
+		})
 		require("auto-session").setup({
 			auto_session_suppress_dirs = { "~/", "~/Projects", "~/Downloads", "/" },
 		})

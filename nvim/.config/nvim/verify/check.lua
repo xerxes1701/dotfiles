@@ -486,6 +486,140 @@ local function check_windows_drive_git()
 end
 check_windows_drive_git()
 
+-- A bare `nvim` restores the cwd's auto-session session at VimEnter. One saved
+-- before a directory moved `cd`s into a path that is gone and fails part-way,
+-- which surfaced as an oil ENOENT traceback on every start in ~/dotfiles.
+-- lua/session_guard.lua names that before the restore and asks what to do.
+-- It only runs with a UI, so the checks call it directly with a stand-in for
+-- vim.fn.confirm, against session files written into the sandbox's own
+-- session directory.
+local function check_session_guard()
+	local guard = require("session_guard")
+	local AutoSession = require("auto-session")
+	local Config = require("auto-session.config")
+	local Lib = require("auto-session.lib")
+
+	-- The guard has to run before the restore, so its VimEnter autocmd has to
+	-- be defined before auto-session's: autocmds for one event run in the
+	-- order they were defined.
+	local order = {}
+	for i, au in ipairs(vim.api.nvim_get_autocmds({ event = "VimEnter" })) do
+		if au.group_name and not order[au.group_name] then
+			order[au.group_name] = i
+		end
+	end
+	local g, a = order.session_stale_guard, order.auto_session_group
+	if not g or not a then
+		table.insert(errs, ("session guard: VimEnter autocmds missing (guard=%s auto-session=%s)"):format(g, a))
+	elseif g > a then
+		table.insert(errs, "session guard: VimEnter autocmd runs after auto-session's restore")
+	end
+
+	local root = vim.fn.tempname()
+	local project = root .. "/project"
+	vim.fn.mkdir(project, "p")
+	local gone = root .. "/gone"
+
+	-- missing_dirs: a `cd` and an oil buffer into gone directories, the same
+	-- directory twice with and without a trailing slash, an escaped space,
+	-- and lines that must not count -- an existing directory, plain files.
+	local probe = root .. "/probe.vim"
+	vim.fn.writefile({
+		"cd " .. gone,
+		"badd +1 init.lua",
+		"file oil://" .. gone .. "/",
+		"edit oil://" .. gone .. "/sub/",
+		"lcd " .. root .. "/with\\ space",
+		"tcd " .. project,
+		"edit oil://" .. project .. "/",
+	}, probe)
+	local want = { gone, gone .. "/sub", root .. "/with space" }
+	local got = guard.missing_dirs(probe)
+	if not vim.deep_equal(got, want) then
+		table.insert(errs, ("session guard: missing_dirs gave %s, expected %s"):format(vim.inspect(got), vim.inspect(want)))
+	end
+
+	local session = AutoSession.get_root_dir(true) .. Lib.escape_session_name(project) .. ".vim"
+	local stale = { "cd " .. gone, "file oil://" .. gone .. "/" }
+	local saved = { auto_restore = Config.auto_restore, auto_save = Config.auto_save }
+	local function reset()
+		Config.auto_restore, Config.auto_save = saved.auto_restore, saved.auto_save
+	end
+
+	-- Runs the guard against `lines` as project's session, answering the
+	-- dialog with `answer`; returns the result, whether it asked, and what.
+	local function run(lines, answer)
+		vim.fn.delete(session)
+		if lines then
+			vim.fn.writefile(lines, session)
+		end
+		local asked
+		local result = guard.guard({
+			cwd = project,
+			confirm = function(msg, choices)
+				asked = { msg = msg, choices = choices }
+				return answer
+			end,
+		})
+		return result, asked
+	end
+
+	local function expect(name, result, want_result, cond, detail)
+		if result ~= want_result then
+			table.insert(errs, ("session guard %s: returned %q, expected %q"):format(name, result, want_result))
+		elseif not cond then
+			table.insert(errs, ("session guard %s: %s"):format(name, detail))
+		end
+	end
+
+	local result, asked = run(nil, 1)
+	expect("without a session", result, "none", not asked, "asked anyway")
+
+	result, asked = run({ "cd " .. project, "edit oil://" .. project .. "/" }, 1)
+	expect("on a fresh session", result, "fresh", not asked and vim.fn.filereadable(session) == 1, "asked or deleted")
+
+	-- The dialog has to say what is wrong, not just that something is.
+	result, asked = run(stale, 3)
+	local msg = asked and asked.msg or ""
+	expect(
+		"restore anyway",
+		result,
+		"restore",
+		msg:find("Stale session", 1, true)
+			and msg:find(gone, 1, true)
+			and msg:find(vim.fn.fnamemodify(session, ":t"), 1, true)
+			and #vim.split(asked.choices, "\n") == 3
+			and vim.fn.filereadable(session) == 1
+			and Config.auto_restore == saved.auto_restore
+			and Config.auto_save == saved.auto_save,
+		("dialog %q, or the session or config changed"):format(msg:sub(1, 120))
+	)
+
+	-- Skip, and <Esc> (0) like it: keep the file, and keep this run from
+	-- restoring it or saving over it.
+	for _, answer in ipairs({ 2, 0 }) do
+		result = run(stale, answer)
+		expect(
+			("skip (%d)"):format(answer),
+			result,
+			"skipped",
+			vim.fn.filereadable(session) == 1 and Config.auto_restore == false and Config.auto_save == false,
+			"session file gone, or auto_restore/auto_save left on"
+		)
+		reset()
+	end
+
+	result = run(stale, 1)
+	expect("delete", result, "deleted", vim.fn.filereadable(session) == 0, "session file still there")
+
+	vim.fn.delete(session)
+	vim.fn.delete(root, "rf")
+	reset()
+
+	io.stderr:write(("  %-18s guard -> %s\n"):format("stale session", result))
+end
+check_session_guard()
+
 -- Give bufferline something to draw; its spec sets mode = "tabs".
 vim.cmd("tabnew | tabnext")
 

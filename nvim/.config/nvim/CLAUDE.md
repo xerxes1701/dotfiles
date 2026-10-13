@@ -245,6 +245,7 @@ Tags: `entry` `options` `keymaps` `plugin-spec` `generated` `inventory`
 | `lua/keymap_registry.lua`          | Wraps the keymap functions before plugins load and records which file owns each map.              | keymaps        |
 | `lua/diagnostice.lua`              | Diagnostic signs and config. `init.lua` does not load it. The name is a known typo.               | options        |
 | `lua/statuscolumn.lua`             | Custom statuscolumn with a gradient fold column.                                                  | ui             |
+| `lua/statusline_git.lua`           | The status line's git band: what the prompt's git badge shows, from a background `git status`.    | ui             |
 | `lua/oil_status.lua`               | Modified-buffer indicator column for oil.nvim.                                                    | ui             |
 | `lua/plugins.lua`                  | Specs for the two shared libraries nvim-web-devicons and plenary.nvim.                            | plugin-spec    |
 | `lua/config/lazy.lua`              | lazy.nvim bootstrap and setup. Imports `lua/plugins/`.                                            | plugin-spec    |

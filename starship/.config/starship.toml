@@ -1,8 +1,20 @@
-# Every segment is a badge: a coloured icon tab with its value on a dark label.
-# User and host (over SSH only), directory, git, one badge per toolchain and the
-# last command's duration, with the prompt character on the line below. $all
-# places every module the format doesn't name, so nothing starship would show
-# is lost.
+# One powerline strip of chevrons in muted colours, like Claude Code's status
+# line (claude/.claude/status-band): rounded at the start, coloured bands
+# first, then the dark greys, fading out into the background. User and host
+# (over SSH only) on red, the directory on blue, git on `surface`, and the
+# toolchains and the last command's duration on `deep`, with the prompt
+# character on the line below, green or red by the last command's exit status.
+# All text is tinted like its band and has a contrast of at least 4.6 against
+# it.
+#
+# The two dark bands are always drawn, if only as their arrow, so every arrow
+# joins two known colours whatever shows. Only the directory's start depends
+# on what came before: its cap takes prev_bg as background, which is the
+# terminal's at the start of the line, and blue after the arrow that ends user
+# and host, where the cap reads as part of the band.
+# $all places every module the format doesn't name after the strip, in
+# starship's default style, so nothing starship would show is lost and none of
+# it lands inside a band.
 #
 # git_status runs in the prompt here. A fish that renders it in the
 # background can keep this look by running git_status there with the same
@@ -11,17 +23,17 @@
 palette = 'one_half_dark'
 
 format = """
-([](fg:red)[ ](bg:red fg:base)$username$hostname[ ](bg:surface)[](fg:surface) )\
-[](fg:blue)[󰉋 ](bg:blue fg:base)$directory[ ](bg:surface)[](fg:surface) \
-([](fg:purple)[ ](bg:purple fg:base)$git_branch$git_commit$git_state$git_metrics$git_status[ ](bg:surface)[](fg:surface) )\
-$all\
-$cmd_duration\
+([](fg:red_band)$username$hostname[ ](bg:red_band)[](fg:red_band bg:blue_band))\
+[](fg:blue_band bg:prev_bg)$directory[ ](bg:blue_band)\
+[](fg:blue_band bg:surface)($git_branch$git_commit$git_state$git_metrics$git_status[ ](bg:surface))\
+[](fg:surface bg:deep)($package$c$docker_context$dotnet$golang$lua$nodejs$python$rust$typst$cmd_duration[ ](bg:deep))\
+[](fg:deep)( $all)\
 $line_break\
 $jobs$character"""
 
 [git_status]
 # A coloured sign and count per kind of change, and arrows for commits to push
-# and to pull, each on the git badge's label colour; hidden when clean.
+# and to pull, each tinted on the git band; hidden when clean.
 format = '$conflicted$staged$renamed$modified$deleted$typechanged$untracked$stashed$ahead_behind'
 conflicted = '[ =${count}](bg:surface fg:orange)'
 staged = '[ +${count}](bg:surface fg:green)'
@@ -37,29 +49,31 @@ diverged = '[ 󱦲${ahead_count}](bg:surface fg:cyan)[ 󱦳${behind_count}](bg:s
 up_to_date = ''
 
 [username]
-format = '[ $user]($style)'
-style_user = 'bg:surface fg:red'
-style_root = 'bg:surface fg:red bold'
+format = '[  $user]($style)'
+style_user = 'bg:red_band fg:red_band_text'
+style_root = 'bg:red_band fg:red_band_text bold'
 
 [hostname]
 format = '[@$hostname]($style)'
-style = 'bg:surface fg:red'
+style = 'bg:red_band fg:red_band_text'
 
 [directory]
-format = '[ $path]($style)[$read_only]($read_only_style)'
-style = 'bg:surface fg:blue'
+format = '[ 󰉋 $path]($style)[$read_only]($read_only_style)'
+style = 'bg:blue_band fg:blue_band_text'
 read_only = ' 󰌾'
-read_only_style = 'bg:surface fg:red'
+read_only_style = 'bg:blue_band fg:blue_band_text'
 
 [git_branch]
-format = '[ $branch(:$remote_branch)]($style)'
+symbol = ''
+format = '[ $symbol $branch(:$remote_branch)]($style)'
 style = 'bg:surface fg:purple'
 
-# The short commit hash after the branch name, attached or not.
+# The short commit hash after the branch name, attached or not; nothing in a
+# repository without commits.
 [git_commit]
 commit_hash_length = 7
 only_detached = false
-format = '[ $hash$tag]($style)'
+format = '([  $hash$tag]($style))'
 tag_symbol = '  '
 style = 'bg:surface fg:yellow'
 
@@ -73,8 +87,8 @@ added_style = 'bg:surface fg:green'
 deleted_style = 'bg:surface fg:red'
 
 [cmd_duration]
-format = '[](fg:yellow)[󰔛 ](bg:yellow fg:base)[ $duration ]($style)[](fg:surface) '
-style = 'bg:surface fg:yellow'
+format = '[ 󰔛 $duration]($style)'
+style = 'bg:deep fg:yellow'
 
 [jobs]
 format = '[$symbol( $number)]($style) '
@@ -82,73 +96,83 @@ symbol = ''
 style = 'blue'
 
 [character]
-success_symbol = '[❯](bold green)'
-error_symbol = '[❯](bold red)'
+success_symbol = '[❯](bold success)'
+error_symbol = '[❯](bold error)'
 
-# One badge per toolchain. A language without a table here still shows, in
-# starship's default style.
+# The toolchains, each tinted in its own colour on the darkest band. A
+# language without a table here still shows, after the strip.
 
 [package]
 symbol = '󰏗'
-format = '[](fg:subtext)[$symbol ](bg:subtext fg:base)[ $version ]($style)[](fg:surface) '
-style = 'bg:surface fg:subtext'
+format = '[ $symbol $version]($style)'
+style = 'bg:deep fg:subtext'
 
 [c]
 symbol = ''
-format = '[](fg:blue)[$symbol ](bg:blue fg:base)[ ($version) ]($style)[](fg:surface) '
-style = 'bg:surface fg:blue'
+format = '[ $symbol( $version)]($style)'
+style = 'bg:deep fg:blue'
 
 [docker_context]
 symbol = ''
-format = '[](fg:blue)[$symbol ](bg:blue fg:base)[ $context ]($style)[](fg:surface) '
-style = 'bg:surface fg:blue'
+format = '[ $symbol $context]($style)'
+style = 'bg:deep fg:blue'
 
 [dotnet]
 symbol = '󰪮'
-format = '[](fg:cyan)[$symbol ](bg:cyan fg:base)[ ($version)( 󰓾 $tfm) ]($style)[](fg:surface) '
-style = 'bg:surface fg:cyan'
+format = '[ $symbol( $version)( 󰓾 $tfm)]($style)'
+style = 'bg:deep fg:cyan'
 
 [golang]
 symbol = ''
-format = '[](fg:cyan)[$symbol ](bg:cyan fg:base)[ ($version) ]($style)[](fg:surface) '
-style = 'bg:surface fg:cyan'
+format = '[ $symbol( $version)]($style)'
+style = 'bg:deep fg:cyan'
 
 [lua]
 symbol = ''
-format = '[](fg:blue)[$symbol ](bg:blue fg:base)[ ($version) ]($style)[](fg:surface) '
-style = 'bg:surface fg:blue'
+format = '[ $symbol( $version)]($style)'
+style = 'bg:deep fg:blue'
 
 [nodejs]
 symbol = ''
-format = '[](fg:green)[$symbol ](bg:green fg:base)[ ($version) ]($style)[](fg:surface) '
-style = 'bg:surface fg:green'
+format = '[ $symbol( $version)]($style)'
+style = 'bg:deep fg:green'
 
 [python]
 symbol = ''
-format = '[](fg:yellow)[$symbol ](bg:yellow fg:base)[ ($version)( \($virtualenv\)) ]($style)[](fg:surface) '
-style = 'bg:surface fg:yellow'
+format = '[ $symbol( $version)( \($virtualenv\))]($style)'
+style = 'bg:deep fg:yellow'
 
 [rust]
 symbol = ''
-format = '[](fg:orange)[$symbol ](bg:orange fg:base)[ ($version) ]($style)[](fg:surface) '
-style = 'bg:surface fg:orange'
+format = '[ $symbol( $version)]($style)'
+style = 'bg:deep fg:orange'
 
 [typst]
 symbol = 't'
-format = '[](fg:cyan)[$symbol ](bg:cyan fg:base)[ ($version) ]($style)[](fg:surface) '
-style = 'bg:surface fg:cyan'
+format = '[ $symbol( $version)]($style)'
+style = 'bg:deep fg:cyan'
 
 [palettes.one_half_dark]
-# Windows Terminal's One Half Dark, plus `surface`, a grey between its
-# background and bright black, for the labels. Swap this block to move the
-# prompt to another colour scheme.
-base = '#282C34'
+# The status line's muted colours on Windows Terminal's One Half Dark. A
+# coloured band has a contrast of 2.0 against the background and a text of
+# its own hue at 4.6 against the band; the texts on the dark bands reach 4.6
+# against `surface`. The prompt character keeps One Half Dark's vivid green
+# and red, the red a shade lighter to reach 4.6: it alone has to catch the
+# eye, and the two differ in lightness too. Swap this block to move the prompt
+# to another colour scheme.
+red_band = '#764F54'
+red_band_text = '#EBCACF'
+blue_band = '#485C6D'
+blue_band_text = '#C1D5E7'
 surface = '#3E4451'
-subtext = '#ABB2BF'
-red = '#E06C75'
-orange = '#D19A66'
-yellow = '#E5C07B'
-green = '#98C379'
-cyan = '#56B6C2'
-blue = '#61AFEF'
-purple = '#C678DD'
+deep = '#353A45'
+subtext = '#AFB3BB'
+red = '#D5A7AB'
+orange = '#C9AE93'
+yellow = '#D7C198'
+green = '#A1BA8E'
+cyan = '#8CBBC1'
+blue = '#8FB7D7'
+purple = '#C9A7D3'
+success = '#98C379'
+error = '#E1737B'

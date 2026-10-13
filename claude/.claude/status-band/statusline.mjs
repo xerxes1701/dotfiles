@@ -151,10 +151,8 @@ function context(window) {
   const size = num(window?.context_window_size)
   if (percent === null) return `${LABEL('Context')} ${dim(size === null ? '–' : `– of ${compactTokens(size)}`)}`
   const rounded = Math.round(percent)
-  const tokens = num(window?.total_input_tokens)
-  const counts = tokens !== null && size !== null ? ` ${dim(`${compactTokens(tokens)}/${compactTokens(size)}`)}` : ''
 
-  return `${LABEL('Context')} ${usedColor(rounded)(`${bar(rounded)} ${rounded}%`)}${counts}`
+  return `${LABEL('Context')} ${usedColor(rounded)(`${bar(rounded)} ${rounded}%`)}`
 }
 
 function render(input) {

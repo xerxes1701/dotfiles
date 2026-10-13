@@ -212,9 +212,7 @@ function Context-Part($Window) {
         return "$(Label 'Context') $(Dim $(if ($null -eq $size) { $dash } else { "$dash of $(Compact-Tokens $size)" }))"
     }
     $rounded = Round-Half $percent
-    $tokens = Num (Prop $Window 'total_input_tokens')
-    $counts = if ($null -ne $tokens -and $null -ne $size) { ' ' + (Dim "$(Compact-Tokens $tokens)/$(Compact-Tokens $size)") } else { '' }
-    "$(Label 'Context') $(Used-Color $rounded "$(Bar $rounded) $rounded%")$counts"
+    "$(Label 'Context') $(Used-Color $rounded "$(Bar $rounded) $rounded%")"
 }
 
 function Render($Data) {

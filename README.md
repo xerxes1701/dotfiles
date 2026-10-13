@@ -946,6 +946,15 @@ its own. a function's arguments pass on as they are, with one
 exception: powershell swallows the first bare `--`, so `dnr -- --urls x` needs
 it twice (`dnr -- -- --urls x`) or quoted (`dnr '--' --urls x`).
 
+what one machine alone wants -- its own `cl`, say -- goes in a
+`shared_profile_machine.ps1` next to the deployed profile, which the profile
+loads last, when it is there, so it can override anything. it is not part of
+this repository; the work machine links it to the file of that name in its own
+tools repository. a symlink needs an elevated shell there, which runs as
+another account, so both paths are spelled out rather than taken from `$HOME`:
+
+> New-Item -ItemType SymbolicLink -Path C:\Users\<user>\Documents\PowerShell\shared_profile_machine.ps1 -Target C:\SWProjekte\tools\tools\shared_profile_machine.ps1
+
 a machine whose profile was there before the deploy has to move it aside --
 both launchers stop with that hint. the stub is the per-host profile on
 purpose: an older profile left in place next to an all-hosts one would load

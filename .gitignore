@@ -11,3 +11,7 @@ nushell/.config/nushell/history.txt
 # code native installer puts its binary at ~\.local\bin\claude.exe and updates
 # it there. It is that machine's install, not a script of this repository.
 scripts/.local/bin/claude.exe
+
+# the machine-local part of the windows pwsh profile. it lands here where stow
+# folded ~\Documents\PowerShell into this package, see the README.
+powershell/Documents/PowerShell/shared_profile_machine.ps1

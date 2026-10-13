@@ -2,6 +2,9 @@
 # it into ~\Documents\PowerShell; deploy-windows-noadmin.ps1 writes a stub there
 # that dot-sources it from the checkout. Either way $PSScriptRoot is a directory
 # that holds fzf.ps1 as well. Not deployed on linux, see stow-deploy.sh.
+#
+# What only one machine wants goes in shared_profile_machine.ps1 next to the
+# deployed profile, which the end of this file loads when it is there.
 
 # Import-Module C:\SWProjekte\tools\tools\z\z.psd1
 
@@ -10,7 +13,8 @@ Set-PSReadLineOption -PredictionViewStyle ListView
 Set-Alias -Name e -Value explorer
 Set-Alias -Name g -Value git
 Set-Alias -Name c -Value code
-Set-Alias -Name cl ~/.local/bin/claude.exe
+# A machine whose claude lives elsewhere points cl there in its machine file.
+Set-Alias -Name cl -Value claude
 # clc is PowerShell's own alias for Clear-Content, and an alias wins over a
 # function of the same name -- so it has to go, or `clc` empties files.
 Remove-Item Alias:clc -Force -ErrorAction SilentlyContinue
@@ -212,3 +216,10 @@ function gitlab-open {
     $BranchName = git branch --show-current
     Start-Process msedge "https://gitlab.klafka-hinz.de/KH/firstx/-/merge_requests?scope=all&state=opened&source_branch=$BranchName"
 }
+
+# Last, so that the machine file can override anything above. It is looked for
+# next to $PROFILE -- the deployed profile in ~\Documents\PowerShell, stub or
+# link -- and not next to this file, which under the stub is the checkout.
+$profileMachine = Join-Path (Split-Path -Parent $PROFILE) 'shared_profile_machine.ps1'
+if (Test-Path -LiteralPath $profileMachine) { . $profileMachine }
+Remove-Variable profileMachine

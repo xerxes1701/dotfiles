@@ -180,7 +180,7 @@ function render(input) {
   ].join(` ${SEP} `)
   const second = [
     context(input.context_window),
-    limit('5h-Window', fiveHour),
+    limit('5h', fiveHour),
     limit('Weekly', weekly),
   ].join(` ${SEP} `)
   // Claude Code sends session_name only once the session has one (/rename).

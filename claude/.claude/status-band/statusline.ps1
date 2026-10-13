@@ -248,7 +248,7 @@ function Render($Data) {
     ) -join " $sep "
     $second = @(
         (Context-Part (Prop $Data 'context_window')),
-        (Limit-Part '5h-Window' $fiveHour),
+        (Limit-Part '5h' $fiveHour),
         (Limit-Part 'Weekly' $weekly)
     ) -join " $sep "
     # Claude Code sends session_name only once the session has one (/rename).

@@ -13,5 +13,9 @@ return {
 		per_filetype = {
 			["html"] = {},
 		},
+		-- .xaml has a filetype of its own (see lua/defaults.lua) but is xml.
+		aliases = {
+			["xaml"] = "xml",
+		},
 	},
 }

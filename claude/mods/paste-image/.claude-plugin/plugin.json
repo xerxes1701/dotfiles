@@ -1,0 +1,5 @@
+{
+  "name": "paste-image",
+  "version": "0.1.0",
+  "description": "Saves the clipboard image to the session's scratchpad with paste-image.sh and mentions it in the prompt: /paste-image, or #img# typed in the prompt"
+}

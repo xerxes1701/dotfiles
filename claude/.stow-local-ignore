@@ -1,0 +1,4 @@
+# Mods are loaded from this checkout, not from ~/.claude: Claude Code refuses
+# a hooks module that is a link to outside its plugin folder, so stow stays
+# off them and settings.json's env block points CLAUDE_CODE_PLUGIN_DIRS here.
+^/mods$

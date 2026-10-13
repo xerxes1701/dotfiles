@@ -4,20 +4,22 @@ import type { On } from 'claude-code'
 
 const SAVED = '/tmp/claude-1000/-home-me-repo/s1/scratchpad/clipboard-20261013-101500.png'
 
-// The engine beneath the plugin: a session, a script that answers `exitCode`,
-// and a prompt box that records what it was filled with.
-function engine(on: On, exitCode = 0) {
+// The engine beneath the plugin: a session, a script that answers `exitCode`
+// (printing `saved`), and a prompt box that records what it was filled with.
+// `env` stands for the host's environment, which tells Windows apart.
+function engine(on: On, exitCode = 0, env: Record<string, string> = {}, saved = SAVED) {
   const fills: { text: string; mode?: string }[] = []
   const toasts: string[] = []
-  const runs: (readonly string[])[] = []
+  const runs: { argv: readonly string[]; env?: Record<string, string> }[] = []
+  mock.env(on, env)
   on('session.id', () => ({ value: 's1' }))
   on('session.root', () => ({ value: '/home/me/repo' }))
   on('process.run', (_$, e) => {
-    runs.push(e.argv)
+    runs.push({ argv: e.argv, env: e.init?.env })
     return {
       value: {
         exitCode,
-        stdout: exitCode === 0 ? `${SAVED}\n` : '',
+        stdout: exitCode === 0 ? `${saved}\r\n` : '',
         stderr: exitCode === 3 ? 'paste-image.sh: no image on the clipboard\n' : '',
         isStdoutTruncated: false,
         isStderrTruncated: false,
@@ -70,8 +72,8 @@ test('#img# is taken out and the saved image mentioned at the cursor', async ($,
   expect(box).toEqual({ text: 'look at ', cursor: 8 })
 
   await clock.advance(1)
-  expect(runs[0]?.slice(0, 2)).toEqual(['sh', '-c'])
-  expect(runs[0]?.slice(-2)).toEqual(['s1', '/home/me/repo'])
+  expect(runs[0]?.argv.slice(0, 2)).toEqual(['sh', '-c'])
+  expect(runs[0]?.argv.slice(-2)).toEqual(['s1', '/home/me/repo'])
   expect(fills).toEqual([{ text: `@${SAVED} `, mode: 'insert' }])
 })
 
@@ -118,4 +120,26 @@ test('#img# toasts when the clipboard holds no image', async ($, on) => {
   await clock.advance(1)
   expect(fills).toEqual([])
   expect(toasts).toEqual(['No image on the clipboard.'])
+})
+
+test('on Windows paste-image.ps1 saves it and the mention takes forward slashes', async ($, on) => {
+  const saved = 'C:\\Users\\me\\AppData\\Local\\Temp\\claude\\C--repo\\s1\\scratchpad\\clipboard-1.png'
+  const { fills, runs } = engine(on, 0, { OS: 'Windows_NT' }, saved)
+
+  await command($, 'paste-image')
+  expect(runs[0]?.argv[0]).toBe('powershell.exe')
+  expect(runs[0]?.argv.at(-1)).toContain('paste-image.ps1')
+  expect(runs[0]?.argv.at(-1)).not.toContain('"')
+  expect(runs[0]?.env).toEqual({ PIMG_SESSION: 's1', PIMG_ROOT: '/home/me/repo' })
+  expect(fills).toEqual([
+    { text: '@C:/Users/me/AppData/Local/Temp/claude/C--repo/s1/scratchpad/clipboard-1.png ', mode: 'insert' },
+  ])
+})
+
+test('on Windows a failure names paste-image.ps1', async ($, on) => {
+  const { fills } = engine(on, 1, { OS: 'Windows_NT' })
+
+  const result = await command($, 'paste-image')
+  expect(result.text).toBe('paste-image.ps1 failed: exit 1')
+  expect(fills).toEqual([])
 })

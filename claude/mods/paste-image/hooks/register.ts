@@ -1,5 +1,6 @@
 // Pastes the clipboard's image into the prompt as an @-mention of a file in
-// the session's scratchpad, written by ~/.local/bin/paste-image.sh.
+// the session's scratchpad, written by ~/.local/bin/paste-image.sh -- or on
+// Windows by its twin, paste-image.ps1.
 //
 // The paste itself cannot be hooked: on WSL Claude Code answers an empty
 // paste (what the terminal sends for an image) and a pasted image path on
@@ -27,16 +28,41 @@ script=$HOME/.local/bin/paste-image.sh
 exec "$script" -- "$dir/"
 `
 
-// Exit 3 is paste-image.sh's "no image on the clipboard".
+// The same on Windows, where the scratchpad is %TEMP%\claude\<project dir,
+// sanitized>\<session>\scratchpad. One line and no double quotes, because
+// Windows PowerShell mangles the quotes of a -Command argument; paste-image.ps1
+// creates the folder itself.
+const SAVE_WINDOWS = [
+  '$sid = $env:PIMG_SESSION;',
+  "$base = Join-Path $env:TEMP 'claude';",
+  '$dir = Get-ChildItem -LiteralPath $base -Directory -ErrorAction SilentlyContinue |',
+  "  ForEach-Object { Join-Path $_.FullName ($sid + '\\scratchpad') } |",
+  '  Where-Object { Test-Path -LiteralPath $_ -PathType Container } | Select-Object -First 1;',
+  "if (-not $dir) { $dir = Join-Path $base (($env:PIMG_ROOT -replace '[^A-Za-z0-9]', '-') + '\\' + $sid + '\\scratchpad') };",
+  "& ($env:USERPROFILE + '\\.local\\bin\\paste-image.ps1') ($dir + '\\');",
+  'exit $LASTEXITCODE',
+].join(' ')
+
+// Exit 3 is the script's "no image on the clipboard". On Windows the mention
+// takes forward slashes, which Windows reads as well, so no backslash in it
+// can be taken for an escape.
 async function saveClipboardImage($: EngineInterface): Promise<{ path: string } | { error: string }> {
-  const [sid, root] = await Promise.all([$.session.id(), $.session.root()])
-  const run = await $.process.run(['sh', '-c', SAVE, 'sh', sid, root], { timeoutMs: 20_000 })
-  const path = run.stdout.trim().split('\n').at(-1) ?? ''
+  const [sid, root, os] = await Promise.all([$.session.id(), $.session.root(), $.env.get('OS')])
+  const isWindows = os === 'Windows_NT'
+  const script = isWindows ? 'paste-image.ps1' : 'paste-image.sh'
+  const run = isWindows
+    ? await $.process.run(
+        ['powershell.exe', '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', SAVE_WINDOWS],
+        { env: { PIMG_SESSION: sid, PIMG_ROOT: root }, timeoutMs: 20_000 },
+      )
+    : await $.process.run(['sh', '-c', SAVE, 'sh', sid, root], { timeoutMs: 20_000 })
+  const printed = run.stdout.trim().split(/\r?\n/).at(-1) ?? ''
+  const path = isWindows ? printed.replaceAll('\\', '/') : printed
   if (run.exitCode === 0 && path !== '') return { path }
   if (run.exitCode === 3) return { error: 'No image on the clipboard.' }
-  const reason = run.stderr.trim().split('\n')[0] || `exit ${run.exitCode}`
+  const reason = run.stderr.trim().split(/\r?\n/)[0] || `exit ${run.exitCode}`
 
-  return { error: `paste-image.sh failed: ${reason}` }
+  return { error: `${script} failed: ${reason}` }
 }
 
 // `before` is put ahead of the mention where the text before the cursor

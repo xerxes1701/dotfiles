@@ -1,7 +1,7 @@
 // Status line for Claude Code: model and effort, directory, branch, then the
 // context window and the 5-hour and weekly limits, then the output style and
 // session name. Reads the status line JSON on stdin and prints ANSI-coloured
-// lines.
+// lines. statusline.ps1 beside it is its Windows twin; keep the two in step.
 import { execFileSync } from 'node:child_process'
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'

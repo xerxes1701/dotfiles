@@ -60,6 +60,7 @@
 	dshow = -c diff.external=difft show --ext-diff
 	dlog  = -c diff.external=difft log --ext-diff
 	dd    = ddiff
+	dt    = ddiff
 	ds    = dshow
 	dl    = dlog
 	dmm   = "!git d $(git merge-base $(git main-branch) HEAD) HEAD"

@@ -1,6 +1,141 @@
-# Show the short commit hash after the branch name when inside a git repo.
+# Every segment is a badge: a coloured icon tab with its value on a dark label.
+# User and host (over SSH only), directory, git, one badge per toolchain and the
+# last command's duration, with the prompt character on the line below. $all
+# places every module the format doesn't name, so nothing starship would show
+# is lost.
+#
+# git_status runs in the prompt here. A fish that renders it in the
+# background can keep this look by disabling git_status and putting an
+# env_var module with the same format and style in its place.
+
+palette = 'one_half_dark'
+
+format = """
+([](fg:red)[ ](bg:red fg:base)$username$hostname[ ](bg:surface)[](fg:surface) )\
+[](fg:blue)[󰉋 ](bg:blue fg:base)$directory[ ](bg:surface)[](fg:surface) \
+([](fg:purple)[ ](bg:purple fg:base)$git_branch$git_commit$git_state$git_metrics$git_status[ ](bg:surface)[](fg:surface) )\
+$all\
+$cmd_duration\
+$line_break\
+$jobs$character"""
+
+[git_status]
+format = '([ $all_status$ahead_behind]($style))'   # hidden when clean
+style = 'bg:surface fg:red bold'
+
+[username]
+format = '[ $user]($style)'
+style_user = 'bg:surface fg:red'
+style_root = 'bg:surface fg:red bold'
+
+[hostname]
+format = '[@$hostname]($style)'
+style = 'bg:surface fg:red'
+
+[directory]
+format = '[ $path]($style)[$read_only]($read_only_style)'
+style = 'bg:surface fg:blue'
+read_only = ' 󰌾'
+read_only_style = 'bg:surface fg:red'
+
+[git_branch]
+format = '[ $branch(:$remote_branch)]($style)'
+style = 'bg:surface fg:purple'
+
+# The short commit hash after the branch name, attached or not.
 [git_commit]
 commit_hash_length = 7
 only_detached = false
-format = '[\($hash$tag\)]($style) '
-style = "bold yellow"
+format = '[ $hash$tag]($style)'
+tag_symbol = '  '
+style = 'bg:surface fg:yellow'
+
+[git_state]
+format = '[ $state( $progress_current/$progress_total)]($style)'
+style = 'bg:surface fg:orange bold'
+
+[git_metrics]
+format = '([ +$added]($added_style))([ -$deleted]($deleted_style))'
+added_style = 'bg:surface fg:green'
+deleted_style = 'bg:surface fg:red'
+
+[cmd_duration]
+format = '[](fg:yellow)[󰔛 ](bg:yellow fg:base)[ $duration ]($style)[](fg:surface) '
+style = 'bg:surface fg:yellow'
+
+[jobs]
+format = '[$symbol( $number)]($style) '
+symbol = ''
+style = 'blue'
+
+[character]
+success_symbol = '[❯](bold green)'
+error_symbol = '[❯](bold red)'
+
+# One badge per toolchain. A language without a table here still shows, in
+# starship's default style.
+
+[package]
+symbol = '󰏗'
+format = '[](fg:subtext)[$symbol ](bg:subtext fg:base)[ $version ]($style)[](fg:surface) '
+style = 'bg:surface fg:subtext'
+
+[c]
+symbol = ''
+format = '[](fg:blue)[$symbol ](bg:blue fg:base)[ ($version) ]($style)[](fg:surface) '
+style = 'bg:surface fg:blue'
+
+[docker_context]
+symbol = ''
+format = '[](fg:blue)[$symbol ](bg:blue fg:base)[ $context ]($style)[](fg:surface) '
+style = 'bg:surface fg:blue'
+
+[dotnet]
+symbol = '󰪮'
+format = '[](fg:cyan)[$symbol ](bg:cyan fg:base)[ ($version)( 󰓾 $tfm) ]($style)[](fg:surface) '
+style = 'bg:surface fg:cyan'
+
+[golang]
+symbol = ''
+format = '[](fg:cyan)[$symbol ](bg:cyan fg:base)[ ($version) ]($style)[](fg:surface) '
+style = 'bg:surface fg:cyan'
+
+[lua]
+symbol = ''
+format = '[](fg:blue)[$symbol ](bg:blue fg:base)[ ($version) ]($style)[](fg:surface) '
+style = 'bg:surface fg:blue'
+
+[nodejs]
+symbol = ''
+format = '[](fg:green)[$symbol ](bg:green fg:base)[ ($version) ]($style)[](fg:surface) '
+style = 'bg:surface fg:green'
+
+[python]
+symbol = ''
+format = '[](fg:yellow)[$symbol ](bg:yellow fg:base)[ ($version)( \($virtualenv\)) ]($style)[](fg:surface) '
+style = 'bg:surface fg:yellow'
+
+[rust]
+symbol = ''
+format = '[](fg:orange)[$symbol ](bg:orange fg:base)[ ($version) ]($style)[](fg:surface) '
+style = 'bg:surface fg:orange'
+
+[typst]
+symbol = 't'
+format = '[](fg:cyan)[$symbol ](bg:cyan fg:base)[ ($version) ]($style)[](fg:surface) '
+style = 'bg:surface fg:cyan'
+
+[palettes.one_half_dark]
+# Windows Terminal's One Half Dark, plus `surface`, a grey between its
+# background and bright black, for the labels. Swap this block to move the
+# prompt to another colour scheme.
+base = '#282C34'
+surface = '#3E4451'
+subtext = '#ABB2BF'
+red = '#E06C75'
+orange = '#D19A66'
+yellow = '#E5C07B'
+green = '#98C379'
+cyan = '#56B6C2'
+blue = '#61AFEF'
+purple = '#C678DD'

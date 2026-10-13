@@ -180,10 +180,13 @@ script. The output is a JSON array. Exit code 1 means no match.
 ./find-keybind.sh -c i -m 'hydra(diagnostics)'   # one hydra head
 ```
 
-### Option B: yq with jq filters
+### Option B: yq and jq
 
-The installed `yq` is the Python wrapper around `jq`. It accepts jq filters
-and writes JSON. Schema of `keybindings.yaml`:
+The installed `yq` is mikefarah's Go yq, not the Python wrapper around `jq`.
+Its expression language looks like jq but is not jq: it has no
+`any(cond)`, `ascii_downcase`, `startswith` or `index`, and it writes YAML
+with the inventory's comments. Use yq only to convert the file to JSON, and
+query the JSON with `jq`. Schema of `keybindings.yaml`:
 
 ```
 meta:              { leader, localleader, config_root }
@@ -198,7 +201,7 @@ entry:
   description:  string
   file:         string     # path relative to this directory; "" when not set here
   plugin:       string     # "" for core config and Neovim built-ins
-  group:        string     # logical group, e.g. "Editing", "Git" (34 values)
+  group:        string     # logical group, e.g. "Editing", "Git" (36 values)
   source:       "explicit" | "default" | "builtin"
   hydra:        { name: string, color: "red" | "pink" }  # only on a hydra body entry
 ```
@@ -207,15 +210,15 @@ Example filters:
 
 ```sh
 # one key in the explicit list
-yq -c '.keybindings[] | select(.key == "<leader>ld")' keybindings.yaml
+yq -o json . keybindings.yaml | jq -c '.keybindings[] | select(.key == "<leader>ld")'
 # all bindings of one plugin, from all three lists
-yq -c '[.keybindings[], .default_bindings[], .builtin_bindings[]][] | select(.plugin == "flash.nvim")' keybindings.yaml
+yq -o json . keybindings.yaml | jq -c '[.keybindings[], .default_bindings[], .builtin_bindings[]][] | select(.plugin == "flash.nvim")'
 # all heads of one hydra
-yq -c '.keybindings[] | select(.mode | index("hydra(diagnostics)"))' keybindings.yaml
+yq -o json . keybindings.yaml | jq -c '.keybindings[] | select(.mode | any(. == "hydra(diagnostics)"))'
 # all group names
-yq -r '[.keybindings[], .default_bindings[], .builtin_bindings[]] | map(.group) | unique[]' keybindings.yaml
+yq -o json . keybindings.yaml | jq -r '[.keybindings[], .default_bindings[], .builtin_bindings[]] | map(.group) | unique[]'
 # key and description of all bindings set in plugin specs
-yq -c '.keybindings[] | select(.file | startswith("lua/plugins/")) | {key, description}' keybindings.yaml
+yq -o json . keybindings.yaml | jq -c '.keybindings[] | select(.file | startswith("lua/plugins/")) | {key, description}'
 ```
 
 ## Directory map
@@ -230,7 +233,7 @@ Tags: `entry` `options` `keymaps` `plugin-spec` `generated` `inventory`
 | `keybindings.yaml`                 | The keybinding inventory. Edit this file, not the reference.                                      | inventory      |
 | `keybindings.md`                   | Reference generated from the inventory. Do not edit.                                              | generated      |
 | `keybindings-to-md.cs`             | .NET 10 script that generates the reference from the inventory.                                   | script         |
-| `find-keybind.sh`                  | Bash and yq query tool for the inventory.                                                         | script         |
+| `find-keybind.sh`                  | Bash query tool for the inventory. Converts it with yq, filters it with jq.                       | script         |
 | `verify/verify.sh`                 | Sandbox check of the whole config. Run it after any change. Exits non-zero on a finding.          | script         |
 | `verify/check.lua`                 | The checks `verify.sh` runs inside the sandbox profile.                                           | script         |
 | `verify/fixture/`                  | Committed Rust crate the check opens, so rust-analyzer and the Rust parser get exercised.         | script         |

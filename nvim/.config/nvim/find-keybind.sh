@@ -254,6 +254,7 @@ main() {
   [[ ${have_key} -eq 0 || -n "${key}" ]] || die "key argument must not be empty"
 
   command -v yq >/dev/null 2>&1 || die "'yq' is not installed or not on PATH"
+  command -v jq >/dev/null 2>&1 || die "'jq' is not installed or not on PATH"
   [[ -f "${YAML_FILE}" ]] || die "keybindings file not found: ${YAML_FILE}"
 
   # ---- assemble the jq filter conditions ----------------------------- #
@@ -341,16 +342,19 @@ main() {
     ]
   "
 
+  # yq only converts the YAML to JSON; jq runs the filter. The installed yq is
+  # mikefarah's Go yq, whose expression language looks like jq but lacks
+  # any(cond), ascii_downcase and startswith, and prints YAML.
   local result
-  if ! result="$(yq "${jq_filter}" "${YAML_FILE}" 2>&1)"; then
+  if ! result="$( { yq -o json '.' "${YAML_FILE}" | jq "${jq_filter}"; } 2>&1)"; then
     printf '%s\n' "${result}" >&2
-    die "yq query failed"
+    die "query failed"
   fi
 
   printf '%s\n' "${result}"
 
   local count
-  count="$(printf '%s' "${result}" | yq 'length' -)"
+  count="$(printf '%s' "${result}" | jq 'length')"
   [[ "${count}" -gt 0 ]] || return 1
   return 0
 }

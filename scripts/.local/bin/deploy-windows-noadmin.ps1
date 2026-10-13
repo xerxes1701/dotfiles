@@ -21,6 +21,8 @@
       ~\.config\herdr\...    symlink    HERDR_CONFIG_PATH
       ~\.gitconfig           symlink    ~\.gitconfig          include stub
       ~\.config\starship...  symlink    STARSHIP_CONFIG
+      ~\Documents\PowerShell\Microsoft.PowerShell_profile.ps1
+                             symlink                          dot-source stub
 
     It deploys the packages that Windows programs read and leaves the ones
     for fish, tmux, zellij and the rest of the Linux side alone -- the list,
@@ -36,6 +38,9 @@
                 WHKD_CONFIG_HOME); git gets a two-line ~\.gitconfig that
                 includes the repository's, because TortoiseGit and other
                 libgit2 clients read the file and not GIT_CONFIG_GLOBAL.
+                PowerShell reads its profile from a fixed path with no
+                variable to move it, so it gets a stub as well, one that
+                dot-sources the repository's profile.
 
     XDG_CONFIG_HOME is set to ~\.config on top, so that nvim, nushell, scoop
     and fastfetch look there instead of under AppData, and the repository's
@@ -114,6 +119,13 @@ Set-StrictMode -Version 2.0
 #           is.
 # Env       variables to set. {repo} and {target} are replaced.
 # Include   a git config stub at that path, including the named file.
+# Source    a PowerShell stub at that path, dot-sourcing the named file.
+#
+# powershell is a stub and not a junction: ~\Documents\PowerShell also holds
+# the modules Install-Module puts there, which a junction would put in the
+# checkout. The stub is the per-host profile, so a profile that is already
+# there -- one that loads an older copy of this one -- stops the deploy as a
+# conflict instead of loading next to it.
 #
 # herdr deploys from the hidden .herdr-windows package, not from herdr/: the
 # host config is Linux (fish, nvim plugin keys, bash helpers), see the header
@@ -154,6 +166,8 @@ $Packages = [ordered]@{
     starship  = @{ Env = @{ STARSHIP_CONFIG = '{repo}\starship\.config\starship.toml' } }
     git       = @{ Include = @{ File = '.gitconfig'; Path = '{repo}\git\.gitconfig' } }
     herdr     = @{ Env = @{ HERDR_CONFIG_PATH = '{repo}\.herdr-windows\.config\herdr\config.toml' } }
+    powershell = @{ Source = @{ File = 'Documents\PowerShell\Microsoft.PowerShell_profile.ps1'
+                                Path = '{repo}\powershell\Documents\PowerShell\Microsoft.PowerShell_profile.ps1' } }
 }
 
 # Set with every deploy and removed only by a full -Remove: more than one
@@ -248,6 +262,7 @@ if ($List) {
         }
         if ($spec.Contains('Env'))      { $how += ($spec.Env.Keys | ForEach-Object { "env $_" }) }
         if ($spec.Contains('Include'))  { $how += "include stub $($spec.Include.File)" }
+        if ($spec.Contains('Source'))   { $how += "dot-source stub $($spec.Source.File)" }
         Write-Host ("  {0,-12} {1}" -f $p, ($how -join ', '))
     }
     Write-Host ("  {0,-12} {1}" -f '(always)', 'env XDG_CONFIG_HOME') -ForegroundColor DarkGray
@@ -295,7 +310,14 @@ function Invoke-Action {
             [Environment]::SetEnvironmentVariable($w.Name, $null, $w.Scope)
             [Environment]::SetEnvironmentVariable($w.Name, $null, 'Process')
         }
-        'write'  { [IO.File]::WriteAllText($w.Path, $w.Content) }
+        'write'  {
+            # ~\Documents\PowerShell does not exist before pwsh first needs it.
+            $parent = Split-Path -Parent $w.Path
+            if (-not (Test-Path -LiteralPath $parent)) {
+                New-Item -ItemType Directory -Path $parent -ErrorAction Stop | Out-Null
+            }
+            [IO.File]::WriteAllText($w.Path, $w.Content)
+        }
         'unlink' { Remove-Item -LiteralPath $w.Path -ErrorAction Stop }
         default  { throw "internal error: unknown action kind $($a.Kind)" }
     }
@@ -390,22 +412,43 @@ function Plan-Env {
     Add-Action 'env' "$verb $Name=$Value ($EnvScope)" @{ Name = $Name; Value = $Value; Scope = $EnvScope }
 }
 
+function Resolve-StubSource {
+    param([string] $Path)
+    $Path = Expand-Placeholders $Path
+    if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
+        Fail "$Path does not exist" 'the package changed layout; update the table in this script'
+    }
+    $Path
+}
+
 function Plan-Include {
     param([string] $File, [string] $IncludePath)
-    $IncludePath = (Expand-Placeholders $IncludePath)
-    if (-not (Test-Path -LiteralPath $IncludePath -PathType Leaf)) {
-        Fail "$IncludePath does not exist" 'the package changed layout; update the table in this script'
-    }
-    $stub = Join-Path $Target $File
+    $IncludePath = Resolve-StubSource $IncludePath
     # git wants forward slashes, and reads them fine on Windows.
     $gitPath = $IncludePath.Replace('\', '/')
-    $content = @(
-        $StubMarker,
+    Plan-Stub $File "include $gitPath" @(
         '# the shared git config comes from the dotfiles repository. machine-local',
         '# settings belong in ~/.gitconfig.local, which that file includes.',
         '[include]',
         "`tpath = $gitPath"
-    ) -join "`n"
+    ) 'anything in it that is not in the repository belongs in ~/.gitconfig.local'
+}
+
+function Plan-Source {
+    param([string] $File, [string] $SourcePath)
+    $SourcePath = Resolve-StubSource $SourcePath
+    Plan-Stub $File "dot-source $SourcePath" @(
+        '# the profile comes from the dotfiles repository.',
+        ". '$($SourcePath.Replace("'", "''"))'"
+    ) "anything in it that is not in the repository belongs in $SourcePath"
+}
+
+# A file at $File under the target that hands over to the repository: the
+# marker first, so a later run knows the file for its own, then $Body.
+function Plan-Stub {
+    param([string] $File, [string] $Does, [string[]] $Body, [string] $KeepHint)
+    $stub = Join-Path $Target $File
+    $content = (@($StubMarker) + $Body) -join "`n"
 
     $existing = Get-Item -LiteralPath $stub -Force -ErrorAction SilentlyContinue
     $ours = $false
@@ -426,7 +469,7 @@ function Plan-Include {
     if ($ours) {
         $have = (Get-Content -LiteralPath $stub -Raw) -replace "`r`n", "`n"
         if ($have.TrimEnd("`n") -eq $content) { return }
-        Add-Action 'write' "rewrite $stub (include $gitPath)" @{ Path = $stub; Content = $content + "`n" }
+        Add-Action 'write' "rewrite $stub ($Does)" @{ Path = $stub; Content = $content + "`n" }
         return
     }
     if ($existing) {
@@ -434,12 +477,12 @@ function Plan-Include {
                 elseif ($existing.PSIsContainer) { 'a directory' }
                 else { 'a file this script did not write' }
         Add-Conflict "$stub is $what" @(
-            'anything in it that is not in the repository belongs in ~/.gitconfig.local',
-            "then move it aside:  Rename-Item -LiteralPath '$stub' '$File.pre-stow.bak'",
+            $KeepHint,
+            "then move it aside:  Rename-Item -LiteralPath '$stub' '$(Split-Path -Leaf $File).pre-stow.bak'",
             "(a link is just removed:  Remove-Item -LiteralPath '$stub')")
         return
     }
-    Add-Action 'write' "write $stub (include $gitPath)" @{ Path = $stub; Content = $content + "`n" }
+    Add-Action 'write' "write $stub ($Does)" @{ Path = $stub; Content = $content + "`n" }
 }
 
 foreach ($name in $Selected.Keys) {
@@ -451,6 +494,7 @@ foreach ($name in $Selected.Keys) {
         foreach ($k in $spec.Env.Keys) { Plan-Env $k $spec.Env[$k] }
     }
     if ($spec.Contains('Include')) { Plan-Include $spec.Include.File $spec.Include.Path }
+    if ($spec.Contains('Source'))  { Plan-Source $spec.Source.File $spec.Source.Path }
 }
 if (-not $Remove -or $FullSet) {
     foreach ($k in $BaseEnv.Keys) { Plan-Env $k $BaseEnv[$k] }

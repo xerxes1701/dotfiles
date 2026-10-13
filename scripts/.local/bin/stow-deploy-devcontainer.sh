@@ -28,7 +28,8 @@ sd_where=devcontainer
 #          place, so the two herdr instances do not look alike.
 #   ssh    the container mounts the host's ~/.ssh, config included, and has
 #          no systemd for the agent unit; it forwards the host's agent instead.
-sd_exclude=(git herdr ssh)
+#   powershell  the Windows profile, left out for the reason in stow-deploy.sh.
+sd_exclude=(git herdr powershell ssh)
 # Hidden, so neither `stow */` on the host nor the `for d in */` loop in the
 # Dockerfile matches it. That is the point: only a container deploys it.
 sd_extra=(.herdr-devcontainer)

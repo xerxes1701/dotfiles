@@ -18,7 +18,10 @@ set -uo pipefail
 
 sd_where=host
 # Nothing is replaced here: this is the machine the packages are written for.
-sd_exclude=()
+# Only powershell is left out. It is the Windows profile, which pwsh on Linux
+# does not read from ~/Documents, and where ~/Documents does not exist yet --
+# WSL -- stow would fold it into a link into this repository.
+sd_exclude=(powershell)
 sd_extra=()
 # Folded, a package's ~/.config/<name> is a symlink into this repository, and
 # whatever the tool writes there shows up as a change to the working tree:

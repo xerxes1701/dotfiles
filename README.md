@@ -38,7 +38,8 @@ socket, logs and session, ssh's keys and known_hosts -- lands in the working
 tree; the scripts stow all three unfolded. and a container leaves `git` and
 `herdr` out, in favour of the packages it replaces them with, and `ssh` out
 because it mounts the host's `~/.ssh` as it is; windows leaves `herdr` out for
-`.herdr-windows`.
+`.herdr-windows`. and `powershell`, the windows profile, is left out everywhere
+but windows, see [windows](#windows).
 
 `-n` shows what would happen and changes nothing, `--list` the packages a
 script deploys, `-R` re-creates the links after a package lost a file, `-D`
@@ -368,7 +369,8 @@ split into the same labeled sections in the same order:
     env / path / tool init / aliases: listing / aliases: navigation /
     aliases: tools / aliases: system / functions / shell-specific
 
-only the last section may differ between shells.
+only the last section may differ between shells. powershell is not one of
+them: it runs on windows only, see [the powershell profile](#the-powershell-profile).
 
     fish/.config/fish/config.fish
     nushell/.config/nushell/env.nu      env + path (loaded first)
@@ -907,6 +909,11 @@ no privilege and cover every package windows reads:
   `STARSHIP_CONFIG` and `WHKD_CONFIG_HOME`. git gets a two-line `~\.gitconfig`
   that includes `git\.gitconfig` from the checkout, because tortoisegit and
   other libgit2 clients read the file and know nothing of `GIT_CONFIG_GLOBAL`.
+- powershell reads its profile from `~\Documents\PowerShell` and has no
+  variable to move it, and that directory also holds the modules
+  `Install-Module` puts there, so it gets neither a junction nor a variable but
+  a stub, like git: a `Microsoft.PowerShell_profile.ps1` that dot-sources the
+  one in `powershell\` from the checkout.
 
 what the two of them leave behind is the same, which is what lets one set of
 configs serve both:
@@ -917,6 +924,8 @@ configs serve both:
     ~\.config\herdr\...    symlink      HERDR_CONFIG_PATH
     ~\.gitconfig           symlink      ~\.gitconfig          include stub
     ~\.config\starship...  symlink      STARSHIP_CONFIG
+    ~\Documents\PowerShell\Microsoft.PowerShell_profile.ps1
+                           symlink                            dot-source stub
 
 they write the same paths, so a machine keeps one of them at a time: undeploy
 the other first, with `stow-deploy-windows.sh -D` or
@@ -927,6 +936,20 @@ the packages the powershell script leaves on the linux side, and why, are
 listed in its table. `claude` is one of them: `~\.claude` on windows is a
 separate claude code install with its own settings and a powershell hook, where
 this package's hook and status line are bash and bun.
+
+## the powershell profile
+
+`powershell/Documents/PowerShell/` holds the pwsh 7 profile and the `fzf.ps1`
+it loads. it shares the claude (`cl`, `clc`, `clr`) and dotnet (`dn*`) aliases
+with the three shells, as functions where an alias would need an argument of
+its own. a function's arguments pass on as they are, with one
+exception: powershell swallows the first bare `--`, so `dnr -- --urls x` needs
+it twice (`dnr -- -- --urls x`) or quoted (`dnr '--' --urls x`).
+
+a machine whose profile was there before the deploy has to move it aside --
+both launchers stop with that hint. the stub is the per-host profile on
+purpose: an older profile left in place next to an all-hosts one would load
+the same functions twice, and the prompt wrapper would end up calling itself.
 
 ## the herdr package
 

@@ -58,6 +58,16 @@ alias conf = tmuxinator start conf
 alias cl = claude
 alias clc = claude --continue
 alias clr = claude --resume
+alias dn = dotnet
+alias dnb = dotnet build
+alias dnr = dotnet run
+alias dnt = dotnet test
+alias dnpa = dotnet package add
+alias dnap = dotnet package add
+alias dnn = dotnet new
+alias dnsa = dotnet sln add
+alias dnpub = dotnet publish
+alias dnto = dotnet tool
 
 # Pick a running container with fzf and open a shell in it. A script in
 # scripts/, not three copies of a function: it is the same picker in all three

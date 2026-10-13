@@ -1,11 +1,11 @@
 {
+  "env": {
+    "CLAUDE_CODE_PLUGIN_DIRS": "~/dotfiles/claude/mods/paste-image"
+  },
   "permissions": {
     "defaultMode": "auto"
   },
   "model": "opus",
-  "env": {
-    "CLAUDE_CODE_PLUGIN_DIRS": "~/dotfiles/claude/mods/paste-image"
-  },
   "hooks": {
     "SessionStart": [
       {
@@ -32,6 +32,13 @@
       }
     ]
   },
+  "statusLine": {
+    "type": "command",
+    "command": "node \"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/status-band/statusline.mjs\"",
+    "padding": 0,
+    "refreshInterval": 10,
+    "hideVimModeIndicator": true
+  },
   "enabledPlugins": {
     "typescript-lsp@claude-plugins-official": true
   },
@@ -45,12 +52,5 @@
     }
   },
   "theme": "custom:prompt-pop",
-  "agentPushNotifEnabled": true,
-  "statusLine": {
-    "type": "command",
-    "command": "node \"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/status-band/statusline.mjs\"",
-    "padding": 0,
-    "refreshInterval": 10,
-    "hideVimModeIndicator": true
-  }
+  "agentPushNotifEnabled": true
 }

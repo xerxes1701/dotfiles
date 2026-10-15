@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Print one day's Claude Code activity: user prompts per session, then git commits.
 
-Usage: day.py [YYYY-MM-DD] [--exclude SESSION_ID]
+Usage: day.py [YYYY-MM-DD] [--exclude SESSION_ID] [--new-since HH:MM]
 All times are local. Transcript timestamps are UTC and are converted.
+With --new-since, prompts and commits from that time on are marked with "+".
 """
 import argparse
 import datetime as dt
@@ -15,11 +16,18 @@ import subprocess
 ap = argparse.ArgumentParser()
 ap.add_argument("date", nargs="?", default=dt.date.today().isoformat())
 ap.add_argument("--exclude", action="append", default=[])
+ap.add_argument("--new-since", metavar="HH:MM")
 a = ap.parse_args()
 
 day = dt.date.fromisoformat(a.date)
 start = dt.datetime.combine(day, dt.time.min).astimezone()
 end = start + dt.timedelta(days=1)
+new = (dt.datetime.combine(day, dt.time.fromisoformat(a.new_since)).astimezone()
+       if a.new_since else end)
+
+
+def mark(t):
+    return "+" if t >= new else " "
 root = os.path.expanduser("~/.claude/projects")
 
 NOISE = ("<local-command-caveat", "<local-command-stdout", "<system-reminder",
@@ -84,7 +92,7 @@ for f in glob.glob(f"{root}/*/*.jsonl"):
 for first, last, sid, cwd, branch, prompts in sorted(sessions):
     print(f"=== {first:%H:%M}-{last:%H:%M}  {cwd}  [{branch}]  session {sid[:8]}")
     for t, p in prompts:
-        print(f"  [{t:%H:%M}] {p}")
+        print(f" {mark(t)}[{t:%H:%M}] {p}")
     print()
 
 # Worktrees of one repo share a common git dir; list each repo once.
@@ -103,9 +111,15 @@ for top in sorted(tops.values()):
                            capture_output=True, text=True).stdout.strip()
     r = subprocess.run(["git", "-C", top, "log", "--all", "--author", email,
                         f"--since={start.isoformat()}", f"--until={end.isoformat()}",
-                        "--date=format-local:%H:%M", "--format=%cd  %h  %s  (%D)"],
+                        "--format=%ct  %h  %s  (%D)"],
                        capture_output=True, text=True)
-    lines = [l for l in r.stdout.splitlines() if l.strip()]
+    lines = []
+    for l in r.stdout.splitlines():
+        if not l.strip():
+            continue
+        ct, rest = l.split("  ", 1)
+        t = dt.datetime.fromtimestamp(int(ct)).astimezone()
+        lines.append(f"{mark(t)}{t:%H:%M}  {rest}")
     if lines:
         print(f"== {top}")
         print("\n".join(lines))

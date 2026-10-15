@@ -70,6 +70,12 @@ local function wait_for_parsers(langs)
 end
 wait_for_parsers({ "rust", "c_sharp", "typst", "lua", "markdown" })
 
+-- rustaceanvim names its client "rust-analyzer"; mason-started servers
+-- use "rust_analyzer". Accept either spelling.
+local function same_lsp(a, b)
+	return a:gsub("[-_]", "") == b:gsub("[-_]", "")
+end
+
 local function open(path, filetype, want_lsp)
 	local opened, open_err = pcall(vim.cmd, "edit " .. vim.fn.fnameescape(path))
 	if not opened then
@@ -79,8 +85,17 @@ local function open(path, filetype, want_lsp)
 		return
 	end
 
+	-- Wait for the wanted client, not for any client: a buffer can get more
+	-- than one, and they do not arrive together. easy-dotnet's in-process
+	-- client attaches to a C# buffer at once, roslyn a moment later, so a wait
+	-- for the first client read the names before roslyn was there.
 	vim.wait(10000, function()
-		return #vim.lsp.get_clients({ bufnr = 0 }) > 0
+		for _, client in ipairs(vim.lsp.get_clients({ bufnr = 0 })) do
+			if not want_lsp or same_lsp(client.name, want_lsp) then
+				return true
+			end
+		end
+		return false
 	end, 100)
 
 	local names = {}
@@ -116,12 +131,10 @@ local function open(path, filetype, want_lsp)
 		table.insert(errs, ("%s: no %s treesitter parse"):format(path, lang))
 	end
 
-	-- rustaceanvim names its client "rust-analyzer"; mason-started servers
-	-- use "rust_analyzer". Accept either spelling.
 	if want_lsp then
 		local attached = false
 		for _, name in ipairs(names) do
-			if name:gsub("[-_]", "") == want_lsp:gsub("[-_]", "") then
+			if same_lsp(name, want_lsp) then
 				attached = true
 			end
 		end

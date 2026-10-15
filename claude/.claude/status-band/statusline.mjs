@@ -19,7 +19,7 @@
 import { execFileSync, spawn } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import {
-  closeSync, existsSync, mkdirSync, openSync, readFileSync, readlinkSync, renameSync, rmSync, statSync, writeFileSync,
+  closeSync, existsSync, mkdirSync, openSync, readdirSync, readFileSync, readlinkSync, renameSync, rmSync, statSync, writeFileSync,
   writeSync,
 } from 'node:fs'
 import { homedir } from 'node:os'
@@ -397,7 +397,7 @@ const compactTokens = n =>
   n >= 1_000_000 ? `${+(n / 1_000_000).toFixed(1)}M` : n >= 1_000 ? `${Math.round(n / 1_000)}k` : String(n)
 
 // A slim gauge: the filled part in one colour, the rest in a quieter track.
-function gauge(percent, color, track, width = 10) {
+function gauge(percent, color, track, width = 5) {
   const filled = Math.min(width, Math.max(0, Math.round((percent / 100) * width)))
 
   return `${sgr(38, color)}${'━'.repeat(filled)}${sgr(38, track)}${'━'.repeat(width - filled)}`
@@ -489,6 +489,52 @@ function context(window) {
   return [bg, `${sgr(38, text)} ${ICON.context} ctx ${gauge(rounded, text, mix(bg, text, 0.3))} ${sgr(38, text)}${bold(`${rounded}%`)}`]
 }
 
+// The status-band mod (claude/mods/status-band) draws these strips again as a
+// band of buttons above the prompt. It learns what only this script is told
+// (the vim mode, the effort, the session's name) from the input, written here
+// per session with the effort and the limits as resolved above. While the mod
+// runs it touches <session>.band every few seconds, and the strips are left
+// to it; the git fetch still runs from here, so the commits to pull stay
+// current.
+const SESSIONS_DIR = join(STATE_DIR, 'sessions')
+const BAND_FRESH = 20_000
+const sessionFile = (id, suffix) => (/^[\w-]+$/.test(id ?? '') ? join(SESSIONS_DIR, `${id}${suffix}`) : null)
+
+function feedBand(input, resolved) {
+  const file = sessionFile(input.session_id, '.json')
+  if (file === null) return
+  try {
+    mkdirSync(SESSIONS_DIR, { recursive: true })
+    writeFileSync(`${file}.tmp`, JSON.stringify({ ...input, status_band: resolved }))
+    renameSync(`${file}.tmp`, file)
+    // Now and then, the files of sessions a week gone.
+    if (Math.random() < 0.01) {
+      for (const name of readdirSync(SESSIONS_DIR)) {
+        const path = join(SESSIONS_DIR, name)
+        if (Date.now() - statSync(path).mtimeMs > 7 * 86_400_000) rmSync(path, { force: true })
+      }
+    }
+  } catch {}
+}
+
+function isBandLive(id) {
+  const file = sessionFile(id, '.band')
+  try {
+    return file !== null && Date.now() - statSync(file).mtimeMs < BAND_FRESH
+  } catch {
+    return false
+  }
+}
+
+function fetchOnly(cwd) {
+  const head = gitHead(cwd)
+  if (head === null) return
+  try {
+    mkdirSync(SCAN_DIR, { recursive: true })
+    requestFetch(head.root, join(SCAN_DIR, createHash('sha1').update(head.root).digest('hex').slice(0, 16)))
+  } catch {}
+}
+
 const valueOr = (value, color) => (value === null || value === undefined ? `${fg('subtext')} ${DASH}` : `${fg(color)} ${value}`)
 
 function render(input) {
@@ -505,6 +551,15 @@ function render(input) {
     mkdirSync(STATE_DIR, { recursive: true })
     writeFileSync(LIMITS_CACHE, JSON.stringify(cache))
   } catch {}
+  feedBand(input, { effort: level, five_hour: fiveHour, seven_day: weekly })
+  const rule = `\x1b[2m${'─'.repeat(columns > 0 ? columns : 80)}\x1b[22m`
+  const blank = Array(BLANK_LINES).fill(' ')
+  // The band draws the strips; its own rule separates it, so nothing here.
+  if (isBandLive(input.session_id)) {
+    fetchOnly(cwd)
+
+    return ''
+  }
 
   // Each line fades out over the two dark greys; the git band is the first of
   // them, so outside a repository it is only the fade.
@@ -518,7 +573,7 @@ function render(input) {
   const second = strip([
     context(input.context_window),
     [COLORS.surface, limit('5h', ICON.fiveHour, fiveHour)],
-    [COLORS.deep, limit('7d', ICON.weekly, weekly)],
+    [COLORS.surface, limit('7d', ICON.weekly, weekly)],
   ])
   // Claude Code sends session_name only once the session has one (/rename).
   const third = strip([
@@ -527,10 +582,9 @@ function render(input) {
     [COLORS.surface, `${fg('yellow')} ${ICON.session}${valueOr(input.session_name, 'yellow')}`],
     [COLORS.deep, ''],
   ])
-  const rule = `\x1b[2m${'─'.repeat(columns > 0 ? columns : 80)}\x1b[22m`
 
   // A line of one no-break space survives where an empty line would be dropped.
-  return [first, second, third, ...Array(BLANK_LINES).fill(' '), rule].join('\n')
+  return [first, second, third, ...blank, rule].join('\n')
 }
 
 if (process.argv[2] === '--reset-cursor') {

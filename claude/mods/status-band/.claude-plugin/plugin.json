@@ -1,0 +1,6 @@
+{
+  "name": "status-band",
+  "version": "0.1.0",
+  "description": "The status line's strips as a band of buttons above the prompt: model, effort, folder, branch, changes, stash, vim mode, output style and session each open a menu.",
+  "types": "./types/index.d.ts"
+}

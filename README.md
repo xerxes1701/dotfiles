@@ -814,6 +814,24 @@ the file here: node runs a linked script from where the link points, so the
 script names `${CLAUDE_CONFIG_DIR:-~/.claude}` itself and the cache stays out
 of the working tree.
 
+## status band
+
+> claude/mods/status-band
+
+a mod that draws the statusline's three lines again as a band of buttons above
+the prompt, folding them onto as few rows as the width takes. model, effort,
+folder, branch, changes, stash, context, vim mode, output style and session
+each open a menu in the band: pick with the letter hotkeys, close with x or
+esc. committing, stashing and resetting, and every stash action, ask first.
+
+no hook is told the vim mode, the effort or the session's name, so the
+statusline writes its input to `~/.claude/status-band/sessions/<session>.json`
+for the band. while the band draws, it touches `<session>.band` there every
+few seconds and the statusline prints nothing. git runs from the mod with the
+repository's hooks off, so a commit made there skips pre-commit hooks. like
+`paste-image`, it loads from this checkout once its folder is in
+`CLAUDE_CODE_PLUGIN_DIRS`.
+
 ## plugins, once per machine
 
 > claude-bootstrap.sh

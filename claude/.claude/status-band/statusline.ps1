@@ -348,7 +348,7 @@ function Compact-Tokens([double]$N) {
 }
 
 # A slim gauge: the filled part in one colour, the rest in a quieter track.
-function Gauge([double]$Percent, [int[]]$Color, [int[]]$Track, [int]$Width = 10) {
+function Gauge([double]$Percent, [int[]]$Color, [int[]]$Track, [int]$Width = 5) {
     $filled = [int][Math]::Min($Width, [Math]::Max(0, (Round-Half ($Percent / 100 * $Width))))
     "$(Sgr 38 $Color)$($gaugeChar * $filled)$(Sgr 38 $Track)$($gaugeChar * ($Width - $filled))"
 }
@@ -450,7 +450,57 @@ function Value-Or($Value, [string]$Color) {
     if ($null -eq $Value) { "$(Fg 'subtext') $dash" } else { "$(Fg $Color) $Value" }
 }
 
-function Render($Data) {
+# The status-band mod (claude/mods/status-band) draws these strips again as a
+# band of buttons above the prompt. It learns what only this script is told
+# (the vim mode, the effort, the session's name) from the input, written here
+# per session with the effort and the limits as resolved above. While the mod
+# runs it touches <session>.band every few seconds, and the strips are left
+# to it; the git fetch still runs from here, so the commits to pull stay
+# current.
+$sessionsDir = Join-Path $stateDir 'sessions'
+$bandFreshMs = 20000
+
+function Session-File($Id, [string]$Suffix) {
+    if ("$Id" -match '^[\w-]+$') { Join-Path $sessionsDir "$Id$Suffix" } else { $null }
+}
+
+# The input as it came, with `status_band` added before its closing brace.
+function Feed-Band([string]$Raw, $Id, [hashtable]$Resolved) {
+    $file = Session-File $Id '.json'
+    $end = $Raw.LastIndexOf('}')
+    if ($null -eq $file -or $end -lt 1) { return }
+    try {
+        [void][IO.Directory]::CreateDirectory($sessionsDir)
+        $text = $Raw.Substring(0, $end).TrimEnd() + ',"status_band":' + ($Resolved | ConvertTo-Json -Compress) + '}'
+        [IO.File]::WriteAllText("$file.tmp", $text, $utf8)
+        Move-Item -LiteralPath "$file.tmp" -Destination $file -Force
+        # Now and then, the files of sessions a week gone.
+        if ((Get-Random -Maximum 100) -eq 0) {
+            Get-ChildItem -LiteralPath $sessionsDir -File |
+                Where-Object { $_.LastWriteTimeUtc -lt [DateTime]::UtcNow.AddDays(-7) } |
+                Remove-Item -Force -ErrorAction SilentlyContinue
+        }
+    } catch {}
+}
+
+function Band-Live($Id) {
+    $file = Session-File $Id '.band'
+    if ($null -eq $file -or -not (Test-Path -LiteralPath $file)) { return $false }
+    ([DateTime]::UtcNow - [IO.File]::GetLastWriteTimeUtc($file)).TotalMilliseconds -lt $bandFreshMs
+}
+
+function Fetch-Only([string]$Cwd) {
+    $head = Git-Head $Cwd
+    if ($null -eq $head) { return }
+    try {
+        $sha = [Security.Cryptography.SHA1]::Create()
+        $hex = -join ($sha.ComputeHash($utf8.GetBytes($head.root)) | ForEach-Object { $_.ToString('x2') })
+        [void][IO.Directory]::CreateDirectory($scanDir)
+        Request-Fetch $head.root (Join-Path $scanDir $hex.Substring(0, 16))
+    } catch {}
+}
+
+function Render($Data, [string]$Raw) {
     $model = Prop $Data 'model'
     $modelId = [string](Prop $model 'id')
     $displayName = [string](Prop $model 'display_name')
@@ -475,8 +525,17 @@ function Render($Data) {
         [void][IO.Directory]::CreateDirectory($stateDir)
         [IO.File]::WriteAllText($limitsCache, ($cache | ConvertTo-Json -Compress), $utf8)
     } catch {}
+    $sessionId = Prop $Data 'session_id'
+    Feed-Band $Raw $sessionId @{ effort = $level; five_hour = $fiveHour; seven_day = $weekly }
+    $rule = "$esc[2m$(([string][char]0x2500) * $(if ($columns -gt 0) { $columns } else { 80 }))$esc[22m"
+    $blank = @([string][char]0x00A0) * $blankLines
+    # The band draws the strips; its own rule separates it, so nothing here.
+    if (Band-Live $sessionId) {
+        Fetch-Only $cwd
+        return ''
+    }
 
-    $leaf = [IO.Path]::GetFileName($cwd.TrimEnd('\', '/'))
+    $leaf =[IO.Path]::GetFileName($cwd.TrimEnd('\', '/'))
     # Each line fades out over the two dark greys; the git band is the first of
     # them, so outside a repository it is only the fade.
     $first = Strip @(
@@ -489,7 +548,7 @@ function Render($Data) {
     $second = Strip @(
         (Context-Band (Prop $Data 'context_window')),
         @($colors.surface, (Limit-Text '5h' $glyphs.fiveHour $fiveHour)),
-        @($colors.deep, (Limit-Text '7d' $glyphs.weekly $weekly))
+        @($colors.surface, (Limit-Text '7d' $glyphs.weekly $weekly))
     )
     # Claude Code sends session_name only once the session has one (/rename).
     $style = Prop (Prop $Data 'output_style') 'name'
@@ -499,10 +558,9 @@ function Render($Data) {
         @($colors.surface, "$(Fg 'yellow') $($glyphs.session)$(Value-Or (Prop $Data 'session_name') 'yellow')"),
         @($colors.deep, '')
     )
-    $rule = "$esc[2m$(([string][char]0x2500) * $(if ($columns -gt 0) { $columns } else { 80 }))$esc[22m"
 
     # A line of one no-break space survives where an empty line would be dropped.
-    (@($first, $second, $third) + @([string][char]0x00A0) * $blankLines + @($rule)) -join "`n"
+    (@($first, $second, $third) + $blank + @($rule)) -join "`n"
 }
 
 # The background side: scan, and scan again while refreshes asked for it.
@@ -562,5 +620,9 @@ if ($Fetch) {
 }
 
 $data = $null
-try { $data = [Console]::In.ReadToEnd() | ConvertFrom-Json } catch {}
-[Console]::Out.Write((Render $data))
+$raw = ''
+try {
+    $raw = [Console]::In.ReadToEnd()
+    $data = $raw | ConvertFrom-Json
+} catch {}
+[Console]::Out.Write((Render $data $raw))

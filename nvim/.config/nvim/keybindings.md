@@ -15,7 +15,7 @@ _Generated from `keybindings.yaml` by `keybindings-to-md.cs`._
 > 🔹 marks a **Neovim built-in** default — a core editor command that is
 > not defined via a keymap (it never appears in `:map`/`nvim_get_keymap`).
 >
-> Totals: **539** keybindings — **252** explicit, **146** implicit defaults (🔸), **141** built-ins (🔹).
+> Totals: **543** keybindings — **256** explicit, **146** implicit defaults (🔸), **141** built-ins (🔹).
 
 ## Table of Contents
 
@@ -150,11 +150,15 @@ Configures: `hydra.nvim`
 | `f` | hydra(treewalker) | Next call (outer)                                                                | `goto_next_start @call.outer`            |  |
 | `F` | hydra(treewalker) | Previous call (outer)                                                            | `goto_previous_start @call.outer`        |  |
 | `h` | hydra(treewalker) | Move left / ascend                                                               | `<cmd>Treewalker Left<cr>`               |  |
+| `H` | hydra(treewalker) | Previous buffer in window history (same as gj)                                   | `<cmd>HisTravBack<cr>`                   |  |
 | `i` | hydra(treewalker) | Next conditional (outer)                                                         | `goto_next_start @conditional.outer`     |  |
 | `I` | hydra(treewalker) | Previous conditional (outer)                                                     | `goto_previous_start @conditional.outer` |  |
 | `j` | hydra(treewalker) | Move down a sibling node                                                         | `<cmd>Treewalker Down<cr>`               |  |
+| `J` | hydra(treewalker) | Jump to older position in jumplist (VS Navigate Backward)                        | `normal! <C-o>`                          |  |
 | `k` | hydra(treewalker) | Move up a sibling node                                                           | `<cmd>Treewalker Up<cr>`                 |  |
+| `K` | hydra(treewalker) | Jump to newer position in jumplist (VS Navigate Forward)                         | `normal! <C-i>`                          |  |
 | `l` | hydra(treewalker) | Move right / descend                                                             | `<cmd>Treewalker Right<cr>`              |  |
+| `L` | hydra(treewalker) | Next buffer in window history (same as gk)                                       | `<cmd>HisTravForward<cr>`                |  |
 | `m` | hydra(treewalker) | Next function (outer)                                                            | `goto_next_start @function.outer`        |  |
 | `M` | hydra(treewalker) | Previous function (outer)                                                        | `goto_previous_start @function.outer`    |  |
 | `n` | hydra(treewalker) | Next number (inner)                                                              | `goto_next_start @number.inner`          |  |
@@ -790,6 +794,7 @@ Defined in: `lua/config/hydra-codenav.lua`, `lua/config/hydra-diagnostics.lua`
 | `F` | hydra(treewalker) | Previous call (outer)                                                            | `goto_previous_start @call.outer`        |  |
 | `f` | hydra(diagnostics) | Show the line's diagnostics                                                      | `vim.diagnostic.open_float (line)`       |  |
 | `h` | hydra(treewalker) | Move left / ascend                                                               | `<cmd>Treewalker Left<cr>`               |  |
+| `H` | hydra(treewalker) | Previous buffer in window history (same as gj)                                   | `<cmd>HisTravBack<cr>`                   |  |
 | `h` | hydra(diagnostics) | Next hint                                                                        | `goto next HINT diagnostic`              |  |
 | `H` | hydra(diagnostics) | Previous hint                                                                    | `goto previous HINT diagnostic`          |  |
 | `i` | hydra(treewalker) | Next conditional (outer)                                                         | `goto_next_start @conditional.outer`     |  |
@@ -797,8 +802,11 @@ Defined in: `lua/config/hydra-codenav.lua`, `lua/config/hydra-diagnostics.lua`
 | `i` | hydra(diagnostics) | Next info                                                                        | `goto next INFO diagnostic`              |  |
 | `I` | hydra(diagnostics) | Previous info                                                                    | `goto previous INFO diagnostic`          |  |
 | `j` | hydra(treewalker) | Move down a sibling node                                                         | `<cmd>Treewalker Down<cr>`               |  |
+| `J` | hydra(treewalker) | Jump to older position in jumplist (VS Navigate Backward)                        | `normal! <C-o>`                          |  |
 | `k` | hydra(treewalker) | Move up a sibling node                                                           | `<cmd>Treewalker Up<cr>`                 |  |
+| `K` | hydra(treewalker) | Jump to newer position in jumplist (VS Navigate Forward)                         | `normal! <C-i>`                          |  |
 | `l` | hydra(treewalker) | Move right / descend                                                             | `<cmd>Treewalker Right<cr>`              |  |
+| `L` | hydra(treewalker) | Next buffer in window history (same as gk)                                       | `<cmd>HisTravForward<cr>`                |  |
 | `m` | hydra(treewalker) | Next function (outer)                                                            | `goto_next_start @function.outer`        |  |
 | `M` | hydra(treewalker) | Previous function (outer)                                                        | `goto_previous_start @function.outer`    |  |
 | `n` | hydra(treewalker) | Next number (inner)                                                              | `goto_next_start @number.inner`          |  |
@@ -1811,11 +1819,15 @@ plugin.
 | `f` | hydra(treewalker) | Next call (outer)                                                                | `goto_next_start @call.outer`            | `hydra.nvim` |  |
 | `F` | hydra(treewalker) | Previous call (outer)                                                            | `goto_previous_start @call.outer`        | `hydra.nvim` |  |
 | `h` | hydra(treewalker) | Move left / ascend                                                               | `<cmd>Treewalker Left<cr>`               | `hydra.nvim` |  |
+| `H` | hydra(treewalker) | Previous buffer in window history (same as gj)                                   | `<cmd>HisTravBack<cr>`                   | `hydra.nvim` |  |
 | `i` | hydra(treewalker) | Next conditional (outer)                                                         | `goto_next_start @conditional.outer`     | `hydra.nvim` |  |
 | `I` | hydra(treewalker) | Previous conditional (outer)                                                     | `goto_previous_start @conditional.outer` | `hydra.nvim` |  |
 | `j` | hydra(treewalker) | Move down a sibling node                                                         | `<cmd>Treewalker Down<cr>`               | `hydra.nvim` |  |
+| `J` | hydra(treewalker) | Jump to older position in jumplist (VS Navigate Backward)                        | `normal! <C-o>`                          | `hydra.nvim` |  |
 | `k` | hydra(treewalker) | Move up a sibling node                                                           | `<cmd>Treewalker Up<cr>`                 | `hydra.nvim` |  |
+| `K` | hydra(treewalker) | Jump to newer position in jumplist (VS Navigate Forward)                         | `normal! <C-i>`                          | `hydra.nvim` |  |
 | `l` | hydra(treewalker) | Move right / descend                                                             | `<cmd>Treewalker Right<cr>`              | `hydra.nvim` |  |
+| `L` | hydra(treewalker) | Next buffer in window history (same as gk)                                       | `<cmd>HisTravForward<cr>`                | `hydra.nvim` |  |
 | `m` | hydra(treewalker) | Next function (outer)                                                            | `goto_next_start @function.outer`        | `hydra.nvim` |  |
 | `M` | hydra(treewalker) | Previous function (outer)                                                        | `goto_previous_start @function.outer`    | `hydra.nvim` |  |
 | `n` | hydra(treewalker) | Next number (inner)                                                              | `goto_next_start @number.inner`          | `hydra.nvim` |  |
@@ -2283,6 +2295,7 @@ Every keybinding in one flat table, sorted by key then mode.
 | `h` | hydra(diagnostics) | Next hint                                                                        | `goto next HINT diagnostic`              | `hydra.nvim` |  |
 | `H` | hydra(diagnostics) | Previous hint                                                                    | `goto previous HINT diagnostic`          | `hydra.nvim` |  |
 | `h` | hydra(treewalker) | Move left / ascend                                                               | `<cmd>Treewalker Left<cr>`               | `hydra.nvim` |  |
+| `H` | hydra(treewalker) | Previous buffer in window history (same as gj)                                   | `<cmd>HisTravBack<cr>`                   | `hydra.nvim` |  |
 | `h` | n | Origami: fold when at/before first non-blank, else h                             | `fold or normal h`                       | `nvim-origami` | 🔸 |
 | `h` | n,x,o | Left one character                                                               | `(motion)`                               | _core_ | 🔹 |
 | `H` | n,x,o | To top of window                                                                 | `(motion)`                               | _core_ | 🔹 |
@@ -2305,14 +2318,17 @@ Every keybinding in one flat table, sorted by key then mode.
 | `it` | x,o | Textobject: class (inner)                                                        | `@class.inner`                           | `nvim-treesitter` |  |
 | `i{id}` | x,o | mini.ai: select 'inside' textobject {id}                                         | `select inside textobject`               | `mini.ai` | 🔸 |
 | `j` | hydra(treewalker) | Move down a sibling node                                                         | `<cmd>Treewalker Down<cr>`               | `hydra.nvim` |  |
+| `J` | hydra(treewalker) | Jump to older position in jumplist (VS Navigate Backward)                        | `normal! <C-o>`                          | `hydra.nvim` |  |
 | `J` | n | Join line below with a space                                                     | `(edit)`                                 | _core_ | 🔹 |
 | `j` | n,x,o | Down one line                                                                    | `(motion)`                               | _core_ | 🔹 |
 | `J` | x | Move selected block down                                                         | `:move '>+1<CR>gv=gv`                    | _core_ |  |
 | `k` | hydra(treewalker) | Move up a sibling node                                                           | `<cmd>Treewalker Up<cr>`                 | `hydra.nvim` |  |
+| `K` | hydra(treewalker) | Jump to newer position in jumplist (VS Navigate Forward)                         | `normal! <C-i>`                          | `hydra.nvim` |  |
 | `K` | n | LSP: hover documentation                                                         | `vim.lsp.buf.hover`                      | `nvim-lspconfig` |  |
 | `k` | n,x,o | Up one line                                                                      | `(motion)`                               | _core_ | 🔹 |
 | `K` | x | Move selected block up                                                           | `:move '<-2<CR>gv=gv`                    | _core_ |  |
 | `l` | hydra(treewalker) | Move right / descend                                                             | `<cmd>Treewalker Right<cr>`              | `hydra.nvim` |  |
+| `L` | hydra(treewalker) | Next buffer in window history (same as gk)                                       | `<cmd>HisTravForward<cr>`                | `hydra.nvim` |  |
 | `l` | n | Origami: unfold folded line, else l                                              | `unfold or normal l`                     | `nvim-origami` | 🔸 |
 | `l` | n,x,o | Right one character                                                              | `(motion)`                               | _core_ | 🔹 |
 | `L` | n,x,o | To bottom of window                                                              | `(motion)`                               | _core_ | 🔹 |

@@ -20,6 +20,20 @@ function M.setup()
 		end
 	end
 
+	-- Jumplist back / forward, like Visual Studio's Navigate Backward /
+	-- Forward (mouse buttons 4/5). A jump into a buffer that can no longer be
+	-- opened raises; echo that instead of letting it escape the hydra head.
+	-- The count 1 is not optional: <C-i> is a Tab, and `:normal!` strips a
+	-- trailing whitespace argument, so `normal! <Tab>` fails with E471.
+	local jumplist = function(keys)
+		return function()
+			local ok, err = pcall(vim.cmd, "normal! 1" .. vim.keycode(keys))
+			if not ok then
+				vim.api.nvim_echo({ { (err:gsub("^.-(E%d+:)", "%1")), "WarningMsg" } }, false, {})
+			end
+		end
+	end
+
 	Hydra({
 		name = "treewalker",
 		mode = "n",
@@ -37,6 +51,14 @@ function M.setup()
 			{ "l", "<cmd>Treewalker Right<cr>", { silent = true } },
 			{ "j", "<cmd>Treewalker Down<cr>", { silent = true } },
 			{ "h", "<cmd>Treewalker Left<cr>", { silent = true } },
+
+			-- previous / next position in the jumplist
+			{ "J", jumplist("<C-o>"), {} },
+			{ "K", jumplist("<C-i>"), {} },
+
+			-- previous / next buffer in history, same as gj / gk
+			{ "H", "<cmd>HisTravBack<cr>", { silent = true } },
+			{ "L", "<cmd>HisTravForward<cr>", { silent = true } },
 
 			{ "==", tsmove_goto_next_start("@assignment.outer"), {} },
 			{ "=+", tsmove_goto_prev_start("@assignment.outer"), {} },

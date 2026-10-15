@@ -189,6 +189,9 @@ end
 # functions/fzf.fish  -- wrapper disabling the kitty keyboard protocol
 # fish_plugins        -- fisher-managed plugins
 
+# No welcome banner: fish prints none when fish_greeting is empty.
+set -g fish_greeting
+
 # Colour theme, from the catppuccin/fish fisher plugin. `theme choose` sets the
 # fish_color_* variables globally for this session; global beats universal in
 # fish's scope lookup, so this wins over whatever a machine happens to have in

@@ -1,7 +1,7 @@
 // The status line's look (statusline.mjs in the status-band package) and the
 // plain parsing the band needs: colours, icons, model names, git's porcelain
 // status, ages. Keep the colours and icons in step with statusline.mjs.
-import type { GitCounts, GitInfo } from '../types'
+import type { BandMode, GitCounts, GitInfo } from '../types'
 
 export type Rgb = readonly [number, number, number]
 
@@ -161,3 +161,22 @@ export function childOf(dir: string, name: string): string {
 }
 
 export const baseName = (path: string) => path.replace(/[\\/]+$/, '').split(/[\\/]/).pop() || path
+
+// status-band/mode as the status line reads it: anything but band or off is
+// mod, the default.
+export const MODES: readonly BandMode[] = ['mod', 'band', 'off']
+
+export function parseMode(text: string | null | undefined): BandMode {
+  const mode = (text ?? '').trim().toLowerCase()
+
+  return mode === 'band' || mode === 'off' ? mode : 'mod'
+}
+
+// /status-band's argument: a mode, or nothing for the one after the current;
+// null for anything else.
+export function pickMode(args: string, current: BandMode): BandMode | null {
+  const wanted = args.trim().toLowerCase()
+  if (wanted === '') return MODES[(MODES.indexOf(current) + 1) % MODES.length] ?? 'mod'
+
+  return MODES.find(mode => mode === wanted) ?? null
+}

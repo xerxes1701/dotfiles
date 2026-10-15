@@ -870,6 +870,11 @@ repository's hooks off, so a commit made there skips pre-commit hooks. like
 `paste-image`, it loads from this checkout once its folder is in
 `CLAUDE_CODE_PLUGIN_DIRS`.
 
+`/status-band mod|band|off` picks who draws the strips, in every session: the
+band (`mod`, the default), the statusline alone (`band`), or neither (`off`).
+it writes `~/.claude/status-band/mode`, which both statusline scripts read;
+bare, it moves on to the next of the three.
+
 ## plugins, once per machine
 
 > claude-bootstrap.sh

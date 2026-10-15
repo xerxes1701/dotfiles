@@ -12,22 +12,35 @@
 // its strips to the band. Model, folder, output style and vim on or off are
 // read live as well, so a change made here shows at once; git is read here.
 //
+// /status-band mod|band|off picks who draws the strips, in every session: the
+// band (mod, the default), the status line alone (band), or neither (off). It
+// writes ~/.claude/status-band/mode, which statusline.mjs reads as well; bare,
+// it moves on to the next of the three.
+//
 // Git runs through $.process.run, which runs it with the repository's hooks
 // off: a commit made here skips pre-commit and commit-msg hooks.
 import { atom, read, update } from 'claude-code'
 import type { Elements, EngineInterface, Register, RenderElement } from 'claude-code'
 
-import type { Branch, Confirm, GitInfo, GitOp, Menu, MenuState, SessionEntry, Snapshot, Stash } from '../types'
+import type { BandMode, Branch, Confirm, GitInfo, GitOp, Menu, MenuState, SessionEntry, Snapshot, Stash } from '../types'
 import {
   BANDS, COLORS, DASH, EFFORTS, EFFORT_ICONS, EFFORT_SCALE, EMPTY_COUNTS, ICON, NO_EFFORT_ICON, VIM_MODES,
-  age, baseName, changeCount, childOf, compactTokens, hex, mix, modelScale, parentOf, parseStatus, prettyModel,
-  timeUntil, usedScale,
+  age, baseName, changeCount, childOf, compactTokens, hex, mix, modelScale, parentOf, parseMode, parseStatus,
+  pickMode, prettyModel, timeUntil, usedScale,
 } from './look'
 import type { BandName, Rgb } from './look'
 
 const snapshot = atom({ plugin: 'status-band', key: 'snapshot' } as const, null)
 const gitInfo = atom({ plugin: 'status-band', key: 'git' } as const, null)
 const menuState = atom({ plugin: 'status-band', key: 'menu' } as const, null)
+const bandMode = atom({ plugin: 'status-band', key: 'mode' } as const, 'mod')
+
+const COMMAND = 'status-band'
+const MODE_TEXT: Record<BandMode, string> = {
+  mod: 'mod, the band of buttons above the prompt draws the strips.',
+  band: 'band, the status line draws the strips under the prompt; it shows again within 10 s.',
+  off: 'off, neither the band nor the status line draws the strips.',
+}
 
 const POLL_MS = 400
 // In polls: the live values every 2 s, git every 3 s, the heartbeat every 4 s.
@@ -55,7 +68,7 @@ const TITLES: Record<Menu['kind'], string> = {
 type Dump = Omit<Snapshot, 'sessionId' | 'isVim' | 'readAt'>
 type Live = { modelId: string; cwd: string; outputStyle?: string; isVim?: boolean }
 
-let sessionsDir: string | null = null
+let stateDir: string | null = null
 let dump: Dump | null = null
 let dumpSeen = { path: '', mtime: 0 }
 let live: Live | null = null
@@ -83,13 +96,41 @@ const limitWindow = (value: unknown) => {
 }
 const bare = (id: string) => id.replace(/\[.*?\]/g, '').trim()
 
-async function dirOfSessions($: $): Promise<string> {
-  if (sessionsDir !== null) return sessionsDir
+async function dirOfState($: $): Promise<string> {
+  if (stateDir !== null) return stateDir
   const configured = await $.env.get('CLAUDE_CONFIG_DIR')
   const home = (await $.env.get('USERPROFILE')) || (await $.env.get('HOME')) || ''
-  sessionsDir = `${configured || `${home}/.claude`}/status-band/sessions`
+  stateDir = `${configured || `${home}/.claude`}/status-band`
 
-  return sessionsDir
+  return stateDir
+}
+
+const dirOfSessions = async ($: $) => `${await dirOfState($)}/sessions`
+
+// The mode another session's /status-band may have changed.
+async function readMode($: $): Promise<void> {
+  const text = await $.fs.read(`${await dirOfState($)}/mode`).catch(() => null)
+  await useMode($, parseMode(text))
+}
+
+async function useMode($: $, mode: BandMode): Promise<void> {
+  if ((await read($, bandMode)) === mode) return
+  if (mode !== 'mod' && isMenuOpen) await closeMenu($)
+  await update($, bandMode, () => mode)
+}
+
+async function setMode($: $, args: string): Promise<{ text: string }> {
+  const mode = pickMode(args, await read($, bandMode))
+  if (mode === null) return { text: `takes mod, band or off, not "${args.trim()}".` }
+  try {
+    await $.fs.write(`${await dirOfState($)}/mode`, `${mode}\n`)
+  } catch (error) {
+    return { text: `mode not written to status-band/mode: ${String(error)}` }
+  }
+  await useMode($, mode)
+  soon($)
+
+  return { text: MODE_TEXT[mode] }
 }
 
 function fromInput(input: Record<string, any>): Dump {
@@ -252,7 +293,7 @@ async function poll($: $): Promise<void> {
     const tick = ticks++
     const [sessionId, now] = await Promise.all([$.session.id(), $.clock.now()])
     await readDump($, sessionId)
-    if (tick % LIVE_EVERY === 0) await readLive($)
+    if (tick % LIVE_EVERY === 0) await Promise.all([readLive($), readMode($)])
     await publish($, sessionId, now)
     if (tick % GIT_EVERY === 0) void refreshGit($)
     await closeIfLeft($)
@@ -1011,6 +1052,12 @@ export const register: Register = on => {
   let timer: { cancel: () => void } | null = null
 
   on('session.start', async ($, e, next) => {
+    await $.command.register({
+      name: COMMAND,
+      description: 'Draw the strips as the band (mod), as the status line (band), or not at all (off)',
+      argumentHint: '[mod|band|off]',
+      immediate: true,
+    })
     const started = await next(e)
     timer?.cancel()
     timer = $.clock.every(POLL_MS, () => poll($))
@@ -1018,6 +1065,8 @@ export const register: Register = on => {
 
     return started
   })
+
+  on('command.run', { command: COMMAND }, ($, e) => setMode($, e.args))
 
   on('turn.complete', ($, e, next) => {
     soon($)
@@ -1048,7 +1097,7 @@ export const register: Register = on => {
 
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
     isDrawn = false
-    if (e.props.hasSurvey) return next(e)
+    if (e.props.hasSurvey || (await read($, bandMode)) !== 'mod') return next(e)
     const snap = await read($, snapshot)
     if (snap === null) return next(e)
     isDrawn = true

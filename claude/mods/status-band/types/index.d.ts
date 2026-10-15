@@ -74,6 +74,12 @@ export type Menu =
   | { kind: 'style'; options: string[]; current: string }
   | { kind: 'session'; name: string | null; sessions: SessionEntry[]; ask?: 'rename' }
 
+/**
+ * Who draws the strips, as /status-band sets it in status-band/mode: the band
+ * (`mod`), the status line (`band`), or neither (`off`).
+ */
+export type BandMode = 'mod' | 'band' | 'off'
+
 export type MenuState = { menu: Menu; confirm?: Confirm; busy?: string; error?: string }
 
 declare module 'claude-code' {
@@ -82,6 +88,7 @@ declare module 'claude-code' {
       snapshot: Snapshot | null
       git: GitInfo | null
       menu: MenuState | null
+      mode: BandMode
     }
   }
 }

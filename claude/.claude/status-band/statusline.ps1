@@ -457,8 +457,17 @@ function Value-Or($Value, [string]$Color) {
 # runs it touches <session>.band every few seconds, and the strips are left
 # to it; the git fetch still runs from here, so the commits to pull stay
 # current.
+#
+# The mod's /status-band writes who draws the strips to status-band/mode: mod
+# (the default) as above, band always here, off nowhere.
 $sessionsDir = Join-Path $stateDir 'sessions'
 $bandFreshMs = 20000
+$modeFile = Join-Path $stateDir 'mode'
+
+function Read-Mode {
+    $mode = "$(Read-Text $modeFile)".ToLowerInvariant()
+    if ($mode -eq 'band' -or $mode -eq 'off') { $mode } else { 'mod' }
+}
 
 function Session-File($Id, [string]$Suffix) {
     if ("$Id" -match '^[\w-]+$') { Join-Path $sessionsDir "$Id$Suffix" } else { $null }
@@ -527,10 +536,12 @@ function Render($Data, [string]$Raw) {
     } catch {}
     $sessionId = Prop $Data 'session_id'
     Feed-Band $Raw $sessionId @{ effort = $level; five_hour = $fiveHour; seven_day = $weekly }
+    $mode = Read-Mode
+    if ($mode -eq 'off') { return '' }
     $rule = "$esc[2m$(([string][char]0x2500) * $(if ($columns -gt 0) { $columns } else { 80 }))$esc[22m"
     $blank = @([string][char]0x00A0) * $blankLines
     # The band draws the strips; its own rule separates it, so nothing here.
-    if (Band-Live $sessionId) {
+    if ($mode -eq 'mod' -and (Band-Live $sessionId)) {
         Fetch-Only $cwd
         return ''
     }

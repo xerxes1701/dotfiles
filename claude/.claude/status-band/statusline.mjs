@@ -504,8 +504,18 @@ function context(window) {
 // runs it touches <session>.band every few seconds, and the strips are left
 // to it; the git fetch still runs from here, so the commits to pull stay
 // current.
+//
+// The mod's /status-band writes who draws the strips to status-band/mode: mod
+// (the default) as above, band always here, off nowhere.
 const SESSIONS_DIR = join(STATE_DIR, 'sessions')
 const BAND_FRESH = 20_000
+const MODE_FILE = join(STATE_DIR, 'mode')
+
+function readMode() {
+  const mode = readText(MODE_FILE)?.toLowerCase()
+
+  return mode === 'band' || mode === 'off' ? mode : 'mod'
+}
 const sessionFile = (id, suffix) => (/^[\w-]+$/.test(id ?? '') ? join(SESSIONS_DIR, `${id}${suffix}`) : null)
 
 function feedBand(input, resolved) {
@@ -560,10 +570,12 @@ function render(input) {
     writeFileSync(LIMITS_CACHE, JSON.stringify(cache))
   } catch {}
   feedBand(input, { effort: level, five_hour: fiveHour, seven_day: weekly })
+  const mode = readMode()
+  if (mode === 'off') return ''
   const rule = `\x1b[2m${'─'.repeat(columns > 0 ? columns : 80)}\x1b[22m`
   const blank = Array(BLANK_LINES).fill(' ')
   // The band draws the strips; its own rule separates it, so nothing here.
-  if (isBandLive(input.session_id)) {
+  if (mode === 'mod' && isBandLive(input.session_id)) {
     fetchOnly(cwd)
 
     return ''

@@ -3,8 +3,8 @@
 # is one powerline strip, coloured bands first, then dark greys, fading out
 # into the background. Model and effort, each coloured from green (the
 # smallest model, the lowest effort) to red, then directory and git; then the
-# context window and the 5-hour and weekly limits; then the output style and
-# session name. All text is tinted like its band and has a contrast of at
+# context window and the 5-hour and weekly limits; then the vim mode, the
+# output style and the session name. All text is tinted like its band and has a contrast of at
 # least 4.6 against it. Reads the status line JSON on stdin and prints
 # ANSI-coloured lines.
 #
@@ -60,6 +60,7 @@ $bands = @{
     blue = @{ bg = @(72, 92, 109); text = @(193, 213, 231) }
     cyan = @{ bg = @(65, 94, 98); text = @(171, 218, 223) }
     grey = @{ bg = @(86, 90, 97); text = @(208, 211, 215) }
+    purple = @{ bg = @(101, 81, 121); text = @(220, 204, 236) }
 }
 $colors = @{
     surface = @(62, 68, 81); deep = @(53, 58, 69); overlay = @(90, 99, 116)
@@ -83,7 +84,7 @@ $glyphs = @{
     capLeft = Glyph 0xE0B6; arrow = Glyph 0xE0B0; thinArrow = Glyph 0xE0B1
     model = Glyph 0xF06C4; folder = Glyph 0xF024B; branch = Glyph 0xF418; commit = Glyph 0xF417
     context = Glyph 0xF035B; fiveHour = Glyph 0xF0150; weekly = Glyph 0xF0A33; style = Glyph 0xF03D8
-    session = Glyph 0xF0EDE; fetching = Glyph 0xF063F; scanning = Glyph 0xF0C7D
+    session = Glyph 0xF0EDE; fetching = Glyph 0xF063F; scanning = Glyph 0xF0C7D; vim = Glyph 0xE7C5
 }
 # Fills up with the level: low is almost empty, max is full.
 $effortIcons = @{
@@ -138,6 +139,22 @@ function Num($Value) {
     if ($Value -isnot [ValueType]) { return $null }
     $d = [double]$Value
     if ([double]::IsNaN($d) -or [double]::IsInfinity($d)) { $null } else { $d }
+}
+
+# The vim editor mode, which Claude Code sends only while vim mode is on; it
+# draws no -- INSERT -- of its own (statusLine.hideVimModeIndicator). alt+i
+# toggles vim mode, through the vim-toggle mod.
+$vimModes = @{
+    'NORMAL' = @('Normal', 'purple'); 'INSERT' = @('Insert', 'blue')
+    'VISUAL' = @('Visual', 'orange'); 'VISUAL LINE' = @('Visual Line', 'orange')
+}
+
+function Vim-Band($Vim) {
+    $mode = Prop $Vim 'mode'
+    if ($mode -isnot [string]) { return , (Band 'grey' " $($glyphs.vim) vim off (alt+i)") }
+    $found = $vimModes[$mode]
+    if (-not $found) { $found = @($mode, 'grey') }
+    , (Band $found[1] (Bold " $($glyphs.vim) $($found[0])"))
 }
 
 function Capitalize([string]$Word) {
@@ -477,6 +494,7 @@ function Render($Data) {
     # Claude Code sends session_name only once the session has one (/rename).
     $style = Prop (Prop $Data 'output_style') 'name'
     $third = Strip @(
+        (Vim-Band (Prop $Data 'vim')),
         (Band 'cyan' " $($glyphs.style) $(if ($null -ne $style) { $style } else { $dash })"),
         @($colors.surface, "$(Fg 'yellow') $($glyphs.session)$(Value-Or (Prop $Data 'session_name') 'yellow')"),
         @($colors.deep, '')

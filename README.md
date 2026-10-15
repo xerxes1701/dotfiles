@@ -798,6 +798,15 @@ nothing to `npm install`.
 `status-band/statusline.ps1` is its twin for windows, where there is no node;
 the two are kept in step.
 
+the third line starts with the vim mode, which claude code tells only the
+statusline, so its own `-- INSERT --` is switched off
+(`statusLine.hideVimModeIndicator`). on linux `statusline.mjs` also sets the
+cursor nvim would show for the mode -- a block in normal and visual, a bar in
+insert -- by writing it to claude code's terminal, which it finds in `/proc`
+since claude code gives the statusline no terminal of its own. the
+`SessionEnd` hook runs it with `--reset-cursor`, so the shell gets the
+terminal's own cursor back.
+
 claude code leaves a limit out of what it sends until the limit has usage
 again, so the script keeps the last readings in
 `~/.claude/status-band/limits.json`. that is the directory of the link, not of

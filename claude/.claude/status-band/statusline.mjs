@@ -2,8 +2,8 @@
 // is one powerline strip, coloured bands first, then dark greys, fading out
 // into the background. Model and effort, each coloured from green (the
 // smallest model, the lowest effort) to red, then directory and git; then the
-// context window and the 5-hour and weekly limits; then the output style and
-// session name. All text is tinted like its band and has a contrast of at
+// context window and the 5-hour and weekly limits; then the vim mode, the
+// output style and the session name. All text is tinted like its band and has a contrast of at
 // least 4.6 against it. Reads the status line JSON on stdin and prints
 // ANSI-coloured lines. statusline.ps1 beside it is its Windows twin; keep the
 // two in step.
@@ -19,7 +19,8 @@
 import { execFileSync, spawn } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import {
-  closeSync, existsSync, mkdirSync, openSync, readFileSync, renameSync, rmSync, statSync, writeFileSync,
+  closeSync, existsSync, mkdirSync, openSync, readFileSync, readlinkSync, renameSync, rmSync, statSync, writeFileSync,
+  writeSync,
 } from 'node:fs'
 import { homedir } from 'node:os'
 import { basename, dirname, join } from 'node:path'
@@ -50,6 +51,7 @@ const BANDS = {
   blue: { bg: [72, 92, 109], text: [193, 213, 231] },
   cyan: { bg: [65, 94, 98], text: [171, 218, 223] },
   grey: { bg: [86, 90, 97], text: [208, 211, 215] },
+  purple: { bg: [101, 81, 121], text: [220, 204, 236] },
 }
 const COLORS = {
   surface: [62, 68, 81], deep: [53, 58, 69], overlay: [90, 99, 116],
@@ -72,7 +74,7 @@ const ICON = {
   capLeft: cp(0xe0b6), arrow: cp(0xe0b0), thinArrow: cp(0xe0b1),
   model: cp(0xf06c4), folder: cp(0xf024b), branch: cp(0xf418), commit: cp(0xf417), context: cp(0xf035b),
   fiveHour: cp(0xf0150), weekly: cp(0xf0a33), style: cp(0xf03d8), session: cp(0xf0ede),
-  fetching: cp(0xf063f), scanning: cp(0xf0c7d),
+  fetching: cp(0xf063f), scanning: cp(0xf0c7d), vim: cp(0xe7c5),
 }
 // Fills up with the level: low is almost empty, max is full.
 const EFFORT_ICONS = {
@@ -103,6 +105,61 @@ function strip(bands) {
 
 // A coloured band: its background, and the text in its own tint.
 const band = (name, text) => [BANDS[name].bg, `${sgr(38, BANDS[name].text)}${text}`]
+
+// The vim editor mode, which Claude Code sends only while vim mode is on; it
+// draws no -- INSERT -- of its own (statusLine.hideVimModeIndicator). alt+i
+// toggles vim mode, through the vim-toggle mod.
+const VIM_MODES = {
+  NORMAL: ['Normal', 'purple'], INSERT: ['Insert', 'blue'],
+  VISUAL: ['Visual', 'orange'], 'VISUAL LINE': ['Visual Line', 'orange'],
+}
+
+function vimBand(vim) {
+  const mode = vim?.mode
+  if (typeof mode !== 'string') return band('grey', ` ${ICON.vim} vim off (alt+i)`)
+  const [label, color] = VIM_MODES[mode] ?? [mode, 'grey']
+
+  return band(color, bold(` ${ICON.vim} ${label}`))
+}
+
+// The cursor nvim draws in each mode (its default guicursor): a block in NORMAL
+// and VISUAL, a bar in INSERT; with vim off, the terminal's own. Claude Code
+// leaves the cursor's shape alone, and this is the one place told the mode, so
+// the shape (DECSCUSR) goes straight to the terminal, past the status line.
+// A SessionEnd hook runs this with --reset-cursor, so the shell after Claude
+// Code gets the terminal's own cursor back.
+const CURSORS = { NORMAL: 2, VISUAL: 2, 'VISUAL LINE': 2, INSERT: 6 }
+
+// Claude Code runs the status line without a controlling terminal, so there is
+// no /dev/tty; the terminal is the one Claude Code writes to, found in /proc as
+// the stdout of the nearest ancestor that has one. Linux only, as /proc is.
+function terminal() {
+  let pid = process.ppid
+  for (let depth = 0; depth < 5 && pid > 1; depth++) {
+    try {
+      const out = readlinkSync(`/proc/${pid}/fd/1`)
+      if (/^\/dev\/pts\/\d+$/.test(out)) return out
+      pid = Number(/^PPid:\s+(\d+)$/m.exec(readFileSync(`/proc/${pid}/status`, 'utf8'))?.[1] ?? 0)
+    } catch {
+      return null
+    }
+  }
+
+  return null
+}
+
+function setCursor(vim) {
+  const tty = terminal()
+  if (tty === null) return
+  try {
+    const fd = openSync(tty, 'w')
+    try {
+      writeSync(fd, `\x1b[${CURSORS[vim?.mode] ?? 0} q`)
+    } finally {
+      closeSync(fd)
+    }
+  } catch {}
+}
 
 const capitalize = word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
 const MODEL_ID = /(opus|sonnet|haiku|fable)-(\d+)(?:-(\d{1,2}))?(?:-\d{8})?$/i
@@ -465,6 +522,7 @@ function render(input) {
   ])
   // Claude Code sends session_name only once the session has one (/rename).
   const third = strip([
+    vimBand(input.vim),
     band('cyan', ` ${ICON.style} ${input.output_style?.name ?? DASH}`),
     [COLORS.surface, `${fg('yellow')} ${ICON.session}${valueOr(input.session_name, 'yellow')}`],
     [COLORS.deep, ''],
@@ -475,7 +533,9 @@ function render(input) {
   return [first, second, third, ...Array(BLANK_LINES).fill(' '), rule].join('\n')
 }
 
-if (process.argv[2] === '--scan') {
+if (process.argv[2] === '--reset-cursor') {
+  setCursor(null)
+} else if (process.argv[2] === '--scan') {
   scan(process.argv[3], process.argv[4])
 } else if (process.argv[2] === '--fetch') {
   fetch(process.argv[3], process.argv[4])
@@ -488,6 +548,7 @@ if (process.argv[2] === '--scan') {
     try {
       input = JSON.parse(raw)
     } catch {}
+    setCursor(input.vim)
     process.stdout.write(render(input))
   })
 }

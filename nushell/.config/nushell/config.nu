@@ -16,6 +16,19 @@
 # start with "File not found", that generator has not been run on this machine.
 source ~/.config/nushell/zoxide.nu
 
+# starship.toml leaves git_status to $env.STARSHIP_GIT_STATUS (see its header).
+# fish renders that in the background; nushell renders it here, just before
+# each prompt -- where git_status ran before, at the same cost. Its config sits
+# next to starship.toml. GIT_OPTIONAL_LOCKS=0 keeps the scan from holding
+# .git/index.lock against your own git commands.
+$env.config.hooks.pre_prompt = ($env.config.hooks.pre_prompt | append {||
+    let main = ($env.STARSHIP_CONFIG? | default ($nu.home-dir | path join .config starship.toml))
+    let config = ($main | path dirname | path join starship-git-status.toml)
+    $env.STARSHIP_GIT_STATUS = (with-env { STARSHIP_CONFIG: $config, GIT_OPTIONAL_LOCKS: '0' } {
+        ^starship module git_status | complete | get stdout
+    })
+})
+
 # ===== aliases: listing =====
 
 # `ls`, `ll`, `la` and `lt` are deliberately NOT shadowed here: nushell's

@@ -59,6 +59,17 @@ path=("$HOME/.local/bin" "$HOME/.cargo/bin" "$HOME/.dotnet/tools" "$BUN_INSTALL/
 eval "$(zoxide init zsh)"
 eval "$(starship init zsh)"
 
+# starship.toml leaves git_status to $STARSHIP_GIT_STATUS (see its header).
+# fish renders that in the background; zsh renders it here, just before each
+# prompt -- where git_status ran before, at the same cost. Its config sits
+# next to starship.toml. GIT_OPTIONAL_LOCKS=0 keeps the scan from holding
+# .git/index.lock against your own git commands.
+__starship_git_status() {
+  local config=${${STARSHIP_CONFIG:-$HOME/.config/starship.toml}:h}/starship-git-status.toml
+  export STARSHIP_GIT_STATUS=$(GIT_OPTIONAL_LOCKS=0 STARSHIP_CONFIG=$config starship module git_status 2>/dev/null)
+}
+precmd_functions+=(__starship_git_status)
+
 # ===== aliases: listing =====
 
 alias ls='eza --color=always --icons=always'

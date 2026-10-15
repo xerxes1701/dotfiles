@@ -43,6 +43,37 @@ $swprojekte = "C:\SWProjekte"
 
 Invoke-Expression (&starship init powershell)
 
+# starship.toml leaves git_status to $env:STARSHIP_GIT_STATUS (see its header).
+# fish renders that in the background; PowerShell renders it here, just before
+# each prompt -- where git_status ran before, at the same cost. starship's
+# prompt calls this hook first, after saving $? and $LASTEXITCODE. Its config
+# sits next to starship.toml. GIT_OPTIONAL_LOCKS=0 keeps the scan from holding
+# .git/index.lock against your own git commands. A process of its own, so the
+# two variables stay out of this session, and UTF-8 for the Nerd Font arrows.
+function Invoke-Starship-PreCommand {
+    $main = if ($env:STARSHIP_CONFIG) { $env:STARSHIP_CONFIG } else { Join-Path $HOME '.config\starship.toml' }
+    $psi = [Diagnostics.ProcessStartInfo]::new('starship')
+    'module', 'git_status' | ForEach-Object { $psi.ArgumentList.Add($_) }
+    $psi.Environment['STARSHIP_CONFIG'] = Join-Path (Split-Path -Parent $main) 'starship-git-status.toml'
+    $psi.Environment['GIT_OPTIONAL_LOCKS'] = '0'
+    $psi.WorkingDirectory = (Get-Location -PSProvider FileSystem).ProviderPath
+    $psi.StandardOutputEncoding = [Text.Encoding]::UTF8
+    $psi.RedirectStandardOutput = $true
+    $psi.RedirectStandardError = $true
+    $psi.UseShellExecute = $false
+    $psi.CreateNoWindow = $true
+    try {
+        $p = [Diagnostics.Process]::Start($psi)
+        $null = $p.StandardError.ReadToEndAsync()
+        $out = $p.StandardOutput.ReadToEnd()
+        $p.WaitForExit()
+        # An empty value removes the variable, which hides the module.
+        $env:STARSHIP_GIT_STATUS = $out.TrimEnd()
+    } catch {
+        $env:STARSHIP_GIT_STATUS = $null
+    }
+}
+
 Invoke-Expression (& { (zoxide init powershell | Out-String) })
 
 $prompt__ = (get-item "function:prompt").ScriptBlock

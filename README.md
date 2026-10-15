@@ -483,6 +483,19 @@ part from the drive letter on and translate it with `wslpath`. wsl git cannot
 work inside those worktrees, so `gz` previews the log through the repository
 by commit id instead.
 
+# journal
+
+> /mg-journal [YYYY-MM-DD]
+> journal.sh [query]
+
+`/mg-journal` is a claude code skill (`claude/.claude/skills/mg-journal`) that
+summarises a day's claude code sessions -- the prompts from the transcripts in
+`~/.claude/projects` plus the commits made that day in the repositories they
+ran in -- into `~/journal/YYYY-MM-DD.md`, and commits it there. it is only run
+when called by name. `journal.sh` lists the entries in fzf, newest first and
+searchable by their section headings, with the entry rendered by glow as
+preview; enter reads it in glow's pager, ctrl-e opens it in `$EDITOR`.
+
 # pasting an image
 
 the other direction of the same problem: a screenshot (win+shift+s), an image

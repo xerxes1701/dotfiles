@@ -270,6 +270,222 @@ check_evaluate_on_lua()
 end
 check_evaluate_on_prose()
 
+-- Git on a Windows drive, on WSL. init.lua puts ~/.local/lib/wsl-git first on
+-- PATH; that git hands a repository under /mnt/<drive> to Windows' git.exe and
+-- writes the paths rev-parse prints back as WSL ones. Every plugin here that
+-- reads git is run against a scratch repository in Windows' temp directory:
+-- the status line's git band, gitsigns, oil-git-status, neogit's status and
+-- diffview. A commit whose editor is a WSL command -- neogit's -- has to leave
+-- git.exe, which cannot start it, for Linux's git. Skipped off WSL, or where
+-- the wsl-git shim or git.exe is not installed.
+local function check_windows_drive_git()
+	local function say(text)
+		io.stderr:write(("  %-18s %s\n"):format("wsl-git", text))
+	end
+	local function finding(text)
+		table.insert(errs, "wsl-git: " .. text)
+	end
+	local shim = vim.fs.joinpath(vim.env.HOME or "", ".local/lib/wsl-git/git")
+	local windows_git = vim.env.WINDOWS_GIT or "/mnt/c/Program Files/Git/cmd/git.exe"
+	if not vim.env.WSL_DISTRO_NAME then
+		return say("skipped: not WSL")
+	end
+	if vim.fn.executable(shim) ~= 1 or vim.fn.executable(windows_git) ~= 1 then
+		return say("skipped: no wsl-git shim or no git.exe")
+	end
+	if vim.fn.exepath("git") ~= shim then
+		return finding(("git on PATH is %s, not the wsl-git shim"):format(vim.fn.exepath("git")))
+	end
+
+	local temp = vim.system({ "/mnt/c/Windows/System32/cmd.exe", "/d", "/c", "echo %TEMP%" }, { cwd = "/mnt/c", text = true })
+		:wait().stdout
+		:gsub("%s+$", "")
+	local temp_wsl = vim.system({ "wslpath", "-u", temp }, { text = true }):wait().stdout:gsub("%s+$", "")
+	if not temp_wsl:match("^/mnt/%a/") then
+		return finding(("Windows' temp directory %q is not on a drive"):format(temp))
+	end
+	local dir = ("%s/nvim-verify-git-%d"):format(temp_wsl, vim.fn.getpid())
+	vim.fn.mkdir(dir, "p")
+	local cleanup = dir
+
+	local function git(args, env)
+		return vim.system(vim.list_extend({ "git" }, args), { cwd = dir, text = true, env = env }):wait()
+	end
+	local function write(name, text)
+		local file = assert(io.open(dir .. "/" .. name, "wb"))
+		file:write(text)
+		file:close()
+	end
+	local plain = function(s)
+		return (s:gsub("%%#[^#]*#", ""))
+	end
+	local results = {}
+
+	local ok, err = pcall(function()
+		-- One commit, then one change of each kind the band counts: a modified
+		-- file (with Windows line endings), a staged one and an untracked one.
+		local identity = { "-c", "user.name=verify", "-c", "user.email=verify@invalid" }
+		git({ "init", "-q", "-b", "main" })
+		write("a.txt", "one\r\ntwo\r\n")
+		git({ "add", "a.txt" })
+		git(vim.list_extend(vim.deepcopy(identity), { "commit", "-q", "-m", "first" }))
+		write("a.txt", "one\r\nTWO\r\n")
+		write("c.txt", "staged\n")
+		git({ "add", "c.txt" })
+		write("b.txt", "untracked\n")
+
+		-- Routing: this repository to git.exe, a Linux one and a WSL editor to
+		-- Linux's git.
+		if not git({ "version" }).stdout:find("windows", 1, true) then
+			finding("a repository on a Windows drive did not get git.exe")
+		end
+		local linux = vim.system({ "git", "version" }, { cwd = config, text = true }):wait().stdout
+		if linux:find("windows", 1, true) then
+			finding("a Linux repository got git.exe")
+		end
+		if git({ "version" }, { GIT_EDITOR = "nvim --clean" }).stdout:find("windows", 1, true) then
+			finding("a run with a WSL editor got git.exe, which cannot start it")
+		end
+		-- %TEMP% may hold a short 8.3 name (GAWLIK~1.MIG), which git reports
+		-- long; go on with git's, the one a person's own path would match.
+		local top = vim.trim(vim.system({ "git", "-C", dir, "rev-parse", "--show-toplevel" }, { text = true }):wait().stdout)
+		if not top:match("^/mnt/%a/") or vim.fn.filereadable(top .. "/b.txt") ~= 1 then
+			error(("rev-parse --show-toplevel gave %q, not the repository as a WSL path"):format(top))
+		end
+		cleanup = dir
+		dir = top
+
+		-- The status line's git band and gitsigns, on the modified file.
+		vim.cmd("edit " .. vim.fn.fnameescape(dir .. "/a.txt"))
+		local band = require("statusline_git")
+		local want = { "main", "+1", "~1", "?1" }
+		local got_band = vim.wait(30000, function()
+			local text = plain(band.text())
+			for _, part in ipairs(want) do
+				if not text:find(part, 1, true) then
+					return false
+				end
+			end
+			return true
+		end, 200)
+		results.band = plain(band.text()):gsub("%s+", " ")
+		if not got_band then
+			finding(("git band shows %q, expected main +1 ~1 ?1"):format(results.band))
+		end
+		local gitsigns_ok = vim.wait(30000, function()
+			return vim.b.gitsigns_head == "main" and #(require("gitsigns").get_hunks() or {}) == 1
+		end, 200)
+		results.gitsigns = ("head=%s hunks=%d"):format(tostring(vim.b.gitsigns_head), #(require("gitsigns").get_hunks() or {}))
+		if not gitsigns_ok then
+			finding("gitsigns: " .. results.gitsigns .. ", expected head=main hunks=1")
+		end
+
+		-- oil-git-status: a sign beside each of the three changed files.
+		vim.cmd("edit " .. vim.fn.fnameescape("oil://" .. dir .. "/"))
+		local ns = vim.api.nvim_get_namespaces()["oil-git-status"]
+		local signs = 0
+		vim.wait(30000, function()
+			signs = 0
+			for _, mark in ipairs(ns and vim.api.nvim_buf_get_extmarks(0, ns, 0, -1, { details = true }) or {}) do
+				if vim.trim(mark[4].sign_text or "") ~= "" then
+					signs = signs + 1
+				end
+			end
+			return signs >= 3
+		end, 200)
+		results.oil = ("signs=%d"):format(signs)
+		if signs < 3 then
+			finding(("oil-git-status set %d signs, expected one per changed file (3)"):format(signs))
+		end
+
+		-- neogit's status buffer.
+		require("neogit").open({ cwd = dir, kind = "replace" })
+		local sections = { "Untracked files (1)", "Unstaged changes (1)", "Staged changes (1)" }
+		local neogit_ok = vim.wait(30000, function()
+			local text = table.concat(vim.api.nvim_buf_get_lines(0, 0, -1, false), "\n")
+			for _, section in ipairs(sections) do
+				if not text:find(section, 1, true) then
+					return false
+				end
+			end
+			return true
+		end, 200)
+		results.neogit = neogit_ok and "ok" or "missing sections"
+		if not neogit_ok then
+			finding("neogit's status lacks " .. table.concat(sections, ", "))
+		end
+		vim.cmd("enew")
+
+		-- diffview: its file panel lists the modified and the staged file.
+		vim.cmd("tcd " .. vim.fn.fnameescape(dir))
+		vim.cmd("DiffviewOpen")
+		local diffview_ok = vim.wait(30000, function()
+			for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+				if vim.api.nvim_buf_get_name(buf):find("DiffviewFilePanel", 1, true) then
+					local text = table.concat(vim.api.nvim_buf_get_lines(buf, 0, -1, false), "\n")
+					if text:find("a.txt", 1, true) and text:find("c.txt", 1, true) then
+						return true
+					end
+				end
+			end
+			return false
+		end, 200)
+		-- Then both sides of the first file: closing while diffview still builds
+		-- them is an error of its own ("Failed to create diff buffer").
+		local sides = 0
+		local sides_ok = diffview_ok
+			and vim.wait(30000, function()
+				sides = 0
+				for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+					local buf = vim.api.nvim_win_get_buf(win)
+					if vim.wo[win].diff and vim.api.nvim_buf_get_lines(buf, 0, 1, false)[1] == "one" then
+						sides = sides + 1
+					end
+				end
+				return sides >= 2
+			end, 200)
+		results.diffview = not diffview_ok and "files missing" or sides_ok and "ok" or ("sides=%d"):format(sides)
+		if not diffview_ok then
+			finding("diffview's file panel does not list a.txt and c.txt")
+		elseif not sides_ok then
+			finding(("diffview drew %d sides of a.txt, expected 2"):format(sides))
+		end
+		pcall(vim.cmd, "DiffviewClose")
+		vim.cmd("tcd " .. vim.fn.fnameescape(config .. "/verify/fixture"))
+
+		-- A commit whose editor is a WSL command, as neogit's is.
+		local editor = [[sh -c 'echo verify-editor > "$1"' sh]]
+		local commit = git(vim.list_extend(vim.deepcopy(identity), { "commit", "-q" }), { GIT_EDITOR = editor })
+		local subject = vim.trim(vim.system({ windows_git, "log", "-1", "--format=%s" }, { cwd = dir, text = true }):wait().stdout)
+		results.commit = commit.code == 0 and subject == "verify-editor" and "ok" or ("exit=%d subject=%q"):format(commit.code, subject)
+		if results.commit ~= "ok" then
+			finding("a commit with a WSL editor: " .. results.commit)
+		end
+	end)
+	if not ok then
+		finding(tostring(err):gsub("\n.*", ""))
+	end
+
+	-- Leave nothing behind: the buffers in the scratch repository, then it.
+	for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+		local name = vim.api.nvim_buf_get_name(buf)
+		if name:find(dir, 1, true) or name:find(cleanup, 1, true) then
+			pcall(vim.api.nvim_buf_delete, buf, { force = true })
+		end
+	end
+	vim.fn.delete(cleanup, "rf")
+
+	say(("band=%q gitsigns=%s oil=%s neogit=%s diffview=%s commit=%s"):format(
+		results.band or "-",
+		results.gitsigns or "-",
+		results.oil or "-",
+		results.neogit or "-",
+		results.diffview or "-",
+		results.commit or "-"
+	))
+end
+check_windows_drive_git()
+
 -- Give bufferline something to draw; its spec sets mode = "tabs".
 vim.cmd("tabnew | tabnext")
 

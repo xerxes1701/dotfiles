@@ -64,9 +64,13 @@ eval "$(starship init zsh)"
 # prompt -- where git_status ran before, at the same cost. Its config sits
 # next to starship.toml. GIT_OPTIONAL_LOCKS=0 keeps the scan from holding
 # .git/index.lock against your own git commands.
+# On WSL, the git in ~/.local/lib/wsl-git (scripts package) goes first on
+# the scan's PATH: it hands a repository on a Windows drive to Windows'
+# git.exe, which reads NTFS fast, and the rest to Linux's git.
 __starship_git_status() {
-  local config=${${STARSHIP_CONFIG:-$HOME/.config/starship.toml}:h}/starship-git-status.toml
-  export STARSHIP_GIT_STATUS=$(GIT_OPTIONAL_LOCKS=0 STARSHIP_CONFIG=$config starship module git_status 2>/dev/null)
+  local config=${${STARSHIP_CONFIG:-$HOME/.config/starship.toml}:h}/starship-git-status.toml path=$PATH
+  [[ -n $WSL_DISTRO_NAME && -x $HOME/.local/lib/wsl-git/git ]] && path=$HOME/.local/lib/wsl-git:$PATH
+  export STARSHIP_GIT_STATUS=$(PATH=$path GIT_OPTIONAL_LOCKS=0 STARSHIP_CONFIG=$config starship module git_status 2>/dev/null)
 }
 precmd_functions+=(__starship_git_status)
 

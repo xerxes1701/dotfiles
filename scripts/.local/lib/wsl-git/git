@@ -1,0 +1,119 @@
+#!/usr/bin/env bash
+# git for WSL that hands a repository on a Windows drive (/mnt/<drive>/...)
+# to Windows' own git.exe, and every other one to Linux's git.
+#
+# Linux git reads a Windows drive over 9p, which makes `git status` there slow,
+# and it keeps the index's stat data in its own way, so the next git.exe run
+# rescans the work tree. The status consumers put this file's directory first
+# on PATH for their git runs only: the shells' starship git_status scans,
+# Neovim, Claude Code's status line and its status-band mod. `git` typed at a
+# prompt is still Linux's.
+#
+# For git.exe, absolute paths in the arguments (-C, --git-dir=, file paths) are
+# written as Windows paths, and `rev-parse` and `worktree list` print theirs
+# back as WSL ones, so a caller can join them with its own. A run that needs
+# an editor (GIT_EDITOR or GIT_SEQUENCE_EDITOR set to a WSL command) stays
+# with Linux's git, which can start it. Windows' git is
+# /mnt/c/Program Files/Git/cmd/git.exe unless $WINDOWS_GIT names another; with
+# neither there, this is Linux's git.
+set -u
+
+self_dir=$(dirname -- "$(readlink -f -- "$0")")
+
+linux_git() {
+    local candidate
+    while IFS= read -r candidate; do
+        [ "$(dirname -- "$(readlink -f -- "$candidate")")" = "$self_dir" ] && continue
+        exec "$candidate" "$@"
+    done < <(type -ap git)
+    echo "git: no git on PATH besides $0" >&2
+    exit 127
+}
+
+windows_git=${WINDOWS_GIT:-'/mnt/c/Program Files/Git/cmd/git.exe'}
+[ -x "$windows_git" ] || linux_git "$@"
+
+on_drive() { [[ $1 =~ ^/mnt/[A-Za-z](/|$) ]]; }
+
+# $1 as an absolute path with every link resolved (relative ones to $2), so
+# that ~/x linked to /mnt/c/x counts as the drive it is on.
+absolute() {
+    case $1 in
+    /*) readlink -m -- "$1" ;;
+    *) readlink -m -- "$2/$1" ;;
+    esac
+}
+
+# A WSL path as git.exe takes it: C:/x for a drive, //wsl.localhost/... else.
+windows_path() {
+    if [[ $1 =~ ^/mnt/([A-Za-z])(/.*)?$ ]]; then
+        local rest=${BASH_REMATCH[2]}
+        printf '%s:%s' "${BASH_REMATCH[1]^^}" "${rest:-/}"
+    else
+        wslpath -m -- "$1" 2>/dev/null || printf '%s' "$1"
+    fi
+}
+
+# Where the repository is: the last -C (each relative to the one before),
+# else --git-dir or $GIT_DIR, else the working directory. Options end at the
+# subcommand.
+dir=$(pwd -P)
+git_dir=${GIT_DIR:+$(absolute "$GIT_DIR" "$dir")}
+subcommand=
+args=("$@")
+for ((i = 0; i < ${#args[@]}; i++)); do
+    case ${args[i]} in
+    -C)
+        dir=$(absolute "${args[i + 1]:-.}" "$dir")
+        args[i + 1]=$dir
+        i=$((i + 1))
+        ;;
+    --git-dir) git_dir=$(absolute "${args[i + 1]:-.}" "$dir"); i=$((i + 1)) ;;
+    --git-dir=*) git_dir=$(absolute "${args[i]#*=}" "$dir") ;;
+    -c | --work-tree | --namespace | --config-env) i=$((i + 1)) ;;
+    -*) ;;
+    *)
+        subcommand=${args[i]}
+        break
+        ;;
+    esac
+done
+
+target=${git_dir:-$dir}
+on_drive "$target" || linux_git "$@"
+
+# An editor git.exe cannot start -- neogit's and lazygit's are WSL commands,
+# for a commit or a rebase -- leaves the run to Linux's git. ':' and 'true',
+# which do nothing (Claude Code sets one), git.exe runs itself.
+for editor in "${GIT_EDITOR-}" "${GIT_SEQUENCE_EDITOR-}"; do
+    case $editor in
+    '' | : | true) ;;
+    *) linux_git "$@" ;;
+    esac
+done
+
+translated=()
+for arg in "${args[@]}"; do
+    if [[ $arg == /* ]]; then
+        translated+=("$(windows_path "$(absolute "$arg" /)")")
+    elif [[ $arg =~ ^(--[A-Za-z-]+=)(/.*)$ ]]; then
+        translated+=("${BASH_REMATCH[1]}$(windows_path "$(absolute "${BASH_REMATCH[2]}" /)")")
+    else
+        translated+=("$arg")
+    fi
+done
+
+# git.exe sees only the variables WSLENV names; /p translates a path.
+export WSLENV="${WSLENV:+$WSLENV:}GIT_OPTIONAL_LOCKS/u:GIT_TERMINAL_PROMPT/u:GCM_INTERACTIVE/u:GIT_EDITOR/u:GIT_SEQUENCE_EDITOR/u:GIT_DIR/pu:GIT_WORK_TREE/pu:GIT_INDEX_FILE/pu"
+
+# A Windows process started from a Linux directory gets a \\wsl.localhost
+# one; start it in the repository instead (every -C is absolute by now).
+on_drive "$(pwd -P)" || cd -- "$target" 2>/dev/null || cd -- "$(dirname -- "$target")" 2>/dev/null || true
+
+# The paths rev-parse and worktree list print, as WSL ones.
+if [ "$subcommand" = rev-parse ] || [ "$subcommand" = worktree ]; then
+    set -o pipefail
+    "$windows_git" "${translated[@]}" | sed -E 's#^(worktree )?([A-Za-z]):/#\1/mnt/\L\2/#; s#^([A-Za-z]):$#/mnt/\L\1#'
+    exit
+fi
+exec "$windows_git" "${translated[@]}"

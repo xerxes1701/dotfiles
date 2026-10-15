@@ -64,6 +64,15 @@ end
 function __async_git_spawn
     set -g __async_git_job_root $__async_git_root
     set -g __async_git_rerun 0
+    # On WSL, the git in ~/.local/lib/wsl-git (scripts package) goes first on
+    # the scan's PATH: it hands a repository on a Windows drive to Windows'
+    # git.exe, which reads NTFS fast, and the rest to Linux's git.
+    # (A `set -l` inside the if would end with it.)
+    set -l path $PATH
+    if set -q WSL_DISTRO_NAME; and test -x $HOME/.local/lib/wsl-git/git
+        set path $HOME/.local/lib/wsl-git $PATH
+    end
+    set -lx PATH $path
     # GIT_OPTIONAL_LOCKS=0: starship runs plain `git status`, which holds
     # .git/index.lock for the whole scan and would make your own git commands
     # fail with "index.lock: File exists" until it finishes.

@@ -38,6 +38,14 @@ const GIT_STATUS_CONFIG = join(dirname(SELF), 'git-status.toml')
 const FETCH_EVERY = 2 * 60_000
 const SLOW = 2_000
 
+// On WSL, git runs through the git in ~/.local/lib/wsl-git (scripts package),
+// for this script and first on the scan's PATH: it hands a repository on a
+// Windows drive to Windows' git.exe, which reads NTFS fast, and the rest to
+// Linux's git.
+const WSL_GIT = join(homedir(), '.local', 'lib', 'wsl-git', 'git')
+const GIT = process.env.WSL_DISTRO_NAME && existsSync(WSL_GIT) ? WSL_GIT : 'git'
+const GIT_PATH = GIT === 'git' ? process.env.PATH : `${dirname(WSL_GIT)}:${process.env.PATH}`
+
 // Muted colours on the prompt's One Half Dark. A coloured band has one
 // brightness (2.0 against the background) and a text of its own hue at 4.6
 // against it; the scale runs green, lime, yellow, orange, red in even hue
@@ -234,7 +242,7 @@ function gitState(gitDir) {
 function gitHead(cwd) {
   let out
   try {
-    out = execFileSync('git', ['rev-parse', '--show-toplevel', '--absolute-git-dir', '--short', 'HEAD'], {
+    out = execFileSync(GIT, ['rev-parse', '--show-toplevel', '--absolute-git-dir', '--short', 'HEAD'], {
       cwd, encoding: 'utf8', timeout: 2000, stdio: ['ignore', 'pipe', 'ignore'],
     })
   } catch (error) {
@@ -343,7 +351,7 @@ function scan(root, base) {
   try {
     do {
       rmSync(rerun, { force: true })
-      const env = { ...process.env, STARSHIP_CONFIG: GIT_STATUS_CONFIG, GIT_OPTIONAL_LOCKS: '0' }
+      const env = { ...process.env, PATH: GIT_PATH, STARSHIP_CONFIG: GIT_STATUS_CONFIG, GIT_OPTIONAL_LOCKS: '0' }
       delete env.STARSHIP_SHELL
       const out = execFileSync('starship', ['module', 'git_status'], {
         cwd: root, env, encoding: 'utf8', timeout: 310_000, stdio: ['ignore', 'pipe', 'ignore'],
@@ -365,12 +373,12 @@ function fetch(root, base) {
     const env = { ...process.env, GIT_TERMINAL_PROMPT: '0', GCM_INTERACTIVE: 'never' }
     let sshCommand = ''
     try {
-      sshCommand = execFileSync('git', ['config', 'core.sshCommand'], {
+      sshCommand = execFileSync(GIT, ['config', 'core.sshCommand'], {
         cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'],
       })
     } catch {}
     if (!sshCommand.trim() && !env.GIT_SSH_COMMAND) env.GIT_SSH_COMMAND = 'ssh -o BatchMode=yes'
-    execFileSync('git', ['fetch', '--quiet'], { cwd: root, env, timeout: 120_000, stdio: 'ignore' })
+    execFileSync(GIT, ['fetch', '--quiet'], { cwd: root, env, timeout: 120_000, stdio: 'ignore' })
   } catch {
   } finally {
     rmSync(`${base}.fetch.lock`, { force: true })

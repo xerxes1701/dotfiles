@@ -76,9 +76,13 @@ eval "$(fzf --bash)"
 # next to starship.toml. GIT_OPTIONAL_LOCKS=0 keeps the scan from holding
 # .git/index.lock against your own git commands. starship_precmd calls the
 # hook after saving $?, so the exit status the prompt shows is the command's.
+# On WSL, the git in ~/.local/lib/wsl-git (scripts package) goes first on
+# the scan's PATH: it hands a repository on a Windows drive to Windows'
+# git.exe, which reads NTFS fast, and the rest to Linux's git.
 __starship_git_status() {
-  local main=${STARSHIP_CONFIG:-$HOME/.config/starship.toml}
-  STARSHIP_GIT_STATUS=$(GIT_OPTIONAL_LOCKS=0 STARSHIP_CONFIG=${main%/*}/starship-git-status.toml starship module git_status 2>/dev/null)
+  local main=${STARSHIP_CONFIG:-$HOME/.config/starship.toml} path=$PATH
+  [[ -n ${WSL_DISTRO_NAME:-} && -x $HOME/.local/lib/wsl-git/git ]] && path=$HOME/.local/lib/wsl-git:$PATH
+  STARSHIP_GIT_STATUS=$(PATH=$path GIT_OPTIONAL_LOCKS=0 STARSHIP_CONFIG=${main%/*}/starship-git-status.toml starship module git_status 2>/dev/null)
   export STARSHIP_GIT_STATUS
 }
 starship_precmd_user_func=__starship_git_status

@@ -121,6 +121,13 @@ check requires that failure to arrive as a single-line `vim.notify` and not as
 a thrown E5108, and a second probe evaluates real Lua so the catch cannot be a
 silent swallow.
 
+On WSL, with the `wsl-git` shim (`~/.local/lib/wsl-git/git`, scripts package)
+and Windows' `git.exe` installed, `check.lua` also builds a scratch repository
+in Windows' temp directory and requires every plugin that reads git to see it
+through `git.exe`: the status line's git band, gitsigns, oil-git-status,
+neogit's status and diffview, plus a commit whose editor is a WSL command,
+which must fall back to Linux's git. Elsewhere it reports itself skipped.
+
 `check.lua` requires rust-analyzer, roslyn and tinymist to attach only when
 they are on `PATH`. The Lua probes expect no client, because the servers
 come from mason and the sandbox does not install them.
@@ -228,7 +235,7 @@ Tags: `entry` `options` `keymaps` `plugin-spec` `generated` `inventory`
 
 | Path                               | Description                                                                                       | Tags           |
 | ---------------------------------- | ------------------------------------------------------------------------------------------------- | -------------- |
-| `init.lua`                         | Entry point. Loads defaults, the keymap registry, lazy.nvim and the keymaps.                      | entry          |
+| `init.lua`                         | Entry point. On WSL puts `~/.local/lib/wsl-git` first on PATH, then loads defaults, the keymap registry, lazy.nvim and the keymaps. | entry |
 | `lazy-lock.json`                   | Installed commit of each plugin. Commit it together with spec changes.                            | lockfile       |
 | `keybindings.yaml`                 | The keybinding inventory. Edit this file, not the reference.                                      | inventory      |
 | `keybindings.md`                   | Reference generated from the inventory. Do not edit.                                              | generated      |

@@ -24,7 +24,14 @@ source ~/.config/nushell/zoxide.nu
 $env.config.hooks.pre_prompt = ($env.config.hooks.pre_prompt | append {||
     let main = ($env.STARSHIP_CONFIG? | default ($nu.home-dir | path join .config starship.toml))
     let config = ($main | path dirname | path join starship-git-status.toml)
-    $env.STARSHIP_GIT_STATUS = (with-env { STARSHIP_CONFIG: $config, GIT_OPTIONAL_LOCKS: '0' } {
+    # On WSL, the git in ~/.local/lib/wsl-git (scripts package) goes first on
+    # the scan's PATH: it hands a repository on a Windows drive to Windows'
+    # git.exe, which reads NTFS fast, and the rest to Linux's git.
+    let shim = ($nu.home-dir | path join .local lib wsl-git)
+    let path = if ($env.WSL_DISTRO_NAME? != null) and ($shim | path join git | path exists) {
+        $env.PATH | prepend $shim
+    } else { $env.PATH }
+    $env.STARSHIP_GIT_STATUS = (with-env { STARSHIP_CONFIG: $config, GIT_OPTIONAL_LOCKS: '0', PATH: $path } {
         ^starship module git_status | complete | get stdout
     })
 })

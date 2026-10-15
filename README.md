@@ -483,6 +483,31 @@ part from the drive letter on and translate it with `wslpath`. wsl git cannot
 work inside those worktrees, so `gz` previews the log through the repository
 by commit id instead.
 
+## git status on a windows drive
+
+> scripts/.local/lib/wsl-git/git
+
+wsl git reads a repository on a windows drive (`/mnt/c/...`) over 9p, so a
+`git status` there takes seconds, and it keeps the index's stat data its own
+way, so windows git rescans the work tree after it. `wsl-git/git` is a `git`
+for wsl that hands such a repository -- found from `-C`, `--git-dir` or the
+working directory, links resolved, so `~/SWProjekte/firstx_` counts -- to
+`C:\Program Files\Git\cmd\git.exe` (or `$WINDOWS_GIT`), and every other
+one to linux git. for git.exe it writes absolute paths in the arguments as
+windows paths and reads `rev-parse`'s and `worktree list`'s back as wsl ones,
+and it passes `GIT_OPTIONAL_LOCKS` and the other variables a status scan sets
+through `WSLENV`. a run whose `GIT_EDITOR` or `GIT_SEQUENCE_EDITOR` is a wsl
+command -- neogit's commit and rebase -- stays with linux git, as git.exe
+cannot start it. `nvim/.config/nvim/verify/verify.sh` checks the plugins
+against a scratch repository on the windows drive.
+
+only the git status consumers put its directory first on `PATH`, and only on
+wsl: the starship `git_status` scan of every shell (fish's background job,
+bash's and zsh's `__starship_git_status`, nushell's `pre_prompt` hook),
+neovim as a whole (gitsigns, oil-git-status, the status line's git band), and
+claude code's statusline and status-band mod. `git` typed at a prompt is
+still linux's.
+
 # journal
 
 > /mg-journal [YYYY-MM-DD]

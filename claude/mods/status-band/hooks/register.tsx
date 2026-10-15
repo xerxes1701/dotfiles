@@ -185,8 +185,25 @@ async function gitState($: $, gitDir: string): Promise<string | null> {
   return null
 }
 
-const git = ($: $, cwd: string, args: string[], timeoutMs = 60_000) =>
-  $.process.run(['git', '--no-optional-locks', ...args], { cwd, timeoutMs })
+// On WSL, git runs through the git in ~/.local/lib/wsl-git (scripts package):
+// it hands a repository on a Windows drive to Windows' git.exe, which reads
+// NTFS fast and keeps its index the way Windows' tools do, and the rest to
+// Linux's git.
+let gitCommand: Promise<string> | null = null
+
+function gitPath($: $): Promise<string> {
+  gitCommand ??= (async () => {
+    const [distro, home] = await Promise.all([$.env.get('WSL_DISTRO_NAME'), $.env.get('HOME')])
+    const shim = `${home}/.local/lib/wsl-git/git`
+
+    return distro && home && (await $.fs.exists(shim)) ? shim : 'git'
+  })()
+
+  return gitCommand
+}
+
+const git = async ($: $, cwd: string, args: string[], timeoutMs = 60_000) =>
+  $.process.run([await gitPath($), '--no-optional-locks', ...args], { cwd, timeoutMs })
 
 // undefined: could not tell (keep what is shown); null: not a repository.
 async function readGit($: $, cwd: string): Promise<GitInfo | null | undefined> {

@@ -496,6 +496,23 @@ if [ "$mode" = bridge ]; then
         "  docker ps --filter label=devcontainer.local_folder"
 fi
 
+# An address is not a listener. A container built from a checkout without the
+# sshd setup resolves fine as <worktree>.dc, and ssh then only reports
+# "Connection closed by UNKNOWN port 65535" from the proxy's nc -- so ask the
+# container itself first, where the cause can be named. Only sshd: a missing
+# herdr is no dead end since 0.9.0 (see below).
+if ! docker exec "$id" pgrep -x sshd >/dev/null 2>&1; then
+    if docker exec "$id" sh -c 'command -v sshd' >/dev/null 2>&1; then
+        die "no sshd running in $label" \
+            'the image has it, so the postStart "sshd" step did not run or failed:' \
+            "  docker exec -u $user $id sudo /usr/local/bin/init-sshd.sh"
+    fi
+    die "$label has no sshd -- its checkout lacks the devcontainer setup for it" \
+        'this is .devcontainer/init-sshd.sh and the sshd install in its Dockerfile;' \
+        'bring those into that branch and rebuild the container' \
+        'see the "herdr from the host" section of .devcontainer/README.md'
+fi
+
 if herdr machine list --json 2>/dev/null | grep -Fq "\"$target\""; then
     printf '%s%s is already a saved machine (%s)%s\n' \
         "$c_dim" "$label" "$target" "$c_off"

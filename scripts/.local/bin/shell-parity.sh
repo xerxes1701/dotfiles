@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Report drift between the fish, nushell and zsh configs.
+# Report drift between the fish, nushell, zsh and bash configs.
 #
-# Rather than regex-parsing three different config syntaxes, this asks each
+# Rather than regex-parsing four different config syntaxes, this asks each
 # shell to enumerate itself. That also catches what fish silently inherits
 # from /usr/share/cachyos-fish-config/cachyos-config.fish.
 #
@@ -17,7 +17,7 @@ allow_file="$here/../lib/dotfiles/shell-parity.allow"
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 
-SHELLS=(fish nu zsh)
+SHELLS=(fish nu zsh bash)
 status=0
 
 # Resolve each shell here, in our own environment, before the PATH below is
@@ -42,7 +42,7 @@ fi
 # what each config actually sets.
 #
 # Each shell's own directory joins that slate, and the same set is given to all
-# three, so a shell living in /snap/bin cannot show up as a PATH difference
+# shells, so a shell living in /snap/bin cannot show up as a PATH difference
 # between them. Invocations still name the binary by absolute path: PATH here
 # is what we are measuring, not how we find the shell.
 CLEAN_PATH=/usr/local/bin:/usr/bin:/bin
@@ -108,6 +108,13 @@ collect_zsh() {
     # `alias` prints: NAME=BODY
     clean "${BIN[zsh]}" -i -c 'alias' 2>/dev/null |
         sed -n "s/^\([^=]*\)=\(.*\)$/\1\t\2/p"
+}
+
+collect_bash() {
+    # `alias` prints: alias NAME='BODY'. -i reads ~/.bashrc, which is where
+    # ~/.bash_aliases and with it the bash package come in.
+    clean "${BIN[bash]}" -i -c 'alias' 2>/dev/null |
+        sed -n "s/^alias \([^=]*\)=\(.*\)$/\1\t\2/p"
 }
 
 for s in "${SHELLS[@]}"; do
@@ -203,6 +210,7 @@ for fn in "${FUNCS[@]}"; do
        -c "if (scope commands | where name == '$fn' | is-empty) { exit 1 }" \
        >/dev/null 2>&1 || absent+=(nu)
     clean "${BIN[zsh]}" -i -c "typeset -f $fn" >/dev/null 2>&1 || absent+=(zsh)
+    clean "${BIN[bash]}" -i -c "declare -F $fn" >/dev/null 2>&1 || absent+=(bash)
     if [ ${#absent[@]} -eq 0 ]; then
         printf '  %-16s ok\n' "$fn"
     else
@@ -216,7 +224,7 @@ done
 printf '\n== env ==\n'
 for var in "${ENVVARS[@]}"; do
     # The shells export SSH_AUTH_SOCK only for a socket that exists. Where the
-    # ssh-agent unit is not running, all three leave it unset -- a fact about
+    # ssh-agent unit is not running, all of them leave it unset -- a fact about
     # the machine, not a difference between the configs, so do not measure it.
     if [ "$var" = SSH_AUTH_SOCK ] \
        && [ ! -S "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/ssh-agent.socket" ]; then
@@ -226,11 +234,12 @@ for var in "${ENVVARS[@]}"; do
     fv=$(clean "${BIN[fish]}" -i -c "echo \$$var" 2>/dev/null | normalize)
     nv=$(clean "${BIN[nu]}" "${NUCFG[@]}" -c "\$env.$var? | default ''" 2>/dev/null | normalize)
     zv=$(clean "${BIN[zsh]}" -i -c "echo \$$var" 2>/dev/null | normalize)
-    if [ "$fv" = "$nv" ] && [ "$nv" = "$zv" ] && [ -n "$fv" ]; then
+    bv=$(clean "${BIN[bash]}" -i -c "echo \"\$$var\"" 2>/dev/null | normalize)
+    if [ "$fv" = "$nv" ] && [ "$nv" = "$zv" ] && [ "$zv" = "$bv" ] && [ -n "$fv" ]; then
         printf '  %-12s ok  (%s)\n' "$var" "$fv"
     else
-        printf '  %-12s DIFFERS  fish=%s | nu=%s | zsh=%s\n' \
-            "$var" "${fv:-<unset>}" "${nv:-<unset>}" "${zv:-<unset>}"
+        printf '  %-12s DIFFERS  fish=%s | nu=%s | zsh=%s | bash=%s\n' \
+            "$var" "${fv:-<unset>}" "${nv:-<unset>}" "${zv:-<unset>}" "${bv:-<unset>}"
         status=1
     fi
 done
@@ -241,6 +250,7 @@ printf '\n== path ==\n'
 clean "${BIN[fish]}" -i -c 'for p in $PATH; echo $p; end' 2>/dev/null >"$tmp/path.fish"
 clean "${BIN[nu]}" "${NUCFG[@]}" -c '$env.PATH | to text'  2>/dev/null >"$tmp/path.nu"
 clean "${BIN[zsh]}" -i -c 'print -l $path'                 2>/dev/null >"$tmp/path.zsh"
+clean "${BIN[bash]}" -i -c 'tr : "\n" <<<"$PATH"'           2>/dev/null >"$tmp/path.bash"
 
 for entry in "${PATHENTRIES[@]}"; do
     # fish_add_path drops directories that do not exist, while zsh and nushell

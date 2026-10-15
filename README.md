@@ -326,7 +326,7 @@ major version -- there is no plain `freerdp3`:
     wlfreerdp3      wayland
     sdl-freerdp3    sdl
 
-the `rdp` alias in all three shells wraps the connection. the password is piped
+the `rdp` alias in every shell wraps the connection. the password is piped
 in from 1password rather than passed as `/p:`, which would leave it in shell
 history and, for as long as the session lives, in `/proc/<pid>/cmdline`:
 
@@ -363,8 +363,8 @@ on windows
 
 ## shells
 
-fish, nushell and zsh are configured to behave the same way. each config is
-split into the same labeled sections in the same order:
+fish, nushell, zsh and bash are configured to behave the same way. each
+config is split into the same labeled sections in the same order:
 
     env / path / tool init / aliases: listing / aliases: navigation /
     aliases: tools / aliases: system / functions / shell-specific
@@ -376,6 +376,15 @@ them: it runs on windows only, see [the powershell profile](#the-powershell-prof
     nushell/.config/nushell/env.nu      env + path (loaded first)
     nushell/.config/nushell/config.nu   everything else
     zsh/.zshrc
+    bash/.config/bash/config.bash
+    bash/.bash_aliases                  loads config.bash
+
+`~/.bashrc` itself is not stowed: the stock file differs per distro, and debian's
+and ubuntu's already source `~/.bash_aliases`, which is the package's way in.
+where the stock file has no such hook (cachyos, git bash), add the line from
+`bash/.bash_aliases` to it. and drop the bun lines bun's installer appends to
+`~/.bashrc`: `config.bash` sets the same, and they would put bun on `PATH`
+twice.
 
 to check they have not drifted apart:
 
@@ -411,7 +420,7 @@ full and translating the path first.
 > browse.sh [-c] [--] [target...]
 > <command> | browse.sh [-c]
 
-aliased to `br` in all three shells. targets are files, directories or urls,
+aliased to `br` in every shell. targets are files, directories or urls,
 and with no target stdin is read: if every line is an existing path or a url
 they are all opened, anything else is treated as content -- written to a file
 under `/tmp` and opened from there. `-c` forces that reading when a list of
@@ -440,8 +449,7 @@ file is deliberately never cleaned up: the opener returns long before the
 browser has read it.
 
 outside wsl the script falls through to `xdg-open`, so the same alias works on
-a linux machine. bash does not get the alias -- `~/.bashrc` is not stowed here
--- but `browse.sh` is on `PATH` there like every other script in `scripts/`.
+a linux machine.
 
 # explorer, worktrees, branches
 
@@ -450,7 +458,7 @@ the wsl ports of `e`, `gz` and `gsw` from the windows powershell profile
 
 > e.sh [--] [path...]
 
-aliased to `e` in all three shells. opens each path in windows explorer -- a
+aliased to `e` in every shell. opens each path in windows explorer -- a
 directory as a folder window, a file with its default program -- and the
 current directory when none is given. it has the same four obstacles as
 `browse.sh` (full `explorer.exe` path, relative paths untranslated, missing
@@ -486,7 +494,7 @@ windows install; System.Windows.Forms is where the clipboard api lives).
 
 > paste-image.sh [-f] [--] [path]
 
-aliased to `pimg` in all three shells. with no path the image lands in the
+aliased to `pimg` in every shell. with no path the image lands in the
 current directory as `clipboard-YYYYMMDD-HHMMSS.png`; a directory (or anything
 ending in a slash) gets that name inside it; anything else is the file to
 write, and its extension picks the format -- png when there is none, or jpg,
@@ -842,9 +850,9 @@ the key has a passphrase, and herdr's saved machines connect in the background
 where nothing can ask for one -- the machine shows "attention" instead. so the
 agent holds the key: the first interactive `ssh <alias>` asks once and adds
 it, and every connection after that, herdr's included, finds it there until
-the agent stops. the three shells export SSH_AUTH_SOCK for the socket when it
+the agent stops. the shells export SSH_AUTH_SOCK for the socket when it
 exists and nothing has set one already, so a devcontainer's forwarded agent or
-a desktop session's own is never displaced; shell-parity.sh checks the three
+a desktop session's own is never displaced; shell-parity.sh checks they
 agree on it wherever the socket exists.
 
 once per machine, after deploying:
@@ -940,7 +948,7 @@ this package's hook and status line are bash and bun.
 
 `powershell/Documents/PowerShell/` holds the pwsh 7 profile and the `fzf.ps1`
 it loads. it shares the claude (`cl`, `clc`, `clr`) and dotnet (`dn*`) aliases
-with the three shells, as functions where an alias would need an argument of
+with the other shells, as functions where an alias would need an argument of
 its own. a function's arguments pass on as they are, with one
 exception: powershell swallows the first bare `--`, so `dnr -- --urls x` needs
 it twice (`dnr -- -- --urls x`) or quoted (`dnr '--' --urls x`).
@@ -1205,7 +1213,7 @@ container, picked from a list, with a shell in it:
 
 > docker-shell.sh [options] [--] [command...]
 
-aliased to `dsh` in all three shells. `-c` preselects, `-x` skips the picker
+aliased to `dsh` in every shell. `-c` preselects, `-x` skips the picker
 when the preselection leaves exactly one container, `-u` and `-w` override the
 user and the working directory, `--help` explains the rest. with no command it
 tries fish, then bash, then sh.
@@ -1238,7 +1246,7 @@ the picker instead of in a second file. in the list: enter opens the shell,
 
 the preview zeroes the kitty keyboard protocol the way
 `fish/.config/fish/functions/fzf.fish` does. that wrapper only covers a direct
-`fzf` call from fish, and this script is reached from three shells, so it has
+`fzf` call from fish, and this script is reached from every shell, so it has
 to do it for itself -- otherwise fish's key-release events arrive in fzf's
 prompt as literal text like `102;1:3u`.
 

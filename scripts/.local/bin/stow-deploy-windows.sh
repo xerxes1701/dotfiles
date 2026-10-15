@@ -36,7 +36,9 @@ sd_where=windows
 #   herdr  the linux host config. .herdr-windows takes its place: pwsh as the
 #          pane shell and the .ps1 twins of the scripts behind the custom
 #          commands, with the same keys.
-sd_exclude=(herdr)
+#   bash   not set up for git bash yet: its ~/.bashrc does not load
+#          ~/.bash_aliases, and the tools config.bash starts are not there.
+sd_exclude=(herdr bash)
 # Hidden, so `stow */` on a linux host never matches it -- two visible
 # packages providing .config/herdr/config.toml would abort every deploy.
 sd_extra=(.herdr-windows)

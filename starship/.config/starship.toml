@@ -20,14 +20,14 @@
 # git_status runs `git status`, which takes seconds in a large repo and far
 # longer on /mnt/c, so it never runs in the prompt. fish renders it in the
 # background (see conf.d/starship-async-git.fish); the shells that have no
-# background job -- zsh, nushell and PowerShell in ~/dotfiles -- render it
-# just before the prompt, with starship-git-status.toml there. Either way the
-# result is handed over in $STARSHIP_GIT_STATUS, shown here in git_status's
-# place inside the git band. That run draws the counters, a coloured sign and
-# count per kind of change and arrows for commits to push and to pull. env_var
-# adds no style: the counters end in a reset, and starship sets the band's
-# colour again for its last space only if the style before it was a different
-# one.
+# background job -- bash, and zsh, nushell and PowerShell in ~/dotfiles --
+# render it just before the prompt, with starship-git-status.toml. Either way
+# the result is handed over in $STARSHIP_GIT_STATUS, shown here in
+# git_status's place inside the git band. That run draws the counters, a
+# coloured sign and count per kind of change and arrows for commits to push
+# and to pull. env_var adds no style: the counters end in a reset, and starship
+# sets the band's colour again for its last space only if the style before it
+# was a different one.
 
 palette = 'one_half_dark'
 

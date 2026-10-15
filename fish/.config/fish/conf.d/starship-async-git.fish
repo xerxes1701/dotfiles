@@ -17,11 +17,11 @@ set -g __async_git_at_prompt 0
 # Config for the background run only. A long timeout costs nothing off the
 # prompt's critical path. It also draws the git band's counters, a coloured
 # sign and count per kind of change on the band's `surface`, which
-# starship.toml passes through as it is; ~/dotfiles has the same in
-# starship-git-status.toml, for the shells that render it just before the
-# prompt. The colours are the status line's muted ones, as in
-# claude/.claude/status-band/git-status.toml. \U000F19B2 and \U000F19B3 are
-# Nerd Font's thin arrows up and down (md-arrow_up_thin, md-arrow_down_thin).
+# starship.toml passes through as it is; starship-git-status.toml has the
+# same, for the shells that render it just before the prompt. The colours are
+# the status line's muted ones, as in claude/.claude/status-band/git-status.toml.
+# \U000F19B2 and \U000F19B3 are Nerd Font's thin arrows up and down
+# (md-arrow_up_thin, md-arrow_down_thin).
 string join \n -- \
     'command_timeout = 300000' \
     'palette = "one_half_dark"' \

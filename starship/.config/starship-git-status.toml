@@ -1,5 +1,5 @@
-# What zsh, nushell and PowerShell run `starship module git_status` with just
-# before each prompt, handing the result to starship.toml in
+# What bash, zsh, nushell and PowerShell run `starship module git_status` with
+# just before each prompt, handing the result to starship.toml in
 # $STARSHIP_GIT_STATUS (see its header): the git band's counters, a coloured
 # sign and count per kind of change and arrows for commits to push and to
 # pull, on the band's colour. Found next to starship.toml, wherever

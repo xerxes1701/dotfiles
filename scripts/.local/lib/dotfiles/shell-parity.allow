@@ -1,8 +1,8 @@
-# Intentional divergences between fish / nushell / zsh.
+# Intentional divergences between fish / nushell / zsh / bash.
 #
 # Format: <shell>:<name>   -- "it is OK for <shell> NOT to have <name>"
 #         *:<name>         -- exempt <name> in every shell
-# <shell> is one of fish, nu, zsh.
+# <shell> is one of fish, nu, zsh, bash.
 
 # --- CachyOS extras -------------------------------------------------------
 # fish inherits these from /usr/share/cachyos-fish-config/cachyos-config.fish.
@@ -78,3 +78,10 @@ nu:update
 # would break Arch, where `bat` is the real binary. See the comment in
 # nushell/.config/nushell/config.nu.
 nu:bat
+
+# --- bash: Debian's and Ubuntu's stock ~/.bashrc ----------------------------
+# The bash package leaves ~/.bashrc to the distro and only comes in through
+# ~/.bash_aliases, so the stock file's own aliases are still there. Its ls,
+# ll and la are replaced by the package's eza ones; these two are not.
+*:alert
+*:l

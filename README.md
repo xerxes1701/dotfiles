@@ -758,16 +758,16 @@ drift that reading a config for named keys cannot see.
 
 # claude code
 
-`claude/` carries the five files of `~/.claude` that are configuration rather
+`claude/` carries the files of `~/.claude` that are configuration rather
 than state -- `settings.json`, the `SessionStart` hook that reports the session
-to herdr, the `prompt-pop` theme, the statusline script and the display options
-of the claude-hud statusline it replaced:
+to herdr, the `prompt-pop` theme and the status-band statusline:
 
     claude/.claude/settings.json
     claude/.claude/hooks/herdr-agent-state.sh
     claude/.claude/themes/prompt-pop.json
     claude/.claude/status-band/statusline.mjs
-    claude/.claude/plugins/claude-hud/config.json
+    claude/.claude/status-band/statusline.ps1
+    claude/.claude/status-band/git-status.toml
 
 everything else in `~/.claude` -- sessions, history, `projects/`, the plugin
 cache -- belongs to the machine, which is why the package is in `sd_unfolded`.
@@ -787,6 +787,8 @@ node for the home directory.
 the context window and the 5-hour and weekly limits with their resets. it runs
 on node (see [node.js](#nodejs)) and uses only node's own modules, so there is
 nothing to `npm install`.
+`status-band/statusline.ps1` is its twin for windows, where there is no node;
+the two are kept in step.
 
 claude code leaves a limit out of what it sends until the limit has usage
 again, so the script keeps the last readings in
@@ -794,9 +796,6 @@ again, so the script keeps the last readings in
 the file here: node runs a linked script from where the link points, so the
 script names `${CLAUDE_CONFIG_DIR:-~/.claude}` itself and the cache stays out
 of the working tree.
-
-claude-hud is switched off in `settings.json` rather than removed, which keeps
-its display options in the package for the day it is switched back on.
 
 ## plugins, once per machine
 
@@ -809,8 +808,8 @@ only a settings file enables is reported as not installed, and the cli does not
 clone a marketplace it has only read about. so the two commands have to run
 once:
 
-> claude plugin marketplace add jarrodwatts/claude-hud
-> claude plugin install claude-hud@claude-hud
+> claude plugin marketplace add <owner>/<repo>
+> claude plugin install <plugin>@<marketplace>
 
 `claude-bootstrap.sh` reads those two tables out of the packaged
 `settings.json` and runs the pair for every plugin it finds, so declaring

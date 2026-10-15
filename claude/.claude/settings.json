@@ -21,16 +21,7 @@
     ]
   },
   "enabledPlugins": {
-    "claude-hud@claude-hud": false,
     "typescript-lsp@claude-plugins-official": true
-  },
-  "extraKnownMarketplaces": {
-    "claude-hud": {
-      "source": {
-        "source": "github",
-        "repo": "jarrodwatts/claude-hud"
-      }
-    }
   },
   "feedbackSurveyRate": 0,
   "modelSettings": {

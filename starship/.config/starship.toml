@@ -2,8 +2,9 @@
 # line (claude/.claude/status-band): rounded at the start, coloured bands
 # first, then the dark greys, fading out into the background. User and host
 # (over SSH only) on red, the directory on blue, git on `surface`, and the
-# toolchains and the last command's duration on `deep`, with the prompt
-# character on the line below, green or red by the last command's exit status.
+# shell, the toolchains and the last command's duration on `deep`, with the
+# prompt character on the line below, green or red by the last command's exit
+# status.
 # All text is tinted like its band and has a contrast of at least 4.6 against
 # it.
 #
@@ -34,7 +35,7 @@ format = """
 ([](fg:red_band)$username$hostname[ ](bg:red_band)[](fg:red_band bg:blue_band))\
 [](fg:blue_band bg:prev_bg)$directory[ ](bg:blue_band)\
 [](fg:blue_band bg:surface)($git_branch$git_commit$git_state$git_metrics${env_var.STARSHIP_GIT_STATUS}[ ](bg:surface))\
-[](fg:surface bg:deep)($package$c$docker_context$dotnet$golang$lua$nodejs$python$rust$typst$cmd_duration[ ](bg:deep))\
+[](fg:surface bg:deep)($shell$package$c$docker_context$dotnet$golang$lua$nodejs$python$rust$typst$cmd_duration[ ](bg:deep))\
 [](fg:deep)( $all)\
 $line_break\
 $jobs$character"""
@@ -95,6 +96,21 @@ style = 'blue'
 [character]
 success_symbol = '[❯](bold success)'
 error_symbol = '[❯](bold error)'
+
+# The shell this prompt is drawn for, first on the darkest band: the same
+# starship.toml serves fish, zsh, nushell and PowerShell.
+[shell]
+disabled = false
+format = '[  $indicator]($style)'
+fish_indicator = 'fish'
+zsh_indicator = 'zsh'
+bash_indicator = 'bash'
+nu_indicator = 'nu'
+powershell_indicator = 'powershell'
+pwsh_indicator = 'pwsh'
+cmd_indicator = 'cmd'
+unknown_indicator = '?'
+style = 'bg:deep fg:subtext'
 
 # The toolchains, each tinted in its own colour on the darkest band. A
 # language without a table here still shows, after the strip.

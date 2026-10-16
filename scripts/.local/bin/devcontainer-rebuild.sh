@@ -40,8 +40,9 @@ self=$(readlink -f -- "$0" 2>/dev/null) || self=$0
 
 # One level down each of these is a project, and a project with a devcontainer
 # config is a candidate. Space-separated, overridable for a machine that keeps
-# its checkouts elsewhere.
-roots=${DEVCONTAINER_REBUILD_ROOTS-"$HOME/SWProjekte /mnt/c/SWProjekte"}
+# its checkouts elsewhere. A root that does not exist is skipped, so the list
+# can name every machine's: /mnt/c/code is where this WSL machine keeps them.
+roots=${DEVCONTAINER_REBUILD_ROOTS-"$HOME/SWProjekte /mnt/c/SWProjekte /mnt/c/code"}
 
 style=${DEVCONTAINER_REBUILD_STYLE-auto}
 nocache=${DEVCONTAINER_REBUILD_NOCACHE-}

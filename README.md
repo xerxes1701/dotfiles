@@ -1475,8 +1475,8 @@ into them:
 
 > devcontainer-rebuild.sh [options] [project...]
 
-it looks one level under `~/SWProjekte` and `/mnt/c/SWProjekte` (`--roots`
-elsewhere) for anything carrying a devcontainer config, and rebuilds what you
+it looks one level under `~/SWProjekte`, `/mnt/c/SWProjekte` and
+`/mnt/c/code` (`--roots` elsewhere) for anything carrying a devcontainer config, and rebuilds what you
 pick with `devcontainer up --remove-existing-container` -- the command vs
 code's *rebuild container* runs. `tab` selects several, `^A` takes all, `-a`
 skips the picker entirely, `--no-cache` is *rebuild without cache*, `-n`

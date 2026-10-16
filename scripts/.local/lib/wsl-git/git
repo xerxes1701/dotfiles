@@ -16,6 +16,10 @@
 # with Linux's git, which can start it. Windows' git is
 # /mnt/c/Program Files/Git/cmd/git.exe unless $WINDOWS_GIT names another; with
 # neither there, this is Linux's git.
+#
+# WSL_GIT=windows or WSL_GIT=linux skips the choice and runs that git for any
+# repository: Windows' even with a WSL editor set, which git.exe then cannot
+# start. Unset (or auto), the repository decides as above.
 set -u
 
 self_dir=$(dirname -- "$(readlink -f -- "$0")")
@@ -31,7 +35,20 @@ linux_git() {
 }
 
 windows_git=${WINDOWS_GIT:-'/mnt/c/Program Files/Git/cmd/git.exe'}
-[ -x "$windows_git" ] || linux_git "$@"
+case ${WSL_GIT:-auto} in
+auto) [ -x "$windows_git" ] || linux_git "$@" ;;
+linux) linux_git "$@" ;;
+windows)
+    if [ ! -x "$windows_git" ]; then
+        echo "git: WSL_GIT=windows, but there is no $windows_git" >&2
+        exit 127
+    fi
+    ;;
+*)
+    echo "git: WSL_GIT is '$WSL_GIT'; it takes auto, windows or linux" >&2
+    exit 2
+    ;;
+esac
 
 on_drive() { [[ $1 =~ ^/mnt/[A-Za-z](/|$) ]]; }
 
@@ -86,12 +103,13 @@ for ((i = 0; i < ${#args[@]}; i++)); do
 done
 
 target=${work_tree:-${git_dir:-$dir}}
-on_drive "$target" || linux_git "$@"
+[ "${WSL_GIT:-auto}" = windows ] || on_drive "$target" || linux_git "$@"
 
 # An editor git.exe cannot start -- neogit's and lazygit's are WSL commands,
 # for a commit or a rebase -- leaves the run to Linux's git. ':' and 'true',
 # which do nothing (Claude Code sets one), git.exe runs itself.
 for editor in "${GIT_EDITOR-}" "${GIT_SEQUENCE_EDITOR-}"; do
+    [ "${WSL_GIT:-auto}" = windows ] && break
     case $editor in
     '' | : | true) ;;
     *) linux_git "$@" ;;
@@ -115,6 +133,13 @@ export WSLENV="${WSLENV:+$WSLENV:}GIT_OPTIONAL_LOCKS/u:GIT_TERMINAL_PROMPT/u:GCM
 # A Windows process started from a Linux directory gets a \\wsl.localhost
 # one; start it in the repository instead (every -C is absolute by now).
 on_drive "$(pwd -P)" || cd -- "$target" 2>/dev/null || cd -- "$(dirname -- "$target")" 2>/dev/null || true
+
+# git.exe reads whatever stdin it is given, and WSL hands all of it over even
+# when git never asks: on the right of a pipe it swallows the left side's
+# output (`a | X=$(git remote) b` leaves b nothing). WSL_GIT_NO_STDIN=1 gives it
+# /dev/null instead; the shells' git-win completion sets it, as its git calls
+# never read stdin and run inside such pipes.
+[ "${WSL_GIT_NO_STDIN-}" = 1 ] && exec </dev/null
 
 # The paths rev-parse and worktree list print, as WSL ones.
 if [ "$subcommand" = rev-parse ] || [ "$subcommand" = worktree ]; then

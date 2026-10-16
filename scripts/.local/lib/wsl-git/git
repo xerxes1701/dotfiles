@@ -54,11 +54,15 @@ windows_path() {
     fi
 }
 
-# Where the repository is: the last -C (each relative to the one before),
-# else --git-dir or $GIT_DIR, else the working directory. Options end at the
-# subcommand.
+# Where the repository is: --work-tree or $GIT_WORK_TREE, else the last -C
+# (each relative to the one before), else --git-dir or $GIT_DIR, else the
+# working directory. The work tree decides, as `git status` reads it all: a
+# worktree on Linux's disk whose git directory is on a Windows drive (as
+# starship passes it, --git-dir and --work-tree) stays with Linux's git.
+# Options end at the subcommand.
 dir=$(pwd -P)
 git_dir=${GIT_DIR:+$(absolute "$GIT_DIR" "$dir")}
+work_tree=${GIT_WORK_TREE:+$(absolute "$GIT_WORK_TREE" "$dir")}
 subcommand=
 args=("$@")
 for ((i = 0; i < ${#args[@]}; i++)); do
@@ -70,7 +74,9 @@ for ((i = 0; i < ${#args[@]}; i++)); do
         ;;
     --git-dir) git_dir=$(absolute "${args[i + 1]:-.}" "$dir"); i=$((i + 1)) ;;
     --git-dir=*) git_dir=$(absolute "${args[i]#*=}" "$dir") ;;
-    -c | --work-tree | --namespace | --config-env) i=$((i + 1)) ;;
+    --work-tree) work_tree=$(absolute "${args[i + 1]:-.}" "$dir"); i=$((i + 1)) ;;
+    --work-tree=*) work_tree=$(absolute "${args[i]#*=}" "$dir") ;;
+    -c | --namespace | --config-env) i=$((i + 1)) ;;
     -*) ;;
     *)
         subcommand=${args[i]}
@@ -79,7 +85,7 @@ for ((i = 0; i < ${#args[@]}; i++)); do
     esac
 done
 
-target=${git_dir:-$dir}
+target=${work_tree:-${git_dir:-$dir}}
 on_drive "$target" || linux_git "$@"
 
 # An editor git.exe cannot start -- neogit's and lazygit's are WSL commands,

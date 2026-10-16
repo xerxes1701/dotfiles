@@ -60,6 +60,18 @@ sidebar_bg = "#181825"
 # Executable used for new interactive panes (tabs, workspaces, splits).
 default_shell = "/usr/bin/fish"
 
+# The devcontainers behind the saved machines, in a picker that starts or
+# restarts them and has herdr reconnect (herdr/plugins/herdr-machines). It is
+# this machine's alone, so it stays out of the navigation scheme below, which
+# nav-parity.sh keeps identical across the three configs. TOML lets the array
+# come before the [keys] table it belongs to. Like every custom command, it
+# runs on the machine selected in the sidebar, so it works from Local.
+[[keys.command]]
+key = "prefix+shift+m"
+type = "plugin_action"
+command = "herdr-machines.pick"
+description = "start or restart a devcontainer machine"
+
 # --- unified navigation scheme ---------------------------------------------
 # The prefix picks the level, the letter picks the action. No prefix reaches
 # the pane grid (layer 0), the prefix reaches panes and tabs (layer 1), the

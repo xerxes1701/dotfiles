@@ -1,0 +1,25 @@
+id = "herdr-machines"
+name = "herdr-machines"
+version = "0.1.0"
+min_herdr_version = "0.9.0"
+description = "Start or restart the devcontainers behind saved machines, picked from a list"
+platforms = ["linux"]
+
+# A key can only invoke an action, and the picker wants a terminal, so the
+# action does nothing but open the pane. Like every custom command, it runs on
+# the server of the machine selected in the sidebar -- so it works from Local,
+# which has docker, and not from inside a container, which has neither docker
+# nor this plugin.
+[[actions]]
+id = "pick"
+title = "Start or restart a saved machine's devcontainer"
+contexts = ["global"]
+command = ["sh", "-c", 'exec "$HERDR_BIN_PATH" plugin pane open --plugin herdr-machines --entrypoint picker']
+
+[[panes]]
+id = "picker"
+title = "Saved machines"
+placement = "popup"
+width = "80%"
+height = "80%"
+command = ["bash", "picker.sh"]

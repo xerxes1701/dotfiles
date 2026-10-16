@@ -4,7 +4,8 @@
 # into the background. Model and effort, each coloured from green (the
 # smallest model, the lowest effort) to red, then directory and git; then the
 # context window and the 5-hour and weekly limits; then the vim mode, the
-# output style and the session name. All text is tinted like its band and has a contrast of at
+# output style and the session name, the lines on as few rows as the width
+# takes. All text is tinted like its band and has a contrast of at
 # least 4.6 against it. Reads the status line JSON on stdin and prints
 # ANSI-coloured lines.
 #
@@ -92,6 +93,9 @@ $effortIcons = @{
 }
 $noEffortIcon = Glyph 0xF0A9E
 $dash = [string][char]0x2013
+# Cells of COLUMNS the status line cannot use: Claude Code indents it by two
+# and keeps two free at the right edge.
+$margin = 4
 $gaugeChar = [string][char]0x2501
 
 # One powerline strip: bands of @(rgb, text) joined by arrows, rounded at the
@@ -115,6 +119,42 @@ function Strip([object[]]$Bands) {
         }
     }
     $out
+}
+
+# How many cells a strip takes: the cap, each band's text and closing space,
+# and its arrow. Every glyph here is one cell wide; a surrogate pair is one.
+function Cells([string]$Text) {
+    $plain = $Text -replace "$esc\[[0-9;]*m", ''
+    $plain.Length - [regex]::Matches($plain, '[\uDC00-\uDFFF]').Count
+}
+
+function Strip-Width($Bands) {
+    $sum = 1
+    foreach ($band in $Bands) { $sum += (Cells $band[1]) + $(if ($band[1]) { 2 } else { 1 }) }
+    $sum
+}
+
+# The lines in order, as many on each row as fit in $Columns; a line that does
+# not fit starts the next row whole. Two lines on one row are one strip: the
+# first's empty fade is dropped, so its last band runs into the next line's
+# first. The status-band mod folds its band the same way.
+function Fold-Lines([object[]]$Lines, [int]$Columns) {
+    $rows = [Collections.Generic.List[object]]::new()
+    foreach ($line in $Lines) {
+        if ($rows.Count -gt 0) {
+            $last = $rows[$rows.Count - 1]
+            $keep = if ($last.Count -gt 1 -and $last[$last.Count - 1][1] -eq '') { $last.Count - 1 } else { $last.Count }
+            $joined = [Collections.Generic.List[object]]::new()
+            for ($i = 0; $i -lt $keep; $i++) { $joined.Add($last[$i]) }
+            foreach ($band in $line) { $joined.Add($band) }
+            if ((Strip-Width $joined) -le $Columns) {
+                $rows[$rows.Count - 1] = $joined.ToArray()
+                continue
+            }
+        }
+        $rows.Add($line)
+    }
+    , $rows.ToArray()
 }
 
 # A coloured band: its background, and the text in its own tint.
@@ -523,6 +563,9 @@ function Render($Data, [string]$Raw) {
     $cwd = Prop (Prop $Data 'workspace') 'current_dir'
     if (-not $cwd) { $cwd = Prop $Data 'cwd' }
     if (-not $cwd) { $cwd = (Get-Location).ProviderPath }
+    $columns = 0
+    if (-not [int]::TryParse($env:COLUMNS, [ref]$columns) -or $columns -le 0) { $columns = 80 }
+    $columns -= $margin
     $cache = Read-Cache
     $limits = Prop $Data 'rate_limits'
     $fiveHour = Resolve-Window 'five_hour' (Prop $limits 'five_hour') $cache
@@ -543,29 +586,31 @@ function Render($Data, [string]$Raw) {
 
     $leaf =[IO.Path]::GetFileName($cwd.TrimEnd('\', '/'))
     # Each line fades out over the two dark greys; the git band is the first of
-    # them, so outside a repository it is only the fade.
-    $first = Strip @(
+    # them, so outside a repository it is only the fade. The lines go on as few
+    # rows as the width takes.
+    $first = @(
         (Band (Model-Scale $modelId $displayName) (Bold " $($glyphs.model) $(Pretty-Model $modelId $displayName)")),
         (Band $effortBand " $effortIcon $level"),
         (Band 'blue' " $($glyphs.folder) $(if ($leaf) { $leaf } else { $cwd })"),
         @($colors.surface, (Git-Text $cwd)),
         @($colors.deep, '')
     )
-    $second = Strip @(
+    $second = @(
         (Context-Band (Prop $Data 'context_window')),
         @($colors.surface, (Limit-Text '5h' $glyphs.fiveHour $fiveHour)),
         @($colors.surface, (Limit-Text '7d' $glyphs.weekly $weekly))
     )
     # Claude Code sends session_name only once the session has one (/rename).
     $style = Prop (Prop $Data 'output_style') 'name'
-    $third = Strip @(
+    $third = @(
         (Vim-Band (Prop $Data 'vim')),
         (Band 'cyan' " $($glyphs.style) $(if ($null -ne $style) { $style } else { $dash })"),
         @($colors.surface, "$(Fg 'yellow') $($glyphs.session)$(Value-Or (Prop $Data 'session_name') 'yellow')"),
         @($colors.deep, '')
     )
 
-    @($first, $second, $third) -join "`n"
+    $rows = Fold-Lines @($first, $second, $third) $columns
+    @(foreach ($row in $rows) { Strip $row }) -join "`n"
 }
 
 # The background side: scan, and scan again while refreshes asked for it.

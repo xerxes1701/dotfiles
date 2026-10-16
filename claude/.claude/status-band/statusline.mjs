@@ -3,7 +3,8 @@
 // into the background. Model and effort, each coloured from green (the
 // smallest model, the lowest effort) to red, then directory and git; then the
 // context window and the 5-hour and weekly limits; then the vim mode, the
-// output style and the session name. All text is tinted like its band and has a contrast of at
+// output style and the session name, the lines on as few rows as the width
+// takes. All text is tinted like its band and has a contrast of at
 // least 4.6 against it. Reads the status line JSON on stdin and prints
 // ANSI-coloured lines. statusline.ps1 beside it is its Windows twin; keep the
 // two in step.
@@ -90,6 +91,9 @@ const EFFORT_ICONS = {
 }
 const NO_EFFORT_ICON = cp(0xf0a9e)
 const DASH = '–'
+// Cells of COLUMNS the status line cannot use: Claude Code indents it by two
+// and keeps two free at the right edge.
+const MARGIN = 4
 
 // One powerline strip: bands of [rgb, text] joined by arrows, rounded at the
 // start. An empty band is just its arrow, so the dark bands at the end always
@@ -108,6 +112,33 @@ function strip(bands) {
   })
 
   return out
+}
+
+// How many cells a strip takes: the cap, each band's text and closing space,
+// and its arrow. Every glyph here is one cell wide.
+const cells = text => Array.from(text.replace(/\x1b\[[0-9;]*m/g, '')).length
+const stripWidth = bands => bands.reduce((sum, [, text]) => sum + cells(text) + (text ? 1 : 0) + 1, 1)
+
+// Two lines on one row are one strip: the first's empty fade is dropped, so
+// its last band runs into the next line's first.
+function joinLines(a, b) {
+  const kept = a.length > 1 && a[a.length - 1][1] === '' ? a.slice(0, -1) : a
+
+  return [...kept, ...b]
+}
+
+// The lines in order, as many on each row as fit in `columns`; a line that
+// does not fit starts the next row whole. The status-band mod folds its band
+// the same way.
+function foldLines(lines, columns) {
+  const rows = []
+  for (const line of lines) {
+    const joined = rows.length > 0 ? joinLines(rows[rows.length - 1], line) : null
+    if (joined && stripWidth(joined) <= columns) rows[rows.length - 1] = joined
+    else rows.push(line)
+  }
+
+  return rows
 }
 
 // A coloured band: its background, and the text in its own tint.
@@ -559,6 +590,7 @@ function render(input) {
   const level = input.effort?.level ?? configuredEffort(modelId) ?? 'default'
   const effort = String(level).toLowerCase()
   const cwd = input.workspace?.current_dir ?? input.cwd ?? process.cwd()
+  const columns = (Number(process.env.COLUMNS) || 80) - MARGIN
   const now = Date.now()
   const cache = readCache()
   const fiveHour = resolveWindow('five_hour', input.rate_limits?.five_hour, cache, now)
@@ -578,28 +610,29 @@ function render(input) {
   }
 
   // Each line fades out over the two dark greys; the git band is the first of
-  // them, so outside a repository it is only the fade.
-  const first = strip([
+  // them, so outside a repository it is only the fade. The lines go on as few
+  // rows as the width takes.
+  const first = [
     band(modelScale(modelId, input.model?.display_name), bold(` ${ICON.model} ${prettyModel(modelId, input.model?.display_name)}`)),
     band(EFFORT_SCALE[effort] ?? 'grey', ` ${EFFORT_ICONS[effort] ?? NO_EFFORT_ICON} ${level}`),
     band('blue', ` ${ICON.folder} ${basename(cwd) || cwd}`),
     [COLORS.surface, gitText(cwd)],
     [COLORS.deep, ''],
-  ])
-  const second = strip([
+  ]
+  const second = [
     context(input.context_window),
     [COLORS.surface, limit('5h', ICON.fiveHour, fiveHour)],
     [COLORS.surface, limit('7d', ICON.weekly, weekly)],
-  ])
+  ]
   // Claude Code sends session_name only once the session has one (/rename).
-  const third = strip([
+  const third = [
     vimBand(input.vim),
     band('cyan', ` ${ICON.style} ${input.output_style?.name ?? DASH}`),
     [COLORS.surface, `${fg('yellow')} ${ICON.session}${valueOr(input.session_name, 'yellow')}`],
     [COLORS.deep, ''],
-  ])
+  ]
 
-  return [first, second, third].join('\n')
+  return foldLines([first, second, third], columns).map(strip).join('\n')
 }
 
 if (process.argv[2] === '--reset-cursor') {

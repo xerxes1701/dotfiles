@@ -93,7 +93,6 @@ $effortIcons = @{
 $noEffortIcon = Glyph 0xF0A9E
 $dash = [string][char]0x2013
 $gaugeChar = [string][char]0x2501
-$blankLines = 2
 
 # One powerline strip: bands of @(rgb, text) joined by arrows, rounded at the
 # start. An empty band is just its arrow, so the dark bands at the end always
@@ -524,8 +523,6 @@ function Render($Data, [string]$Raw) {
     $cwd = Prop (Prop $Data 'workspace') 'current_dir'
     if (-not $cwd) { $cwd = Prop $Data 'cwd' }
     if (-not $cwd) { $cwd = (Get-Location).ProviderPath }
-    $columns = 0
-    [void][int]::TryParse($env:COLUMNS, [ref]$columns)
     $cache = Read-Cache
     $limits = Prop $Data 'rate_limits'
     $fiveHour = Resolve-Window 'five_hour' (Prop $limits 'five_hour') $cache
@@ -538,9 +535,7 @@ function Render($Data, [string]$Raw) {
     Feed-Band $Raw $sessionId @{ effort = $level; five_hour = $fiveHour; seven_day = $weekly }
     $mode = Read-Mode
     if ($mode -eq 'off') { return '' }
-    $rule = "$esc[2m$(([string][char]0x2500) * $(if ($columns -gt 0) { $columns } else { 80 }))$esc[22m"
-    $blank = @([string][char]0x00A0) * $blankLines
-    # The band draws the strips; its own rule separates it, so nothing here.
+    # The band draws the strips, so nothing here.
     if ($mode -eq 'mod' -and (Band-Live $sessionId)) {
         Fetch-Only $cwd
         return ''
@@ -570,8 +565,7 @@ function Render($Data, [string]$Raw) {
         @($colors.deep, '')
     )
 
-    # A line of one no-break space survives where an empty line would be dropped.
-    (@($first, $second, $third) + $blank + @($rule)) -join "`n"
+    @($first, $second, $third) -join "`n"
 }
 
 # The background side: scan, and scan again while refreshes asked for it.

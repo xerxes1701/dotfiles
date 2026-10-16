@@ -90,7 +90,6 @@ const EFFORT_ICONS = {
 }
 const NO_EFFORT_ICON = cp(0xf0a9e)
 const DASH = '–'
-const BLANK_LINES = 2
 
 // One powerline strip: bands of [rgb, text] joined by arrows, rounded at the
 // start. An empty band is just its arrow, so the dark bands at the end always
@@ -560,7 +559,6 @@ function render(input) {
   const level = input.effort?.level ?? configuredEffort(modelId) ?? 'default'
   const effort = String(level).toLowerCase()
   const cwd = input.workspace?.current_dir ?? input.cwd ?? process.cwd()
-  const columns = Number(process.env.COLUMNS) || 0
   const now = Date.now()
   const cache = readCache()
   const fiveHour = resolveWindow('five_hour', input.rate_limits?.five_hour, cache, now)
@@ -572,9 +570,7 @@ function render(input) {
   feedBand(input, { effort: level, five_hour: fiveHour, seven_day: weekly })
   const mode = readMode()
   if (mode === 'off') return ''
-  const rule = `\x1b[2m${'─'.repeat(columns > 0 ? columns : 80)}\x1b[22m`
-  const blank = Array(BLANK_LINES).fill(' ')
-  // The band draws the strips; its own rule separates it, so nothing here.
+  // The band draws the strips, so nothing here.
   if (mode === 'mod' && isBandLive(input.session_id)) {
     fetchOnly(cwd)
 
@@ -603,8 +599,7 @@ function render(input) {
     [COLORS.deep, ''],
   ])
 
-  // A line of one no-break space survives where an empty line would be dropped.
-  return [first, second, third, ...blank, rule].join('\n')
+  return [first, second, third].join('\n')
 }
 
 if (process.argv[2] === '--reset-cursor') {

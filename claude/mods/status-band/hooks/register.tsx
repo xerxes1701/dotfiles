@@ -43,10 +43,16 @@ const MODE_TEXT: Record<BandMode, string> = {
 }
 
 const POLL_MS = 400
-// In polls: the live values every 2 s, git every 3 s, the heartbeat every 4 s.
+// In polls: the live values every 2 s, the heartbeat every 4 s.
 const LIVE_EVERY = 5
-const GIT_EVERY = 8
 const BEAT_EVERY = 10
+// git status at most every 30 s, and only while the band draws the strips and
+// the session was used (a prompt edited or sent, a model turn step) in the last
+// 5 minutes. An untouched session, as a herdr restart resumes them all, keeps
+// its last counters instead of running git (git.exe on a Windows drive) around
+// the clock. soon() still asks for one at once.
+const GIT_MS = 30_000
+const IDLE_MS = 5 * 60_000
 // Letters, not digits: a bare digit typed into an empty prompt presses the
 // band's Button of that hotkey, so an open menu would act on a prompt that
 // starts with one. y, n and x are the question's and the close button's.
@@ -84,6 +90,11 @@ let isPolling = false
 let isGitRunning = false
 let isGitAgain = false
 let publishedGit = ''
+// When the last git refresh started, 0 to have one at the next drawn poll; and
+// when the session was last used, isUsed marking a use for the next poll.
+let gitAt = 0
+let usedAt = 0
+let isUsed = false
 const repos = new Map<string, { root: string; gitDir: string } | null>()
 
 const num = (value: unknown) => (typeof value === 'number' && Number.isFinite(value) ? value : null)
@@ -295,7 +306,14 @@ async function poll($: $): Promise<void> {
     await readDump($, sessionId)
     if (tick % LIVE_EVERY === 0) await Promise.all([readLive($), readMode($)])
     await publish($, sessionId, now)
-    if (tick % GIT_EVERY === 0) void refreshGit($)
+    if (isUsed) {
+      isUsed = false
+      usedAt = now
+    }
+    if (isDrawn && (gitAt === 0 || (now - usedAt < IDLE_MS && now - gitAt >= GIT_MS))) {
+      gitAt = now
+      void refreshGit($)
+    }
     await closeIfLeft($)
     if (tick % BEAT_EVERY === 0 && isDrawn) {
       await $.fs.write(`${await dirOfSessions($)}/${sessionId}.band`, String(now)).catch(() => undefined)
@@ -309,6 +327,7 @@ async function poll($: $): Promise<void> {
 // The next poll reads everything.
 function soon($: $): void {
   ticks = 0
+  gitAt = 0
   void poll($)
 }
 
@@ -1083,6 +1102,7 @@ export const register: Register = on => {
 
   // Typing in the prompt closes an open menu too, at once.
   on('prompt.edit', ($, e, next) => {
+    isUsed = true
     if (isMenuOpen) void closeMenu($)
 
     return next(e)
@@ -1090,9 +1110,17 @@ export const register: Register = on => {
 
   // A prompt sent while a menu is open leaves it behind.
   on('prompt.submit', async ($, e, next) => {
+    isUsed = true
     if ((await read($, menuState)) !== null) await closeMenu($)
 
     return next(e)
+  })
+
+  // A running turn keeps the counters current as its tools change files.
+  on('turn.step', async function* ($, e, next) {
+    isUsed = true
+
+    return yield* next(e)
   })
 
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {

@@ -17,7 +17,9 @@
 # not, and ctrl-alt-r rebuilds them with devcontainer-rebuild.sh, as VS Code's
 # Rebuild Container does. Both end every agent inside, so they are keys you
 # have to choose; neither asks again. (Not ctrl-shift-r: a terminal sends that
-# as the same byte as ctrl-r, and fzf could not tell them apart.)
+# as the same byte as ctrl-r, and fzf could not tell them apart.) ctrl-s stops
+# the containers, and ctrl-d deletes them, after a question: what is in a
+# container outside its mounts and volumes does not come back.
 #
 # A herdr popup is modal: while it is open, nothing else in herdr takes a key.
 # So the work does not run in the popup. It runs as a job of its own, detached
@@ -30,7 +32,8 @@
 #   p       copies the log to the clipboard: text in a popup cannot be selected.
 #   P       copies the log's path instead.
 #
-# Those keys stay on the popup's last line.
+# Those keys stay at the bottom of the popup, wrapped onto more lines when
+# the popup is too narrow for one, in the list and while the job runs alike.
 #
 # A job that ends while nobody watches says so in a herdr notification. Each
 # run's log is kept under the plugin's state directory, the last 20 of them.
@@ -283,14 +286,47 @@ rebuild_for() {
     ok "  rebuilt"
 }
 
+# Stops or deletes the container behind a machine. herdr shows the machine
+# as disconnected afterwards and keeps retrying, which costs nothing.
+take_down() {
+    local port=$1 mode=$2 name=$3 state=$4
+    if [ -z "$name" ]; then
+        note "  no container publishes port $port, nothing to $mode"
+        return
+    fi
+    if [ "$mode" = stop ]; then
+        case $state in
+            running | paused | restarting) ;;
+            *) note "  $name is $state already"; return ;;
+        esac
+        note "  stopping $name"
+        docker stop "$name" >/dev/null || { fail "  docker stop $name failed"; return; }
+        ok "  stopped"
+        return
+    fi
+    if ! ask "delete $name? What is in it outside its mounts and volumes is lost"; then
+        warn "  not deleted"
+        return
+    fi
+    note "  deleting $name"
+    docker rm -f "$name" >/dev/null || { fail "  docker rm $name failed"; return; }
+    ok "  deleted; enter rebuilds it"
+}
+
 # Brings up the container behind one machine -- mode is start, restart or
 # rebuild; a container that is gone is rebuilt if you agree -- waits until its
-# sshd answers, and then until herdr can reach it.
+# sshd answers, and then until herdr can reach it. Modes stop and delete go
+# to take_down instead.
 bring_up() {
     local id=$1 label=$2 port=$3 mode=$4 name state i
     printf '\n'
     note "$label (port $port)"
     IFS=$'\t' read -r name state < <(container_on "$port")
+    case $mode in
+        stop | delete)
+            take_down "$port" "$mode" "${name:-}" "${state:-}"
+            return ;;
+    esac
     if [ "$mode" = rebuild ] || [ -z "${name:-}" ]; then
         if [ "$mode" = rebuild ]; then
             rebuild_for "$label" "$port" asked || return
@@ -374,7 +410,7 @@ bring_up() {
 
 # --- the job ----------------------------------------------------------------
 
-# picker.sh --job <start|restart|rebuild> <id<tab>label<tab>port>...
+# picker.sh --job <start|restart|rebuild|stop|delete> <id<tab>label<tab>port>...
 run_job() {
     local mode=$1 line id label port
     shift
@@ -383,6 +419,12 @@ run_job() {
     trap 'finish_job' EXIT
     # A cancel: the viewer that sent it reports it, so the exit says nothing.
     trap 'cancelled=1; exit 143' TERM
+    # Docker Desktop is started to bring something up or to delete it, but
+    # not to stop it: with it down, nothing runs to stop.
+    if [ "$mode" = stop ] && ! engine_up; then
+        note 'Docker Desktop is not running, so no container is either'
+        exit 0
+    fi
     ensure_engine || exit 1
     for line in "$@"; do
         IFS=$'\t' read -r id label port <<<"$line"
@@ -435,21 +477,57 @@ cancel_job() {
     rm -f "$job_pid_file" "$question_file" "$answer_file"
 }
 
-# The keys stay on the popup's last line, under the log rather than in it:
-# the lines above scroll inside a scroll region that leaves that one line out.
-# Drawn again when the keys or the popup's height change, and only then.
-footer_drawn=''
+# The popup's size, rows then columns, asked of the terminal itself: tput
+# guesses 80 columns when neither its stdout nor its stdin is the terminal,
+# as inside fzf's pipeline.
+term_rows() { local r c; read -r r c < <(stty size </dev/tty 2>/dev/null) && [ -n "$r" ] && echo "$r"; }
+term_cols() { local r c; read -r r c < <(stty size </dev/tty 2>/dev/null) && [ -n "$c" ] && echo "$c" || echo 80; }
+
+# Key hints are items three spaces apart. Wrapped to a width, whole items go
+# to a line, as many as fit.
+wrap_keys() {
+    local width=$1 line='' item
+    local -a items
+    mapfile -t items < <(printf '%s\n' "$2" | sed 's/   /\n/g')
+    for item in "${items[@]}"; do
+        if [ -z "$line" ]; then
+            line=$item
+        elif [ $((${#line} + 3 + ${#item})) -le "$width" ]; then
+            line="$line   $item"
+        else
+            printf '%s\n' "$line"
+            line=$item
+        fi
+    done
+    printf '%s\n' "$line"
+}
+
+# The keys stay on the popup's last lines, under the log rather than in it:
+# the lines above scroll inside a scroll region that leaves them out. Drawn
+# again when the keys or the popup's size change, and only then.
+footer_drawn='' footer_lines=0
 footer() {
-    local rows
-    rows=$(tput lines 2>/dev/null) || return 0
-    [ "$rows" -gt 2 ] || return 0
-    [ "$footer_drawn" != "$rows:$1" ] || return 0
-    footer_drawn=$rows:$1
-    # Save the cursor, fence the log in above the last line, write the keys
-    # there, and put the cursor back. Setting the region homes the cursor,
-    # which is why it is saved first.
-    printf '\e7\e[1;%dr\e8\e7\e[%d;1H\e[2K%s%s%s\e8' \
-        $((rows - 1)) "$rows" "$e_dim" "$1" "$e_off"
+    local rows cols n i
+    local -a wrapped
+    rows=$(term_rows) || return 0
+    cols=$(term_cols)
+    [ "$footer_drawn" != "$rows:$cols:$1" ] || return 0
+    footer_drawn=$rows:$cols:$1
+    mapfile -t wrapped < <(wrap_keys "$cols" "$1")
+    n=${#wrapped[@]}
+    [ "$rows" -gt $((n + 1)) ] || return 0
+    # Lines the keys took before and give back now are blanked, not left to
+    # the log with stale keys in them.
+    for ((i = footer_lines; i > n; i--)); do
+        printf '\e7\e[%d;1H\e[2K\e8' $((rows - i + 1))
+    done
+    footer_lines=$n
+    # Save the cursor, fence the log in above the keys, and put the cursor
+    # back: setting the region homes it. Then each line of keys, the same way.
+    printf '\e7\e[1;%dr\e8' $((rows - n))
+    for ((i = 0; i < n; i++)); do
+        printf '\e7\e[%d;1H\e[2K%s%s%s\e8' $((rows - n + 1 + i)) "$e_dim" "${wrapped[i]}" "$e_off"
+    done
 }
 
 # Puts the popup's terminal back the way the viewer found it.
@@ -511,6 +589,15 @@ view() {
 
 # --- main ------------------------------------------------------------------
 
+keys_pick='enter: start   ctrl-r: restart   ctrl-alt-r: rebuild   ctrl-s: stop   ctrl-d: delete   tab: mark several   esc: close   (all but enter end the agents inside)'
+
+# fzf calls this back on a resize, with its width in FZF_COLUMNS; the header
+# is indented by two columns.
+if [ "${1:-}" = --keys-header ]; then
+    wrap_keys $((${FZF_COLUMNS:-80} - 2)) "$keys_pick"
+    exit
+fi
+
 if [ "${1:-}" = --job ]; then
     shift
     run_job "$@"
@@ -533,24 +620,26 @@ if [ -z "$lines" ]; then
     exit 0
 fi
 
-# The keys go on the last line, as they do while the job runs. fzf clears
-# everything below where it starts, so a line drawn before it would be wiped:
-# instead they are the label of a bottom border, which fzf draws itself and
-# keeps through redraws and resizes. --height=100% and --no-preview override
-# FZF_DEFAULT_OPTS, which gives every fzf 40% of the screen and a file
-# preview that means nothing for this list.
-keys_pick=' enter: start   ctrl-r: restart   ctrl-alt-r: rebuild   (both end its agents)   tab: mark several   esc: close '
-out=$(printf '%s\n' "$lines" | fzf --ansi --multi --reverse --no-sort \
+# The keys go at the bottom, as they do while the job runs: in fzf's header,
+# which the default bottom-up layout puts under the prompt, wrapped to the
+# width now and again on every resize. A line drawn under fzf instead would
+# be wiped, since fzf clears what is below where it starts. --height=100% and
+# --no-preview override FZF_DEFAULT_OPTS, which gives every fzf 40% of the
+# screen and a file preview that means nothing for this list.
+out=$(printf '%s\n' "$lines" | fzf --ansi --multi --layout=default --no-sort \
     --height=100% --no-preview \
-    --border=bottom --border-label="$keys_pick" --border-label-pos=1:bottom \
-    --color=label:dim \
+    --header-first --header "$(wrap_keys $(($(term_cols) - 2)) "$keys_pick")" \
+    --color=header:dim \
+    --bind "resize:transform-header(bash '$self' --keys-header)" \
     --delimiter $'\t' --with-nth 4 \
-    --expect ctrl-r,ctrl-alt-r) || exit 0
+    --expect ctrl-r,ctrl-alt-r,ctrl-s,ctrl-d) || exit 0
 
 key=$(head -n 1 <<<"$out")
 case $key in
     ctrl-r) mode=restart ;;
     ctrl-alt-r) mode=rebuild ;;
+    ctrl-s) mode=stop ;;
+    ctrl-d) mode=delete ;;
     *) mode=start ;;
 esac
 

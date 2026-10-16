@@ -1,0 +1,24 @@
+id = "herdr-load"
+name = "herdr-load"
+version = "0.1.0"
+min_herdr_version = "0.9.0"
+description = "CPU and memory of each workspace's processes, as tokens in the sidebar"
+platforms = ["linux"]
+
+# Startup hooks are one-shot, so start.sh launches the reporter detached and
+# returns. They run when a server starts, not when the plugin is linked:
+# after `herdr plugin link`, run the restart action once.
+[[startup]]
+command = ["sh", "start.sh"]
+
+[[actions]]
+id = "restart"
+title = "Restart the load reporter"
+contexts = ["global"]
+command = ["sh", "start.sh", "restart"]
+
+[[actions]]
+id = "stop"
+title = "Stop the load reporter"
+contexts = ["global"]
+command = ["sh", "start.sh", "stop"]

@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# git at a WSL prompt through the wsl-git shim (~/.local/lib/wsl-git/git):
+# Windows' git.exe for a repository on a Windows drive, Linux's git for the
+# rest, with the shim's path translation. `git` itself stays Linux's; this is
+# the one to type for a /mnt/c checkout. WSL_GIT=windows or WSL_GIT=linux
+# picks the git outright. On PATH, it also runs as `git win`.
+#
+# The shells complete it as git, and run that completion's own git calls
+# through the shim as well.
+exec "$(dirname -- "$(readlink -f -- "$0")")/../lib/wsl-git/git" "$@"

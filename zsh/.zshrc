@@ -96,6 +96,7 @@ alias ......='cd ../../../../..'
 # ===== aliases: tools =====
 
 alias g='git'
+alias gw='git-win'
 alias v='nvim'
 alias vim='nvim'
 alias vid='neovide'
@@ -190,6 +191,18 @@ gsw() {
 # ===== shell-specific =====
 
 bindkey -s '\e' '^U'
+
+# git-win (scripts package) completes as git; gw, an alias, completes as what
+# it expands to. The completion's own git calls go through the wsl-git shim
+# too, so a checkout on a Windows drive is read by git.exe -- fast, and the
+# only git that can read a worktree git.exe made. WSL_GIT_NO_STDIN keeps
+# git.exe from swallowing the pipes _git runs it in.
+__git_win_complete() {
+  local -x PATH=$HOME/.local/lib/wsl-git:$PATH WSL_GIT_NO_STDIN=1
+  local service=git
+  _git "$@"
+}
+(( $+functions[compdef] )) && compdef __git_win_complete git-win
 
 # fzf keybindings, completion and preview settings.
 # Sourced by absolute path -- the old relative `source .zshrc_fzf` only resolved

@@ -508,6 +508,16 @@ neovim as a whole (gitsigns, oil-git-status, the status line's git band), and
 claude code's statusline and status-band mod. `git` typed at a prompt is
 still linux's.
 
+`scripts/.local/bin/git-win` (alias `gw`, and `git win` as a git subcommand)
+is that `git` for the prompt. it completes as git in bash, zsh and fish, and
+the completion's own git calls go through the shim as well -- fast on a
+windows drive, and the only way to complete inside a worktree git.exe made.
+nushell has no git completion to reuse. `WSL_GIT=windows` or `WSL_GIT=linux`
+makes the shim run that git for any repository; unset, it picks. git.exe
+reads every byte of the stdin it is given, so on the right of a pipe it
+swallows the left side's output; `WSL_GIT_NO_STDIN=1`, which the completions
+set, gives it `/dev/null` instead.
+
 # journal
 
 > /mg-journal [YYYY-MM-DD]

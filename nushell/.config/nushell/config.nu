@@ -65,6 +65,7 @@ def --env "......" [] { cd ../../../../.. }
 # ===== aliases: tools =====
 
 alias g = git
+alias gw = git-win
 alias v = nvim
 alias vim = nvim
 alias vid = neovide

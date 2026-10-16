@@ -109,6 +109,7 @@ alias ......='cd ../../../../..'
 # ===== aliases: tools =====
 
 alias g='git'
+alias gw='git-win'
 alias v='nvim'
 alias vim='nvim'
 alias vid='neovide'
@@ -198,3 +199,15 @@ gsw() {
   dir=$(gsw.sh "$@") || return
   [ -n "$dir" ] && cd -- "$dir"
 }
+
+# git-win (scripts package) and its alias gw complete as git. The completion's
+# own git calls go through the wsl-git shim too, so a checkout on a Windows
+# drive is read by git.exe -- fast, and the only git that can read a worktree
+# git.exe made. bash-completion loads git's completion on first use.
+_git_win() {
+  declare -F __git_main >/dev/null || __load_completion git || return
+  local PATH=$HOME/.local/lib/wsl-git:$PATH
+  local -x WSL_GIT_NO_STDIN=1
+  __git_func_wrap __git_main
+}
+complete -o bashdefault -o default -o nospace -F _git_win git-win gw

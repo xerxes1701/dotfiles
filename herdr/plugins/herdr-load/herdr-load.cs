@@ -1,9 +1,10 @@
 // herdr-load: how much CPU and memory each herdr workspace's processes use,
-// shown as tokens in herdr's sidebar next to the workspace's name:
+// shown as tokens in herdr's sidebar on a row under the workspace's name:
 //
-//   dotfiles · ◑ · 1.2G
+//   dotfiles
+//   ▄ 1.2G
 //
-// The circle fills with the workspace's share of the machine's CPU, and its
+// The bar rises with the workspace's share of the machine's CPU, and its
 // token (cpu_low, cpu_mid, cpu_high) picks its colour in config.toml; the
 // memory is the processes' summed RSS, its token (mem_low, mem_mid, mem_high)
 // likewise. See the [ui.sidebar.spaces] rows in herdr's config.toml.
@@ -55,9 +56,9 @@ sealed class Reporter(string socketPath)
     const int TtlMs = 180_000;
     const string Source = "herdr-load";
 
-    // Share of the machine's CPU at which the circle fills one step further.
+    // Share of the machine's CPU at which the bar rises one step further.
     static readonly double[] CpuSteps = [0.02, 0.10, 0.30, 0.60];
-    static readonly string[] CpuGlyphs = ["○", "◔", "◑", "◕", "●"];
+    static readonly string[] CpuGlyphs = ["▁", "▂", "▄", "▆", "█"];
     static readonly string[] CpuTokens = ["cpu_low", "cpu_low", "cpu_mid", "cpu_high", "cpu_high"];
     const long GiB = 1L << 30, MiB = 1L << 20;
     static readonly string[] AllTokens = ["cpu_low", "cpu_mid", "cpu_high", "mem_low", "mem_mid", "mem_high"];

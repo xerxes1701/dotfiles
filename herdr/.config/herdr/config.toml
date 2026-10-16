@@ -6,15 +6,17 @@ agent_panel_sort = "spaces"
 status_indicators = "symbols"
 show_agent_labels_on_pane_borders = true
 
-# The workspace's load beside its name, reported by the herdr-load plugin
-# (herdr/plugins/herdr-load): a circle that fills with its share of the CPU and
-# the memory its processes hold. Each token is one band of the value, so it
-# carries that band's colour; the plugin sets one CPU and one memory token and
-# leaves the others empty, which the row skips. The second row is herdr's own.
+# The workspace's load on its own row under its name, reported by the
+# herdr-load plugin (herdr/plugins/herdr-load): a bar that rises with its
+# share of the CPU (a bar, so it is never mistaken for herdr's round agent
+# state glyphs) and the memory its processes hold. Each token is one band of
+# the value, so it carries that band's colour; the plugin sets one CPU and one
+# memory token and leaves the others empty, which the row skips. The first and
+# last rows are herdr's own.
 [ui.sidebar.spaces]
 rows = [
+  ["state_icon", "workspace"],
   [
-    "state_icon", "workspace",
     { token = "$cpu_low", fg = "#a6e3a1" },
     { token = "$cpu_mid", fg = "#f9e2af" },
     { token = "$cpu_high", fg = "#f38ba8" },

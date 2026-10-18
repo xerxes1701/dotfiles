@@ -82,15 +82,21 @@ function prompt() {
     return $prompt__.Invoke() 
 }
 
+# The newest claude.exe the VS Code extension brought along, or else the one on
+# PATH (winget, the installer) on a machine without the extension.
 function claude {
-    $exe = get-item 'C:\Users\Gawlik.MiGa\.vscode\extensions\anthropic.claude-code-*\resources\native-binary\claude.exe' | 
-      sort-object -Descending -Property VersionInfo | 
-      select-object -First 1
-
-    if ($null -eq $exe) {
-        Write-Error "claude.exe nicht gefunden"
+    $exe = (get-item "$HOME\.vscode\extensions\anthropic.claude-code-*\resources\native-binary\claude.exe" -ErrorAction SilentlyContinue |
+      sort-object -Descending -Property VersionInfo |
+      select-object -First 1).FullName
+    if (-not $exe) {
+        $exe = (Get-Command claude.exe -CommandType Application -ErrorAction SilentlyContinue | select-object -First 1).Source
     }
-    &"$exe" $args
+
+    if (-not $exe) {
+        Write-Error "claude.exe nicht gefunden"
+        return
+    }
+    &"$exe" @args
 }
 
 function sm {

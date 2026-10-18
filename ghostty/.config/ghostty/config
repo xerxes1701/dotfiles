@@ -1,7 +1,7 @@
 # Ghostty is the terminal bound to Mod+Return in niri.
 
-command = /usr/bin/nu
-shell-integration = nushell
+command = /usr/bin/fish
+shell-integration = fish
 
 # Matches Alacritty's opacity = 0.8, so the semitransparent terminal
 # stays readable over a maximized window (Mod+F / Mod+Ctrl+M).

@@ -51,8 +51,9 @@ packages deploys only those:
 
 nushell needs `nu-regen-init.nu` once per machine afterwards, see
 [shells](#shells), claude code needs `claude-bootstrap.sh`, see
-[claude code](#claude-code), and the pane-navigation scheme needs
-`nav-setup.sh`, see [navigation](#navigation).
+[claude code](#claude-code), the pane-navigation scheme needs
+`nav-setup.sh`, see [navigation](#navigation), and herdr's own plugins need
+`herdr-plugins.sh`, see [herdr plugins](#herdr-plugins).
 
 ## restowing after a move
 
@@ -904,6 +905,38 @@ once:
 another plugin in `settings.json` is the only edit a second one needs. both
 commands are idempotent and neither rewrites `settings.json`; `-n` prints them
 and runs nothing. restart claude code, or `/reload-plugins`, afterwards.
+
+# herdr plugins
+
+`herdr/plugins` holds two plugins of this repository's own:
+
+    herdr-load       CPU and memory of each workspace's processes, as tokens in
+                     the sidebar -- a Native AOT .NET executable
+    herdr-machines   a picker that starts, restarts, stops or deletes the
+                     devcontainers behind saved machines
+
+stow does not deploy them -- `herdr/.stow-local-ignore` keeps the directory
+out, because herdr does not read plugins from its config directory but runs
+each one from wherever `herdr plugin link` registered it. so deploying the
+`herdr` package leaves both missing, and herdr-load also has to be built before
+its startup hook will run. once per machine, and after a `git pull` that
+changed one of them:
+
+> herdr-plugins.sh
+
+it links every plugin there whose `platforms` include this machine's, runs a
+plugin's `build.sh` when its `bin/` is missing or older than its sources, and
+-- with a server running -- has it `reload-config` and invokes the `restart`
+action of each plugin with a startup hook. that last step matters: startup
+hooks run when a server starts, not when a plugin is linked or rebuilt, so
+without it the running session carries on without herdr-load, or with the old
+build. `-n` prints the commands and runs none, `--rebuild` builds even what is
+up to date, and naming plugins limits it to those. the tools they need --
+dotnet and clang for herdr-load, docker, the devcontainer cli, fzf, jq and
+python for herdr-machines -- are in `install-tools.sh`.
+
+smart-splits.nvim's herdr plugin is not one of these: its checkout belongs to
+nvim, and `nav-setup.sh` links it.
 
 # herdr on another machine
 

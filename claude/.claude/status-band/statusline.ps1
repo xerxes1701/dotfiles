@@ -181,8 +181,9 @@ function Num($Value) {
 }
 
 # The vim editor mode, which Claude Code sends only while vim mode is on; it
-# draws no -- INSERT -- of its own (statusLine.hideVimModeIndicator). alt+i
-# toggles vim mode, through the vim-toggle mod.
+# draws no -- INSERT -- of its own (statusLine.hideVimModeIndicator). No key
+# switches it: keybindings.json has no action for the editor mode, so it is
+# /config or the band's vim menu.
 $vimModes = @{
     'NORMAL' = @('Normal', 'purple'); 'INSERT' = @('Insert', 'blue')
     'VISUAL' = @('Visual', 'orange'); 'VISUAL LINE' = @('Visual Line', 'orange')
@@ -190,7 +191,7 @@ $vimModes = @{
 
 function Vim-Band($Vim) {
     $mode = Prop $Vim 'mode'
-    if ($mode -isnot [string]) { return , (Band 'grey' " $($glyphs.vim) vim off (alt+i)") }
+    if ($mode -isnot [string]) { return , (Band 'grey' " $($glyphs.vim) vim off") }
     $found = $vimModes[$mode]
     if (-not $found) { $found = @($mode, 'grey') }
     , (Band $found[1] (Bold " $($glyphs.vim) $($found[0])"))

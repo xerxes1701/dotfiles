@@ -145,8 +145,9 @@ function foldLines(lines, columns) {
 const band = (name, text) => [BANDS[name].bg, `${sgr(38, BANDS[name].text)}${text}`]
 
 // The vim editor mode, which Claude Code sends only while vim mode is on; it
-// draws no -- INSERT -- of its own (statusLine.hideVimModeIndicator). alt+i
-// toggles vim mode, through the vim-toggle mod.
+// draws no -- INSERT -- of its own (statusLine.hideVimModeIndicator). No key
+// switches it: keybindings.json has no action for the editor mode, so it is
+// /config or the band's vim menu.
 const VIM_MODES = {
   NORMAL: ['Normal', 'purple'], INSERT: ['Insert', 'blue'],
   VISUAL: ['Visual', 'orange'], 'VISUAL LINE': ['Visual Line', 'orange'],
@@ -154,7 +155,7 @@ const VIM_MODES = {
 
 function vimBand(vim) {
   const mode = vim?.mode
-  if (typeof mode !== 'string') return band('grey', ` ${ICON.vim} vim off (alt+i)`)
+  if (typeof mode !== 'string') return band('grey', ` ${ICON.vim} vim off`)
   const [label, color] = VIM_MODES[mode] ?? [mode, 'grey']
 
   return band(color, bold(` ${ICON.vim} ${label}`))

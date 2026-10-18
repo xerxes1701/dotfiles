@@ -138,6 +138,8 @@ done <"$conf"
 
 # winget is slow to ask, so it is asked once for everything it has installed.
 # Its table pads and may truncate long names, but not the ids looked up here.
+# An id counts only as a whole column, compared without case the way winget
+# does: as a substring, Git.Git would be found in Git.GitLFS.
 winget_list=''
 if [ "$manager" = winget ] && command -v winget >/dev/null 2>&1; then
     winget_list=$(winget list --accept-source-agreements --disable-interactivity 2>/dev/null)
@@ -147,7 +149,9 @@ pkg_installed() {
     case $manager in
         pacman) pacman -Q -- "$1" >/dev/null 2>&1 ;;
         apt)    dpkg-query -W -f='${Status}' -- "$1" 2>/dev/null | grep -q 'ok installed' ;;
-        winget) grep -qiF -- "$1" <<<"$winget_list" ;;
+        winget) awk -v id="$1" 'BEGIN { id = tolower(id) }
+                    { for (i = 1; i <= NF; i++) if (tolower($i) == id) { found = 1; exit } }
+                    END { exit !found }' <<<"$winget_list" ;;
     esac
 }
 

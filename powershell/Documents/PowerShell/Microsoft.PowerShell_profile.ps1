@@ -20,6 +20,8 @@ Set-Alias -Name cl -Value claude
 Remove-Item Alias:clc -Force -ErrorAction SilentlyContinue
 function clc { cl --continue @args }
 function clr { cl --resume @args }
+# Only for a claude that winget installed, not the VS Code extension's.
+function clu { winget upgrade --id Anthropic.ClaudeCode --exact @args }
 
 # Functions rather than aliases, because Set-Alias cannot carry an argument
 # like `build`; @args passes the rest on, so `dnr --project foo` works as in

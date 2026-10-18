@@ -1,11 +1,12 @@
 {
   "env": {
-    "CLAUDE_CODE_PLUGIN_DIRS": "~/dotfiles/claude/mods/paste-image"
+    "CLAUDE_CODE_PLUGIN_DIRS": "~/dotfiles/claude/mods/paste-image:~/dotfiles/claude/mods/status-band"
   },
   "permissions": {
     "defaultMode": "auto"
   },
   "model": "opus",
+  "editorMode": "vim",
   "hooks": {
     "SessionStart": [
       {

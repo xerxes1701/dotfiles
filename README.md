@@ -863,7 +863,9 @@ the two are kept in step.
 
 the third line starts with the vim mode, which claude code tells only the
 statusline, so its own `-- INSERT --` is switched off
-(`statusLine.hideVimModeIndicator`). on linux `statusline.mjs` also sets the
+(`statusLine.hideVimModeIndicator`). `settings.json` turns vim mode on
+(`"editorMode": "vim"`); without that there is no mode to show, and nothing
+shows one. on linux `statusline.mjs` also sets the
 cursor nvim would show for the mode -- a block in normal and visual, a bar in
 insert -- by writing it to claude code's terminal, which it finds in `/proc`
 since claude code gives the statusline no terminal of its own. the
@@ -892,8 +894,12 @@ statusline writes its input to `~/.claude/status-band/sessions/<session>.json`
 for the band. while the band draws, it touches `<session>.band` there every
 few seconds and the statusline prints nothing. git runs from the mod with the
 repository's hooks off, so a commit made there skips pre-commit hooks. like
-`paste-image`, it loads from this checkout once its folder is in
-`CLAUDE_CODE_PLUGIN_DIRS`.
+`paste-image`, it loads from this checkout because its folder is in
+`CLAUDE_CODE_PLUGIN_DIRS`, in `settings.json`'s env block -- a mod added to
+`claude/mods` loads only once it is added there too. the folders are joined
+with `:`, the separator on linux; claude code splits the list on `;` on
+windows, where the joined value is one path that does not exist and neither
+mod loads.
 
 `/status-band mod|band|off` picks who draws the strips, in every session: the
 band (`mod`, the default), the statusline alone (`band`), or neither (`off`).

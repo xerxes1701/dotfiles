@@ -66,6 +66,20 @@ was deleted outright are not repaired -- find those with:
 
 # dependencies
 
+the tools the packages configure install from a list:
+
+> install-tools.sh
+
+it finds the machine's package manager -- pacman (paru for the aur) on
+cachyos, apt on ubuntu, winget from git bash on windows -- lists the tools that
+belong on this platform, marks the installed ones, and installs what is picked,
+or `all` of them. it picks with fzf where fzf is there and from a numbered
+menu where it is not yet. `-n` prints the commands, `--list` the tools, and
+naming tools installs those without asking. which package each manager calls a
+tool, and whether it belongs on linux, windows or both, is
+`scripts/.local/lib/dotfiles/tools.conf`. a tool with no package for a manager
+is listed there as `-`, and the sections below say how to install it by hand.
+
 ## gnu stow
 
 [gnu stow github page](https://github.com/aspiers/stow)

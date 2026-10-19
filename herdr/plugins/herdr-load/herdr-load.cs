@@ -4,10 +4,10 @@
 //   dotfiles
 //   ▄ 1.2G
 //
-// The bar rises with the workspace's share of the machine's CPU, and its
-// token (cpu_low, cpu_mid, cpu_high) picks its colour in config.toml; the
-// memory is the processes' summed RSS, its token (mem_low, mem_mid, mem_high)
-// likewise. See the [ui.sidebar.spaces] rows in herdr's config.toml.
+// The bar rises with the workspace's share of the machine's CPU, and is a
+// blank while the workspace idles; its token (cpu_low, cpu_mid, cpu_high)
+// picks its colour in config.toml; the memory is the processes' summed RSS,
+// its token (mem_low, mem_mid, mem_high) likewise. See the [ui.sidebar.spaces] rows in herdr's config.toml.
 //
 // Every process started in a pane inherits HERDR_SOCKET_PATH and
 // HERDR_WORKSPACE_ID, so one pass over /proc per tick sums all workspaces at
@@ -57,8 +57,11 @@ sealed class Reporter(string socketPath)
     const string Source = "herdr-load";
 
     // Share of the machine's CPU at which the bar rises one step further.
+    // Below the first step the workspace idles, and the bar is a blank: the
+    // braille one (U+2800), because herdr trims a space or a no-break space
+    // to nothing and skips the token, which would move the memory left.
     static readonly double[] CpuSteps = [0.02, 0.10, 0.30, 0.60];
-    static readonly string[] CpuGlyphs = ["▁", "▂", "▄", "▆", "█"];
+    static readonly string[] CpuGlyphs = ["\u2800", "▂", "▄", "▆", "█"];
     static readonly string[] CpuTokens = ["cpu_low", "cpu_low", "cpu_mid", "cpu_high", "cpu_high"];
     const long GiB = 1L << 30, MiB = 1L << 20;
     static readonly string[] AllTokens = ["cpu_low", "cpu_mid", "cpu_high", "mem_low", "mem_mid", "mem_high"];

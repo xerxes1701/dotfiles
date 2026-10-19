@@ -1,6 +1,8 @@
 #!/bin/sh
 # Rebuild devcontainers -- what VS Code's *Dev Containers: Rebuild Container*
-# does, for one project or for all of them, picked with fzf.
+# does, for one project or for all of them, picked with fzf. With --restart
+# (or as devcontainer-restart.sh) it restarts the existing container instead,
+# and rebuilds a project that has no container to restart.
 #
 # It finds every project one level under the roots below that carries a
 # devcontainer config, and runs the same `devcontainer up` the VS Code
@@ -24,6 +26,11 @@
 #     subpath, which the extension does not do. These worktrees are their own
 #     git root, so it changes nothing today and everything the day a subfolder
 #     is opened.
+#   * --skip-post-attach, because postAttachCommand belongs to the window that
+#     attaches, and nothing attaches here. VS Code runs it on its own attach;
+#     the CLI would instead block `up` until it exits -- firstx's
+#     patch-claude-voice.sh waits up to 15 min for an extension only VS Code
+#     installs.
 #
 # Builds run one at a time on purpose. Two concurrent devcontainer builds are
 # what took WSL down in .devcontainer/issues/wsl-memory-and-container-sharing.md,
@@ -46,6 +53,11 @@ roots=${DEVCONTAINER_REBUILD_ROOTS-"$HOME/SWProjekte /mnt/c/SWProjekte /mnt/c/co
 
 style=${DEVCONTAINER_REBUILD_STYLE-auto}
 nocache=${DEVCONTAINER_REBUILD_NOCACHE-}
+# rebuild, or restart: stop the existing container and `devcontainer up` it
+# again, which runs postStartCommand -- what a bare `docker start` skips, and
+# what the sshd and the firewall of these containers come from.
+# devcontainer-restart.sh is this script with --restart.
+mode=${DEVCONTAINER_REBUILD_MODE-rebuild}
 logdir=${XDG_STATE_HOME:-$HOME/.local/state}/devcontainer-rebuild
 
 TAB=$(printf '\t')
@@ -75,6 +87,10 @@ Rebuilds devcontainers the way *Dev Containers: Rebuild Container* does. With
 no project named, fzf picks -- tab selects several, ctrl-a takes all.
 
   -a, --all           every project found, without the picker
+      --restart       restart the existing container instead: stop it and
+                      \`devcontainer up\` it again, no build, no new container.
+                      postStartCommand runs; postCreateCommand does not.
+                      A project without a container is rebuilt instead.
       --no-cache      VS Code's "Rebuild Container Without Cache"
   -y, --yes           do not ask before replacing the containers
   -n, --dry-run       print the command per project, run nothing
@@ -174,9 +190,11 @@ id_labels_for() {
 }
 
 # The command, one argument per line, so the preview can show exactly what runs
-# and the caller can rebuild it into "$@" without quoting games.
+# and the caller can rebuild it into "$@" without quoting games. The optional
+# third argument overrides $mode for this one project: a restart falls back to
+# a rebuild where there is no container to restart.
 build_argv() {
-    ba_dir=$1 ba_config=$2
+    ba_dir=$1 ba_config=$2 ba_mode=${3:-$mode}
     ba_labels=$(id_labels_for "$ba_dir" "$ba_config")
     ba_folder=${ba_labels%%"$NL"*}
     ba_cfglbl=${ba_labels#*"$NL"}
@@ -189,9 +207,26 @@ build_argv() {
         || set -- "$@" --config "$ba_config"
     set -- "$@" --id-label "devcontainer.local_folder=$ba_folder"
     set -- "$@" --id-label "devcontainer.config_file=$ba_cfglbl"
-    set -- "$@" --remove-existing-container --mount-workspace-git-root false
-    [ -z "$nocache" ] || set -- "$@" --build-no-cache
+    # A restart keeps the container, so `up` finds it by these labels and
+    # starts it; nothing is built, so there is no cache to skip either.
+    [ "$ba_mode" = restart ] || set -- "$@" --remove-existing-container
+    set -- "$@" --mount-workspace-git-root false
+    set -- "$@" --skip-post-attach
+    [ "$ba_mode" = restart ] || [ -z "$nocache" ] || set -- "$@" --build-no-cache
     printf '%s\n' "$@"
+}
+
+# The containers `devcontainer up` would pick for this project: exactly the
+# id-labels build_argv passes, as docker filters them, so a restart stops the
+# one it then starts and never its twin under the other spelling.
+restart_targets() {
+    rt_labels=$(id_labels_for "$1" "$2")
+    rt_folder=${rt_labels%%"$NL"*}
+    rt_cfglbl=${rt_labels#*"$NL"}
+    rt_cfglbl=${rt_cfglbl%"$NL"}
+    docker ps -a -q \
+        --filter "label=devcontainer.local_folder=$rt_folder" \
+        --filter "label=devcontainer.config_file=$rt_cfglbl" 2>/dev/null
 }
 
 # --- discovery -------------------------------------------------------------
@@ -268,8 +303,15 @@ preview() {
 
     printf '\n%scontainers for this folder%s\n' "$c_hdr" "$c_off"
     pv_found=$(containers_for "$pv_dir")
+    pv_mode=$mode
+    [ "$mode" != restart ] || [ -n "$(restart_targets "$pv_dir" "$pv_cfg")" ] \
+        || pv_mode=rebuild
     if [ -z "$pv_found" ]; then
-        printf '  %snone -- this rebuild creates the first one%s\n' "$c_dim" "$c_off"
+        if [ "$mode" = restart ]; then
+            printf '  %snone -- nothing to restart, so this rebuilds it%s\n' "$c_bad" "$c_off"
+        else
+            printf '  %snone -- this rebuild creates the first one%s\n' "$c_dim" "$c_off"
+        fi
     else
         printf '%s\n' "$pv_found" | while IFS="$TAB" read -r p_id p_state p_folder p_cfg p_name; do
             case $p_state in
@@ -288,7 +330,7 @@ preview() {
     fi
 
     printf '\n%swhat would run%s\n' "$c_hdr" "$c_off"
-    build_argv "$pv_dir" "$pv_cfg" | LC_ALL=C awk -v dim="$c_dim" -v off="$c_off" '
+    build_argv "$pv_dir" "$pv_cfg" "$pv_mode" | LC_ALL=C awk -v dim="$c_dim" -v off="$c_off" '
         # One flag per line with its value, so a label with a backslash in it
         # stays readable and nothing looks like shell quoting that is not.
         NR == 1 { first = $0; next }
@@ -313,6 +355,7 @@ all= yes= dry= listrows=
 while [ $# -gt 0 ]; do
     case $1 in
         -a|--all)       all=1; shift ;;
+        --restart)      mode=restart; shift ;;
         --no-cache)     nocache=1; shift ;;
         -y|--yes)       yes=1; shift ;;
         -n|--dry-run)   dry=1; shift ;;
@@ -332,6 +375,9 @@ while [ $# -gt 0 ]; do
     esac
 done
 case $style in auto|windows|wsl) ;; *) die "unknown --label-style: $style" ;; esac
+case $mode in rebuild|restart) ;; *) die "unknown DEVCONTAINER_REBUILD_MODE: $mode" ;; esac
+[ "$mode" = rebuild ] || [ -z "$nocache" ] || die '--no-cache has nothing to do with --restart' \
+    'a restart builds nothing; rebuild without --restart to skip the cache'
 
 command -v docker       >/dev/null 2>&1 || die 'docker is not on $PATH'
 command -v devcontainer >/dev/null 2>&1 || die 'the devcontainer CLI is not on $PATH' \
@@ -369,10 +415,11 @@ else
     [ -t 2 ] && printf '\033[=0;1u' >/dev/tty 2>/dev/null
 
     picked=$(printf '%s\n' "$available" | DEVCONTAINER_REBUILD_NOCACHE="$nocache" \
-        DEVCONTAINER_REBUILD_STYLE="$style" DEVCONTAINER_REBUILD_ROOTS="$roots" fzf \
+        DEVCONTAINER_REBUILD_STYLE="$style" DEVCONTAINER_REBUILD_ROOTS="$roots" \
+        DEVCONTAINER_REBUILD_MODE="$mode" fzf \
         --ansi --multi --height=90% --reverse --border=rounded \
         --delimiter="$TAB" --with-nth=1 \
-        --header='tab select   ^A all   ^D none   enter rebuild   ^R reload' \
+        --header="tab select   ^A all   ^D none   enter $mode   ^R reload" \
         --preview="'$self' --preview {2} {3}" \
         --preview-window='right,60%,border-left,wrap' \
         --bind='ctrl-a:select-all' \
@@ -388,12 +435,18 @@ fi
 # goes with it -- agents included. So the running ones are named before the
 # question, not after it.
 
-printf '%s%s devcontainer(s) to rebuild%s%s\n' \
-    "$c_hdr" "$(printf '%s\n' "$picked" | grep -c .)" \
+printf '%s%s devcontainer(s) to %s%s%s\n' \
+    "$c_hdr" "$(printf '%s\n' "$picked" | grep -c .)" "$mode" \
     "${nocache:+, without cache}" "$c_off"
 printf '%s\n' "$picked" | while IFS="$TAB" read -r disp dir cfg name; do
     running=$(containers_for "$dir" | LC_ALL=C awk -F"$TAB" '$2 == "running" { printf "%s ", $1 }')
-    if [ -n "$running" ]; then
+    if [ "$mode" = restart ] && [ -z "$(restart_targets "$dir" "$cfg")" ]; then
+        printf '  %-24s %sno container -- nothing to restart, gets rebuilt instead%s\n' \
+            "$name" "$c_bad" "$c_off"
+    elif [ "$mode" = restart ] && [ -n "$running" ]; then
+        printf '  %-24s %srestarts a running container (%s) -- its processes stop%s\n' \
+            "$name" "$c_bad" "${running% }" "$c_off"
+    elif [ -n "$running" ]; then
         printf '  %-24s %sreplaces a running container (%s) -- its processes stop%s\n' \
             "$name" "$c_bad" "${running% }" "$c_off"
     else
@@ -423,28 +476,64 @@ printf '%s\n' "$picked" | {
         printf '\n%s=== %s%s  %s%s%s\n' \
             "$c_hdr" "$name" "$c_off" "$c_dim" "$dir" "$c_off"
 
+        # A restart has to find the container first. Without one there is
+        # nothing to restart, so the project gets what it needs instead: a
+        # rebuild, with the same labels a restart would have looked for.
+        targets= pmode=$mode
+        if [ "$mode" = restart ]; then
+            targets=$(restart_targets "$dir" "$cfg" | tr '\n' ' ')
+            targets=${targets% }
+            if [ -z "$targets" ]; then
+                printf '%sno container to restart -- rebuilding instead%s\n' \
+                    "$c_dim" "$c_off"
+                pmode=rebuild
+            fi
+        fi
+        case $pmode in restart) done_word=restarted ;; *) done_word=rebuilt ;; esac
+
         if [ -n "$dry" ]; then
-            build_argv "$dir" "$cfg" | tr '\n' ' ' | sed 's/  *$//;s/^/  /'
+            [ -z "$targets" ] || printf '  docker stop %s\n' "$targets"
+            build_argv "$dir" "$cfg" "$pmode" | tr '\n' ' ' | sed 's/  *$//;s/^/  /'
             printf '\n'
             continue
+        fi
+
+        # Stopped, so that `up` starts it and runs postStartCommand; on a
+        # running container it would only attach. Stopping a stopped one is a
+        # no-op.
+        if [ -n "$targets" ]; then
+            # shellcheck disable=SC2086 # ids, one word each
+            if ! docker stop $targets >/dev/null; then
+                printf '%s✗ %s%s  %scannot stop %s%s\n' \
+                    "$c_bad" "$name" "$c_off" "$c_dim" "$targets" "$c_off"
+                summary="${summary}failed${TAB}${name}${TAB}docker stop ${targets}${NL}"
+                failed=$((failed + 1))
+                continue
+            fi
         fi
 
         # Rebuilt into "$@" one line at a time, so a label containing a
         # backslash reaches the CLI as one argument, unmangled.
         set --
         while IFS= read -r arg; do set -- "$@" "$arg"; done <<EOF
-$(build_argv "$dir" "$cfg")
+$(build_argv "$dir" "$cfg" "$pmode")
 EOF
 
         log="$logdir/$(printf '%s' "$name" | tr '/' '-')-$stamp.log"
         # tee: the build log is both watchable and kept. VS Code shows it in a
-        # terminal, and a failure an hour later still needs it.
-        if "$@" 2>&1 | tee "$log"; then
+        # terminal, and a failure an hour later still needs it. A pipeline's
+        # status is tee's, and sh has no pipefail, so the build's own status
+        # comes back through a file.
+        rc_file="$log.rc"
+        { "$@" 2>&1; echo "$?" >"$rc_file"; } | tee "$log"
+        rc=$(cat "$rc_file" 2>/dev/null) || rc=
+        rm -f "$rc_file"
+        if [ "$rc" = 0 ]; then
             cid=$(LC_ALL=C sed -n 's/.*"containerId":"\([0-9a-f]\{12\}\).*/\1/p' \
                 "$log" | tail -1)
             printf '%s✓ %s%s  %s%s%s\n' "$c_ok" "$name" "$c_off" \
-                "$c_dim" "${cid:-rebuilt}" "$c_off"
-            summary="${summary}ok${TAB}${name}${TAB}${cid:-rebuilt}${NL}"
+                "$c_dim" "${cid:-$done_word}" "$c_off"
+            summary="${summary}ok${TAB}${name}${TAB}${cid:-$done_word}${NL}"
         else
             printf '%s✗ %s%s  %s%s%s\n' "$c_bad" "$name" "$c_off" "$c_dim" "$log" "$c_off"
             summary="${summary}failed${TAB}${name}${TAB}${log}${NL}"

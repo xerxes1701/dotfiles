@@ -1561,6 +1561,19 @@ a subpath, which the extension does not do. these worktrees are their own git
 root, so it changes nothing today and everything the day a subfolder is
 opened.
 
+`--skip-post-attach` because `postAttachCommand` belongs to the window that
+attaches, and nothing attaches here. vs code runs it on its own attach; the cli
+would instead block `up` until it exits -- firstx's `patch-claude-voice.sh`
+waits up to 15 min for an extension only vs code installs.
+
+`--restart`, or `devcontainer-restart.sh`, keeps the container instead: it
+stops the one `up` would pick under the same labels and `devcontainer up`s it
+again, which runs `postStartCommand` -- what a bare `docker start` skips, and
+where these containers' sshd and firewall come from. nothing is built, so
+`postCreateCommand` does not run and `--no-cache` is refused. a project with no
+container to restart is rebuilt instead, and the preview and the confirmation
+say so.
+
 builds run one at a time. two concurrent devcontainer builds are what took wsl
 down in firstx-master's
 `.devcontainer/issues/wsl-memory-and-container-sharing.md`, and a rebuild is

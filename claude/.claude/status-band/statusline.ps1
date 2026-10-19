@@ -76,15 +76,17 @@ function Mix([int[]]$A, [int[]]$B, [double]$T) {
     , @(0..2 | ForEach-Object { [int][Math]::Floor($A[$_] + ($B[$_] - $A[$_]) * $T + 0.5) })
 }
 
-# How much is used, from green at 0% to red at 100% in the scale's even hue
-# steps: on a coloured band its texts, which reach 4.6 against any band; on
-# a dark band the same hues at 4.6 against `surface`.
+# How much is used, from green at 0% to red at the point it turns red, in
+# the scale's even hue steps: on a coloured band its texts, which reach 4.6
+# against any band; on a dark band the same hues at 4.6 against `surface`.
+# The context turns red at half full, a limit at three quarters.
 $usedTints = @{
     band = @('green', 'lime', 'yellow', 'orange', 'red' | ForEach-Object { , $bands[$_].text })
     surface = @(@(148, 190, 142), @(173, 185, 126), @(197, 178, 119), @(218, 170, 128), @(229, 162, 159))
 }
-function Used-Tint([object[]]$Tints, [double]$Percent) {
-    $at = [Math]::Min(100, [Math]::Max(0, $Percent)) / 100 * ($Tints.Count - 1)
+$usedRedAt = @{ context = 50; limit = 75 }
+function Used-Tint([object[]]$Tints, [double]$Percent, [double]$RedAt) {
+    $at = [Math]::Min(1.0, [Math]::Max(0.0, $Percent / $RedAt)) * ($Tints.Count - 1)
     $i = [int][Math]::Min($Tints.Count - 2, [Math]::Floor($at))
     Mix $Tints[$i] $Tints[$i + 1] ($at - $i)
 }
@@ -481,7 +483,7 @@ function Resolve-Window([string]$Kind, $Live, [hashtable]$Cache) {
 # How much of a limit is used, and when it resets, as text for a dark band.
 function Limit-Text([string]$Name, [string]$Icon, [hashtable]$Window) {
     $percent = [Math]::Min(100, [Math]::Max(0, (Round-Half $Window.used)))
-    $tint = Used-Tint $usedTints.surface $percent
+    $tint = Used-Tint $usedTints.surface $percent $usedRedAt.limit
     "$(Fg 'blue') $Icon $Name $(Gauge $percent $tint $colors.overlay) " +
     "$(Sgr 38 $tint)$(Bold "$percent%") $(Fg 'subtext')$(Time-Until $Window.resetsAt)"
 }
@@ -496,7 +498,7 @@ function Context-Band($Window) {
     }
     $rounded = Round-Half $percent
     $band = $bands[(Used-Scale $rounded)]
-    $tint = Used-Tint $usedTints.band $rounded
+    $tint = Used-Tint $usedTints.band $rounded $usedRedAt.context
     $gauge = Gauge $rounded $tint (Mix $band.bg $band.text 0.3)
     , @($band.bg, "$(Sgr 38 $band.text) $($glyphs.context) ctx $gauge $(Sgr 38 $tint)$(Bold "$rounded%")")
 }

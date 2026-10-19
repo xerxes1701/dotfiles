@@ -73,17 +73,19 @@ const bold = text => `\x1b[1m${text}\x1b[22m`
 const RESET = '\x1b[0m'
 const mix = (a, b, t) => a.map((x, i) => Math.round(x + (b[i] - x) * t))
 
-// How much is used, from green at 0% to red at 100% in the scale's even hue
-// steps: on a coloured band its texts, which reach 4.6 against any band; on
-// a dark band the same hues at 4.6 against `surface`.
+// How much is used, from green at 0% to red at the point it turns red, in
+// the scale's even hue steps: on a coloured band its texts, which reach 4.6
+// against any band; on a dark band the same hues at 4.6 against `surface`.
+// The context turns red at half full, a limit at three quarters.
 const SCALE = ['green', 'lime', 'yellow', 'orange', 'red']
 const USED_TINTS = {
   band: SCALE.map(name => BANDS[name].text),
   surface: [[148, 190, 142], [173, 185, 126], [197, 178, 119], [218, 170, 128], [229, 162, 159]],
 }
+const USED_RED_AT = { context: 50, limit: 75 }
 
-function usedTint(tints, percent) {
-  const at = (Math.min(100, Math.max(0, percent)) / 100) * (tints.length - 1)
+function usedTint(tints, percent, redAt) {
+  const at = Math.min(1, Math.max(0, percent / redAt)) * (tints.length - 1)
   const i = Math.min(tints.length - 2, Math.floor(at))
 
   return mix(tints[i], tints[i + 1], at - i)
@@ -524,7 +526,7 @@ function resolveWindow(kind, live, cache, now) {
 // How much of a limit is used, and when it resets, as text for a dark band.
 function limit(name, icon, { used, resetsAt }) {
   const percent = Math.min(100, Math.max(0, Math.round(used)))
-  const tint = usedTint(USED_TINTS.surface, percent)
+  const tint = usedTint(USED_TINTS.surface, percent, USED_RED_AT.limit)
 
   return (
     `${fg('blue')} ${icon} ${name} ${gauge(percent, tint, COLORS.overlay)} ` +
@@ -541,7 +543,7 @@ function context(window) {
   }
   const rounded = Math.round(percent)
   const { bg, text } = BANDS[usedScale(rounded)]
-  const tint = usedTint(USED_TINTS.band, rounded)
+  const tint = usedTint(USED_TINTS.band, rounded, USED_RED_AT.context)
 
   return [bg, `${sgr(38, text)} ${ICON.context} ctx ${gauge(rounded, tint, mix(bg, text, 0.3))} ${sgr(38, tint)}${bold(`${rounded}%`)}`]
 }

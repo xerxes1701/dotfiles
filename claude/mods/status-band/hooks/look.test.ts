@@ -1,7 +1,8 @@
 import { expect, test } from 'claude-code/testing'
 
 import {
-  BANDS, childOf, modelScale, parentOf, parseMode, parseStatus, pickMode, prettyModel, timeUntil, USED_TINTS, usedTint,
+  BANDS, childOf, modelScale, parentOf, parseMode, parseStatus, pickMode, prettyModel, timeUntil, USED_RED_AT, USED_TINTS,
+  usedTint,
 } from './look'
 
 test('git status is counted the way the status line counts it', async () => {
@@ -60,11 +61,13 @@ test('limits count down in days, hours and minutes', async () => {
   expect(timeUntil(now + 5 * 60_000, now)).toBe('5m')
 })
 
-test('usage runs from green at 0% to red at 100%', async () => {
-  expect(usedTint(USED_TINTS.band, 0)).toEqual(BANDS.green.text)
-  expect(usedTint(USED_TINTS.band, 50)).toEqual(BANDS.yellow.text)
-  expect(usedTint(USED_TINTS.band, 100)).toEqual(BANDS.red.text)
-  expect(usedTint(USED_TINTS.surface, 150)).toEqual(USED_TINTS.surface[4])
+test('usage runs from green at 0% to red, the context at 50%, a limit at 75%', async () => {
+  expect(usedTint(USED_TINTS.band, 0, USED_RED_AT.context)).toEqual(BANDS.green.text)
+  expect(usedTint(USED_TINTS.band, 25, USED_RED_AT.context)).toEqual(BANDS.yellow.text)
+  expect(usedTint(USED_TINTS.band, 50, USED_RED_AT.context)).toEqual(BANDS.red.text)
+  expect(usedTint(USED_TINTS.band, 90, USED_RED_AT.context)).toEqual(BANDS.red.text)
+  expect(usedTint(USED_TINTS.surface, 37.5, USED_RED_AT.limit)).toEqual(USED_TINTS.surface[2])
+  expect(usedTint(USED_TINTS.surface, 75, USED_RED_AT.limit)).toEqual(USED_TINTS.surface[4])
 })
 
 test('the mode file and /status-band pick who draws the strips', async () => {

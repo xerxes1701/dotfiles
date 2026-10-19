@@ -2,3 +2,14 @@
 edit = [
   { run = 'ton "$@"', block = true },
 ]
+
+# Markdown previewed through glow, run by piper.yazi. glow.yazi (Reledia/glow)
+# was the plugin for this, but its README deprecates it in favour of piper, and
+# it calls ya.mgr_emit and ya.preview_widgets, which yazi 26 no longer has.
+# CLICOLOR_FORCE keeps glow's colours although its output is a pipe. $w is the
+# preview pane's width, which piper sets; glow is given 4 less, because it
+# indents by 2 and pads inline code without counting it, and the line it wraps
+# otherwise runs past the pane and is cut off.
+[[plugin.prepend_previewers]]
+url = "*.md"
+run = 'piper -- CLICOLOR_FORCE=1 glow -w=$((w - 4)) -s=dark "$1"'

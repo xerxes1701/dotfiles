@@ -305,6 +305,10 @@ plugins
   `ya pkg upgrade` updates it. The `y` alias starts yazi without
   `$STARSHIP_GIT_STATUS`, which would show the starting directory's git
   counters everywhere.
+- [piper.yazi](https://github.com/yazi-rs/plugins/tree/main/piper.yazi)
+  previews markdown through [glow](https://github.com/charmbracelet/glow),
+  which has to be on `PATH`. It stands in for glow.yazi (`Reledia/glow`),
+  which is deprecated and calls Lua functions yazi 26 no longer has.
 
 ## yq
 

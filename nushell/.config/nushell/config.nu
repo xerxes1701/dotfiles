@@ -71,7 +71,9 @@ alias vim = nvim
 alias vid = neovide
 alias code = ^code --password-store="gnome-libsecret"
 alias c = code
-alias y = yazi
+# yazi's header draws the starship prompt (starship.yazi), so the git counters of
+# this shell's directory must not reach it.
+def --wrapped y [...args] { hide-env -i STARSHIP_GIT_STATUS; ^yazi ...$args }
 # bat picks the theme up from $env.BAT_THEME, so the preview needs no --theme.
 alias f = fzf --preview "bat {} --force-colorization"
 alias neogit = nvim -c :Neogit

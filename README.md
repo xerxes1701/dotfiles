@@ -297,6 +297,15 @@ install
 
 > cargo install --locked yazi-fm yazi-cli
 
+plugins
+
+- [starship.yazi](https://github.com/Rolv-Apneseth/starship.yazi) draws the
+  starship prompt in the header. `package.toml` pins it and its files are
+  committed under `plugins/`, so no `ya pkg install` is needed after a clone;
+  `ya pkg upgrade` updates it. The `y` alias starts yazi without
+  `$STARSHIP_GIT_STATUS`, which would show the starting directory's git
+  counters everywhere.
+
 ## yq
 
 lightweight YAML, JSON, XML processor

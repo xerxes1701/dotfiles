@@ -102,7 +102,9 @@ alias vim='nvim'
 alias vid='neovide'
 alias code='code --password-store="gnome-libsecret"'
 alias c='code'
-alias y='yazi'
+# yazi's header draws the starship prompt (starship.yazi), so the git counters of
+# this shell's directory must not reach it.
+alias y='env -u STARSHIP_GIT_STATUS yazi'
 alias f='fzf --preview "bat {} --force-colorization"'
 alias neogit='nvim -c :Neogit'
 alias conf='tmuxinator start conf'

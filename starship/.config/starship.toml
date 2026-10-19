@@ -109,7 +109,7 @@ nu_indicator = 'nu'
 powershell_indicator = 'powershell'
 pwsh_indicator = 'pwsh'
 cmd_indicator = 'cmd'
-unknown_indicator = '?'
+unknown_indicator = 'yazi'   # starship.yazi runs starship with no shell
 style = 'bg:deep fg:subtext'
 
 # The toolchains, each tinted in its own colour on the darkest band. A

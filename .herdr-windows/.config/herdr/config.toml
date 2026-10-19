@@ -26,6 +26,11 @@ name = "catppuccin"
 # colour instead of against a default.
 panel_bg = "#1e1e2e"
 sidebar_bg = "#181825"
+# The selected workspace and agent rows. catppuccin's default for this is base
+# (#1e1e2e), one step up from the mantle sidebar, so the selection barely
+# showed. This sits between that and surface1, tinted towards catppuccin's
+# blue, so the selection stands out without shouting.
+active_row_bg = "#2b3250"
 
 [terminal]
 # Executable used for new interactive panes (tabs, workspaces, splits). herdr/

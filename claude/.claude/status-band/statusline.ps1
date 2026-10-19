@@ -76,6 +76,19 @@ function Mix([int[]]$A, [int[]]$B, [double]$T) {
     , @(0..2 | ForEach-Object { [int][Math]::Floor($A[$_] + ($B[$_] - $A[$_]) * $T + 0.5) })
 }
 
+# How much is used, from green at 0% to red at 100% in the scale's even hue
+# steps: on a coloured band its texts, which reach 4.6 against any band; on
+# a dark band the same hues at 4.6 against `surface`.
+$usedTints = @{
+    band = @('green', 'lime', 'yellow', 'orange', 'red' | ForEach-Object { , $bands[$_].text })
+    surface = @(@(148, 190, 142), @(173, 185, 126), @(197, 178, 119), @(218, 170, 128), @(229, 162, 159))
+}
+function Used-Tint([object[]]$Tints, [double]$Percent) {
+    $at = [Math]::Min(100, [Math]::Max(0, $Percent)) / 100 * ($Tints.Count - 1)
+    $i = [int][Math]::Min($Tints.Count - 2, [Math]::Floor($at))
+    Mix $Tints[$i] $Tints[$i + 1] ($at - $i)
+}
+
 # Green for the smallest model and the lowest effort, red for the largest and
 # the highest.
 $modelScale = @{ haiku = 'green'; sonnet = 'yellow'; opus = 'orange'; fable = 'red' }
@@ -465,11 +478,12 @@ function Resolve-Window([string]$Kind, $Live, [hashtable]$Cache) {
     @{ used = $(if ($null -ne $used) { $used } else { 0 }); resetsAt = $now + $span }
 }
 
-# How much of a limit is left, and when it resets, as text for a dark band.
+# How much of a limit is used, and when it resets, as text for a dark band.
 function Limit-Text([string]$Name, [string]$Icon, [hashtable]$Window) {
-    $left = [Math]::Max(0, (Round-Half (100 - $Window.used)))
-    "$(Fg 'blue') $Icon $Name $(Gauge $left $colors.blue $colors.overlay) " +
-    "$(Fg 'blue')$(Bold "$left%") $(Fg 'subtext')$(Time-Until $Window.resetsAt)"
+    $percent = [Math]::Min(100, [Math]::Max(0, (Round-Half $Window.used)))
+    $tint = Used-Tint $usedTints.surface $percent
+    "$(Fg 'blue') $Icon $Name $(Gauge $percent $tint $colors.overlay) " +
+    "$(Sgr 38 $tint)$(Bold "$percent%") $(Fg 'subtext')$(Time-Until $Window.resetsAt)"
 }
 
 # How much of the context window is used: a band coloured by how full it is.
@@ -482,8 +496,9 @@ function Context-Band($Window) {
     }
     $rounded = Round-Half $percent
     $band = $bands[(Used-Scale $rounded)]
-    $gauge = Gauge $rounded $band.text (Mix $band.bg $band.text 0.3)
-    , @($band.bg, "$(Sgr 38 $band.text) $($glyphs.context) ctx $gauge $(Sgr 38 $band.text)$(Bold "$rounded%")")
+    $tint = Used-Tint $usedTints.band $rounded
+    $gauge = Gauge $rounded $tint (Mix $band.bg $band.text 0.3)
+    , @($band.bg, "$(Sgr 38 $band.text) $($glyphs.context) ctx $gauge $(Sgr 38 $tint)$(Bold "$rounded%")")
 }
 
 function Value-Or($Value, [string]$Color) {

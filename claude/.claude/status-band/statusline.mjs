@@ -73,6 +73,22 @@ const bold = text => `\x1b[1m${text}\x1b[22m`
 const RESET = '\x1b[0m'
 const mix = (a, b, t) => a.map((x, i) => Math.round(x + (b[i] - x) * t))
 
+// How much is used, from green at 0% to red at 100% in the scale's even hue
+// steps: on a coloured band its texts, which reach 4.6 against any band; on
+// a dark band the same hues at 4.6 against `surface`.
+const SCALE = ['green', 'lime', 'yellow', 'orange', 'red']
+const USED_TINTS = {
+  band: SCALE.map(name => BANDS[name].text),
+  surface: [[148, 190, 142], [173, 185, 126], [197, 178, 119], [218, 170, 128], [229, 162, 159]],
+}
+
+function usedTint(tints, percent) {
+  const at = (Math.min(100, Math.max(0, percent)) / 100) * (tints.length - 1)
+  const i = Math.min(tints.length - 2, Math.floor(at))
+
+  return mix(tints[i], tints[i + 1], at - i)
+}
+
 // Green for the smallest model and the lowest effort, red for the largest and
 // the highest.
 const MODEL_SCALE = { haiku: 'green', sonnet: 'yellow', opus: 'orange', fable: 'red' }
@@ -505,13 +521,14 @@ function resolveWindow(kind, live, cache, now) {
   return { used: used ?? 0, resetsAt: now + span }
 }
 
-// How much of a limit is left, and when it resets, as text for a dark band.
+// How much of a limit is used, and when it resets, as text for a dark band.
 function limit(name, icon, { used, resetsAt }) {
-  const left = Math.max(0, Math.round(100 - used))
+  const percent = Math.min(100, Math.max(0, Math.round(used)))
+  const tint = usedTint(USED_TINTS.surface, percent)
 
   return (
-    `${fg('blue')} ${icon} ${name} ${gauge(left, COLORS.blue, COLORS.overlay)} ` +
-    `${fg('blue')}${bold(`${left}%`)} ${fg('subtext')}${timeUntil(resetsAt)}`
+    `${fg('blue')} ${icon} ${name} ${gauge(percent, tint, COLORS.overlay)} ` +
+    `${sgr(38, tint)}${bold(`${percent}%`)} ${fg('subtext')}${timeUntil(resetsAt)}`
   )
 }
 
@@ -524,8 +541,9 @@ function context(window) {
   }
   const rounded = Math.round(percent)
   const { bg, text } = BANDS[usedScale(rounded)]
+  const tint = usedTint(USED_TINTS.band, rounded)
 
-  return [bg, `${sgr(38, text)} ${ICON.context} ctx ${gauge(rounded, text, mix(bg, text, 0.3))} ${sgr(38, text)}${bold(`${rounded}%`)}`]
+  return [bg, `${sgr(38, text)} ${ICON.context} ctx ${gauge(rounded, tint, mix(bg, text, 0.3))} ${sgr(38, tint)}${bold(`${rounded}%`)}`]
 }
 
 // The status-band mod (claude/mods/status-band) draws these strips again as a

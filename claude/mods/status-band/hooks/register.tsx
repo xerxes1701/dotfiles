@@ -26,7 +26,7 @@ import type { BandMode, Branch, Confirm, GitInfo, GitOp, Menu, MenuState, Sessio
 import {
   BANDS, COLORS, DASH, EFFORTS, EFFORT_ICONS, EFFORT_SCALE, EMPTY_COUNTS, ICON, NO_EFFORT_ICON, VIM_MODES,
   age, baseName, changeCount, childOf, compactTokens, hex, mix, modelScale, parentOf, parseMode, parseStatus,
-  pickMode, prettyModel, timeUntil, usedScale,
+  pickMode, prettyModel, timeUntil, USED_TINTS, usedScale, usedTint,
 } from './look'
 import type { BandName, Rgb } from './look'
 
@@ -414,6 +414,7 @@ function contextSeg($: $, snap: Snapshot): Seg {
   }
   const rounded = Math.round(snap.contextPercent)
   const { bg, text } = BANDS[usedScale(rounded)]
+  const tint = usedTint(USED_TINTS.band, rounded)
 
   return {
     bg,
@@ -422,8 +423,8 @@ function contextSeg($: $, snap: Snapshot): Seg {
       onPress,
       parts: [
         { text: ` ${ICON.context} ctx `, color: text },
-        ...gauge(rounded, text, mix(bg, text, 0.3)),
-        { text: ` ${rounded}%`, color: text, bold: true },
+        ...gauge(rounded, tint, mix(bg, text, 0.3)),
+        { text: ` ${rounded}%`, color: tint, bold: true },
       ],
     }],
   }
@@ -431,15 +432,16 @@ function contextSeg($: $, snap: Snapshot): Seg {
 
 function limitSeg(bg: Rgb, name: string, icon: string, window: Snapshot['fiveHour'], now: number): Seg {
   if (window === null) return { bg, items: [{ parts: [{ text: ` ${icon} ${name} ${DASH}`, color: COLORS.subtext }] }] }
-  const left = Math.max(0, Math.round(100 - window.used))
+  const percent = Math.min(100, Math.max(0, Math.round(window.used)))
+  const tint = usedTint(USED_TINTS.surface, percent)
 
   return {
     bg,
     items: [{
       parts: [
         { text: ` ${icon} ${name} `, color: COLORS.blue },
-        ...gauge(left, COLORS.blue, COLORS.overlay),
-        { text: ` ${left}%`, color: COLORS.blue, bold: true },
+        ...gauge(percent, tint, COLORS.overlay),
+        { text: ` ${percent}%`, color: tint, bold: true },
         { text: ` ${timeUntil(window.resetsAt, now)}`, color: COLORS.subtext },
       ],
     }],

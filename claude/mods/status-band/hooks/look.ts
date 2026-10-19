@@ -30,6 +30,22 @@ export const hex = (rgb: Rgb): string => `#${rgb.map(x => x.toString(16).padStar
 export const mix = (a: Rgb, b: Rgb, t: number): Rgb =>
   [0, 1, 2].map(i => Math.round(a[i]! + (b[i]! - a[i]!) * t)) as unknown as Rgb
 
+// How much is used, from green at 0% to red at 100% in the scale's even hue
+// steps: on a coloured band its texts, which reach 4.6 against any band; on
+// a dark band the same hues at 4.6 against `surface`.
+const SCALE: readonly BandName[] = ['green', 'lime', 'yellow', 'orange', 'red']
+export const USED_TINTS: Record<'band' | 'surface', readonly Rgb[]> = {
+  band: SCALE.map(name => BANDS[name].text),
+  surface: [[148, 190, 142], [173, 185, 126], [197, 178, 119], [218, 170, 128], [229, 162, 159]],
+}
+
+export function usedTint(tints: readonly Rgb[], percent: number): Rgb {
+  const at = (Math.min(100, Math.max(0, percent)) / 100) * (tints.length - 1)
+  const i = Math.min(tints.length - 2, Math.floor(at))
+
+  return mix(tints[i]!, tints[i + 1]!, at - i)
+}
+
 export const MODEL_SCALE: Record<string, BandName> = { haiku: 'green', sonnet: 'yellow', opus: 'orange', fable: 'red' }
 export const EFFORT_SCALE: Record<string, BandName> = { low: 'green', medium: 'lime', high: 'yellow', xhigh: 'orange', max: 'red' }
 export const EFFORTS = ['low', 'medium', 'high', 'xhigh', 'max'] as const

@@ -1,6 +1,8 @@
 import { expect, test } from 'claude-code/testing'
 
-import { childOf, modelScale, parentOf, parseMode, parseStatus, pickMode, prettyModel, timeUntil } from './look'
+import {
+  BANDS, childOf, modelScale, parentOf, parseMode, parseStatus, pickMode, prettyModel, timeUntil, USED_TINTS, usedTint,
+} from './look'
 
 test('git status is counted the way the status line counts it', async () => {
   const out = [
@@ -56,6 +58,13 @@ test('limits count down in days, hours and minutes', async () => {
   expect(timeUntil(now + 4 * 3_600_000 + 27 * 60_000, now)).toBe('4h 27m')
   expect(timeUntil(now + 35 * 3_600_000, now)).toBe('1d 11h')
   expect(timeUntil(now + 5 * 60_000, now)).toBe('5m')
+})
+
+test('usage runs from green at 0% to red at 100%', async () => {
+  expect(usedTint(USED_TINTS.band, 0)).toEqual(BANDS.green.text)
+  expect(usedTint(USED_TINTS.band, 50)).toEqual(BANDS.yellow.text)
+  expect(usedTint(USED_TINTS.band, 100)).toEqual(BANDS.red.text)
+  expect(usedTint(USED_TINTS.surface, 150)).toEqual(USED_TINTS.surface[4])
 })
 
 test('the mode file and /status-band pick who draws the strips', async () => {

@@ -1,6 +1,6 @@
 {
   "env": {
-    "CLAUDE_CODE_PLUGIN_DIRS": "~/dotfiles/claude/mods/paste-image:~/dotfiles/claude/mods/status-band:~/dotfiles/claude/mods/cls"
+    "CLAUDE_CODE_PLUGIN_DIRS": "~/dotfiles/claude/mods/paste-image:~/dotfiles/claude/mods/status-band:~/dotfiles/claude/mods/cls:~/dotfiles/claude/mods/code-fence"
   },
   "permissions": {
     "defaultMode": "auto"

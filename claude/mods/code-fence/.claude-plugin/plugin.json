@@ -1,0 +1,5 @@
+{
+  "name": "code-fence",
+  "version": "0.1.0",
+  "description": "ctrl+x c puts a fenced code block in the prompt; a marked text goes inside it, its language named by Haiku"
+}

@@ -607,6 +607,29 @@ outside wsl the script reads wl-paste (wayland) or xclip (x11), so the same
 alias works on the linux machine. there a non-png target needs imagemagick to
 convert; on wsl .NET does the encoding.
 
+# copying text
+
+> cpl
+> copy-text.sh [--] text...
+> <command> | copy-text.sh
+
+`cpl` copies the previous command line, in every shell: run something, then
+`cpl`. it is a function in each shell, because each keeps its history its own
+way (`$history[1]` in fish, `$history` in zsh, `fc` in bash, `history` in
+nushell, `Get-History` in powershell), and all but powershell hand the line to
+`copy-text.sh`. that script copies its arguments, or stdin, with trailing
+newlines dropped, so pasted output waits for enter instead of running.
+
+where the text goes:
+
+    wsl        the windows clipboard, through clip.exe. clip.exe reads the oem
+               code page, so the text is converted to utf-16le first; as
+               utf-8, "Größe" arrives as "Gr├Â├ƒe"
+    wayland    wl-copy
+    x11        xclip, or xsel
+    otherwise  osc 52, asking the terminal to set it -- over ssh or in a
+               devcontainer. a terminal that ignores it gives no sign
+
 # archives
 
 > archive.sh -c [-f FILE]... [-d DIR]... [-o ARCHIVE] [-n] [-F] [FILE...]

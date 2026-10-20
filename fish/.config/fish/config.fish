@@ -140,6 +140,13 @@ alias br='browse.sh'
 # through Windows PowerShell, and elsewhere through wl-paste or xclip.
 alias pimg='paste-image.sh'
 
+# Copy the previous command line to the clipboard: run something, then `cpl`.
+# copy-text.sh does the copying, for the same reason as pimg; the line itself
+# comes from here, because every shell keeps its history its own way.
+function cpl --description 'Copy the previous command line to the clipboard'
+  printf '%s' $history[1] | copy-text.sh
+end
+
 # Open a path in Windows Explorer, like `e` in the Windows PowerShell profile:
 # a directory as a folder window, a file with its default program, `.` when no
 # path is given. A script for the same reason as br.

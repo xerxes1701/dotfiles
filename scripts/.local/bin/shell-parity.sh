@@ -59,7 +59,7 @@ clean() { env -i HOME="$HOME" TERM="${TERM:-xterm}" USER="${USER:-$(id -un)}" \
 NUCFG=(--config "$HOME/.config/nushell/config.nu" --env-config "$HOME/.config/nushell/env.nu")
 
 # Functions expected to exist in every shell.
-FUNCS=(ssh-agent-start gz gsw)
+FUNCS=(ssh-agent-start gz gsw cpl)
 
 # Environment variables expected to agree across every shell.
 ENVVARS=(EDITOR VISUAL BAT_THEME MANPAGER MANROFFOPT BUN_INSTALL

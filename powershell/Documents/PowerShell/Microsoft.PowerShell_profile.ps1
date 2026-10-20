@@ -39,6 +39,15 @@ function dnsa { dotnet sln add @args }
 function dnpub { dotnet publish @args }
 function dnto { dotnet tool @args }
 
+# Copy the previous command line to the clipboard: run something, then `cpl`,
+# as in the linux shells. Get-History does not hold the line that is running.
+# Piped rather than -Value: where Pscx is installed, its Set-Clipboard, which
+# has -Text instead, shadows the built-in one, and both take the pipe.
+function cpl {
+    $last = Get-History -Count 1
+    if ($last) { $last.CommandLine | Set-Clipboard }
+}
+
 $swprojekte = "C:\SWProjekte"
 
 . "$PSScriptRoot\fzf.ps1"

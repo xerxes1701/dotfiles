@@ -546,6 +546,38 @@ reads every byte of the stdin it is given, so on the right of a pipe it
 swallows the left side's output; `WSL_GIT_NO_STDIN=1`, which the completions
 set, gives it `/dev/null` instead.
 
+# reviewing the working tree
+
+> git df
+
+every changed file of the working tree -- staged, not staged and untracked,
+not the ignored ones -- in fzf, with the current file's diff in the preview.
+a file with staged and unstaged changes shows both, staged first. the
+script behind the alias is `git-df.sh`; wsl and linux only for now, on
+windows the alias says so.
+
+    enter               open the file in nvim at the hunk on screen
+    alt-d alt-t alt-g   the preview in delta, difftastic, git's own diff
+    alt-n alt-p         next / previous hunk
+    ctrl-d ctrl-u       half a page down / up
+    ctrl-f ctrl-b       a page down / up
+    shift-down/up       a line down / up
+    esc                 quit
+
+fzf steps aside while nvim runs and comes back when it quits, on the same
+file and hunk, with the preview showing the edit. ctrl-z in nvim stops the
+whole `git df` like any job, and `fg` brings it back.
+
+fzf can neither search its preview nor tell a command how far it is
+scrolled, so the hunk jumps work around it: the preview is rendered once
+into a file the jumps search for hunk starts (delta's • box, git's `@@`,
+difftastic's `<path> --- ` header), the scroll position is kept in a state
+file, and `change-preview-window(+N)` puts line N at the top. that is why
+the scroll keys go through the script too. the mouse wheel cannot: after
+scrolling with it, the next jump starts where the keys left the preview. in
+difftastic, which finds hunks of its own, enter opens nvim at the git hunk
+with the same number, near but not always at the one on screen.
+
 # journal
 
 > /mg-journal [YYYY-MM-DD]

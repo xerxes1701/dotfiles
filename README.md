@@ -553,7 +553,7 @@ set, gives it `/dev/null` instead.
 every changed file of the working tree -- staged, not staged and untracked,
 not the ignored ones -- in fzf, with the current file's diff in the preview.
 a file with staged and unstaged changes shows both, staged first. the
-script behind the alias is `git-df.sh`; wsl and linux only for now, on
+script behind the alias is `git-review.sh`; wsl and linux only for now, on
 windows the alias says so.
 
     enter               open the file in nvim at the hunk on screen

@@ -7,3 +7,16 @@
     mode "2560x1440@359.979" // Set resolution and refresh rate
     scale 1 // No scaling (use 2 for HiDPI)
 }
+// Samsung 28" 4K: physically left of the ultrawide (2560 logical px wide at scale 1.5)
+output "Samsung Electric Company U28E590 H4ZN901861" {
+    mode "3840x2160@59.997"
+    scale 1.5
+    position x=0 y=0
+}
+
+// ASUS 34" ultrawide: main monitor, focused when niri starts
+output "ASUSTek COMPUTER INC ASUS VG35V 0x000128F7" {
+    mode "3440x1440@99.982"
+    position x=2560 y=0
+    focus-at-startup
+}

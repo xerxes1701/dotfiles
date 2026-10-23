@@ -1,0 +1,35 @@
+// ────────────── Local Overrides ──────────────
+// https://github.com/YaLTeR/niri/wiki/Configuration:-Include
+//
+// Every other file in cfg/ (but display.kdl) is kept exactly as
+// cachyos-niri-noctalia ships it in /etc/skel/.config/niri. This one is
+// included last, so a bind here replaces the one with the same keys, a
+// section here only changes the fields it sets, and spawn-at-startup lines
+// are added to the ones before.
+
+spawn-at-startup "wl-clip-persist" "--clipboard" "regular"
+
+input {
+    keyboard {
+        xkb {
+            options "corne:f13" // F13-F24 on the corne, see ~/.config/xkb
+        }
+    }
+}
+
+binds {
+    Mod+Return                          hotkey-overlay-title="Open Terminal: Ghostty" { spawn "ghostty"; }
+    Mod+Space                           hotkey-overlay-title="Open App Launcher: noctalia launcher" { spawn-sh "noctalia msg panel-toggle launcher"; }
+
+    // The h/l twins of the monitor arrow binds, like Mod+H and Mod+CTRL+H for columns
+    Mod+Shift+H                         { focus-monitor-left; }
+    Mod+Shift+L                         { focus-monitor-right; }
+    Mod+Shift+CTRL+H                    { move-column-to-monitor-left; }
+    Mod+Shift+CTRL+L                    { move-column-to-monitor-right; }
+
+    Mod+M                              { maximize-column; }
+    Mod+Shift+M                         { set-column-width "50%"; }
+
+    Mod+F                               { maximize-window-to-edges; } // Fills the screen but stays in the layout, so window opacity still shows the wallpaper
+    Mod+CTRL+M                          hotkey-overlay-title="Stack: maximize window, float the one to its right on top" { spawn-sh "~/.config/niri/scripts/stack-right-on-maximized.sh"; }
+}

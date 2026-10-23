@@ -936,6 +936,23 @@ that would land in the working tree. claude code rewrites `settings.json` in
 place rather than replacing it, so the link survives a `/theme` or a
 `/plugin install` and the change shows up here as a diff.
 
+not everything it writes there is configuration, though: `/model` saves the
+model it was last given, `/effort` an effort per model under `modelSettings`,
+and a rewrite moves keys about. so git sees the file through a clean filter --
+`filter=claude-settings` in `.gitattributes`, defined in `git/.gitconfig` --
+that pins `model` to `opus`, drops `modelSettings` and sorts the keys with jq.
+none of that reaches a diff or a commit, while the file on disk keeps it, and
+a fresh checkout starts on opus at claude code's default effort. a real
+change, a theme or a hook, still shows up. the default model is changed in the
+filter, then: in the file, the filter overwrites it.
+
+two things the filter does not hide. `git status` lists the file as modified
+after claude code wrote to it, until the next `git add`, which stages nothing
+-- git takes a changed size for a change without running the filter. and
+where the `git` package is not deployed, as in a devcontainer, the filter is
+not defined and git sees the file as it is. a model or an effort for one
+session only is `s` in the `/model` or `/effort` picker, which writes nothing.
+
 nothing in the package may name `/home/entwickler`: both the statusline
 command and the hook are run through a shell, so they use `$HOME` and
 `${CLAUDE_CONFIG_DIR:-$HOME/.claude}` instead, and the statusline script asks

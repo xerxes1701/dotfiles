@@ -5,6 +5,12 @@
 # editor saved with CRLF into a whole-file diff. PowerShell reads LF fine.
 * text=auto eol=lf
 
+# Git sees claude code's settings.json through jq: the model pinned to opus,
+# the per-model effort dropped and the keys sorted, so what /model and /effort
+# write there never reaches a diff or a commit. The filter is defined in
+# git/.gitconfig; see "claude code" in the README.
+claude/.claude/settings.json filter=claude-settings
+
 # Binary content is left alone.
 *.png binary
 *.jpg binary

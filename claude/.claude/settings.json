@@ -1,57 +1,49 @@
 {
-  "env": {
-    "CLAUDE_CODE_PLUGIN_DIRS": "~/dotfiles/claude/mods/paste-image:~/dotfiles/claude/mods/status-band:~/dotfiles/claude/mods/cls:~/dotfiles/claude/mods/code-fence"
-  },
-  "permissions": {
-    "defaultMode": "auto"
-  },
-  "model": "opus",
+  "agentPushNotifEnabled": true,
   "editorMode": "vim",
-  "hooks": {
-    "SessionStart": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash \"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/hooks/herdr-agent-state.sh\" session",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
-    "SessionEnd": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/status-band/statusline.mjs\" --reset-cursor",
-            "timeout": 10
-          }
-        ]
-      }
-    ]
-  },
-  "statusLine": {
-    "type": "command",
-    "command": "node \"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/status-band/statusline.mjs\"",
-    "padding": 0,
-    "refreshInterval": 10,
-    "hideVimModeIndicator": true
-  },
   "enabledPlugins": {
     "typescript-lsp@claude-plugins-official": true
   },
-  "feedbackSurveyRate": 0,
-  "modelSettings": {
-    "claude-opus-5": {
-      "effortLevel": "medium"
-    },
-    "claude-fable-5-1": {
-      "effortLevel": "high"
-    }
+  "env": {
+    "CLAUDE_CODE_PLUGIN_DIRS": "~/dotfiles/claude/mods/paste-image:~/dotfiles/claude/mods/status-band:~/dotfiles/claude/mods/cls:~/dotfiles/claude/mods/code-fence"
   },
-  "theme": "custom:prompt-pop",
-  "agentPushNotifEnabled": true
+  "feedbackSurveyRate": 0,
+  "hooks": {
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "command": "node \"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/status-band/statusline.mjs\" --reset-cursor",
+            "timeout": 10,
+            "type": "command"
+          }
+        ],
+        "matcher": "*"
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "command": "bash \"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/hooks/herdr-agent-state.sh\" session",
+            "timeout": 10,
+            "type": "command"
+          }
+        ],
+        "matcher": "*"
+      }
+    ]
+  },
+  "model": "opus",
+  "permissions": {
+    "defaultMode": "auto"
+  },
+  "statusLine": {
+    "command": "node \"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/status-band/statusline.mjs\"",
+    "hideVimModeIndicator": true,
+    "padding": 0,
+    "refreshInterval": 10,
+    "type": "command"
+  },
+  "theme": "custom:prompt-pop"
 }

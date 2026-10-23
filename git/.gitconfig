@@ -16,6 +16,15 @@
 	process = git-lfs filter-process
 	required = true
 
+# claude code's settings.json in the dotfiles repository, as git sees it (its
+# .gitattributes names the file): "model" pinned to opus, "modelSettings" --
+# the effort /effort saves per model -- dropped, and the keys sorted, since a
+# rewrite moves them about. The file on disk keeps what claude code wrote. No
+# smudge, so a checkout writes the file as committed. Not required: without jq
+# git warns and sees the file as it is.
+[filter "claude-settings"]
+	clean = jq -S '.model = \"opus\" | del(.modelSettings)'
+
 [push]
 	autoSetupRemote = true
 

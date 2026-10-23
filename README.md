@@ -1065,8 +1065,9 @@ the `ssh` package is that config and the agent it relies on:
 
     .ssh/config                          AddKeysToAgent, and the Host aliases
     .config/systemd/user/
-      ssh-agent.service                  one agent per login, listening at
-                                         $XDG_RUNTIME_DIR/ssh-agent.socket
+      ssh-agent-fallback.service         one agent per login, listening at
+                                         $XDG_RUNTIME_DIR/ssh-agent.socket,
+                                         where openssh ships no agent unit
 
 the key has a passphrase, and herdr's saved machines connect in the background
 where nothing can ask for one -- the machine shows "attention" instead. so the
@@ -1079,7 +1080,21 @@ agree on it wherever the socket exists.
 
 once per machine, after deploying:
 
-> systemctl --user enable --now ssh-agent.service
+> systemctl --user enable --now ssh-agent-fallback.service
+
+arch's openssh, and so cachyos's, brings an agent of its own: ssh-agent.socket,
+enabled by default, on the same path, starting its ssh-agent.service on the
+first connection. the fallback stands down wherever that socket is installed,
+so there it needs no enabling and enabling it does no harm. it used to be
+called ssh-agent.service too, which replaced openssh's unit and failed under
+its socket. a machine that enabled it by that old name keeps a link to it in
+`default.target.wants`, and the restow leaves a dangling one next to it; stop
+the old agent, remove both, then enable the new name:
+
+> systemctl --user stop ssh-agent.service
+> rm ~/.config/systemd/user/ssh-agent.service ~/.config/systemd/user/default.target.wants/ssh-agent.service
+> systemctl --user daemon-reload
+> systemctl --user enable --now ssh-agent-fallback.service
 
 and once per target -- it needs sshd running over there, and the key copied:
 

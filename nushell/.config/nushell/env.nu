@@ -36,7 +36,8 @@ $env.OLLAMA_CONTEXT_LENGTH = "16384"
 $env.OLLAMA_KV_CACHE_TYPE = "q8_0"
 $env.OLLAMA_KEEP_ALIVE = "30m"
 
-# ssh-agent.service, from the ssh package, listens here. Exported only when the
+# The agent listens here: openssh's own ssh-agent.socket on arch, the ssh
+# package's ssh-agent-fallback.service elsewhere. Exported only when the
 # socket exists and nothing has set SSH_AUTH_SOCK already -- a devcontainer
 # forwards the host's agent and a desktop session may bring its own -- so this
 # never displaces an agent, it only supplies one where there was none. An `if`

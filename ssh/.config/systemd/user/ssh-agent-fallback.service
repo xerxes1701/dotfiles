@@ -1,0 +1,31 @@
+# One ssh-agent per user, started with the systemd user instance, so a key
+# unlocked once (AddKeysToAgent in ~/.ssh/config) serves every later ssh --
+# including the ones herdr starts in the background, which cannot show a
+# passphrase prompt. Enable it once per machine, after deploying:
+#
+#   systemctl --user enable --now ssh-agent-fallback.service
+#
+# Only where openssh brings no agent unit of its own. Arch's openssh, and so
+# cachyos's, ships ssh-agent.socket, enabled by default, which listens on the
+# same path and starts its own ssh-agent.service on the first connection.
+# This unit used to be called ssh-agent.service as well: it replaced that one,
+# was started by that socket, and could not bind the path the socket already
+# held. Under a name of its own it leaves openssh's pair alone, and the
+# condition below keeps it from starting next to them.
+#
+# Its socket is $XDG_RUNTIME_DIR/ssh-agent.socket (%t below), the same path as
+# openssh's, and the shells export SSH_AUTH_SOCK for it when it exists. -D
+# keeps the agent in the foreground, which is what Type=simple expects;
+# ssh-agent lives at /usr/bin on Ubuntu and Arch alike.
+
+[Unit]
+Description=ssh-agent, where openssh ships none
+Documentation=man:ssh-agent(1)
+ConditionPathExists=!/usr/lib/systemd/user/ssh-agent.socket
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/ssh-agent -D -a %t/ssh-agent.socket
+
+[Install]
+WantedBy=default.target

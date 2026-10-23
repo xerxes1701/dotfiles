@@ -546,27 +546,48 @@ reads every byte of the stdin it is given, so on the right of a pipe it
 swallows the left side's output; `WSL_GIT_NO_STDIN=1`, which the completions
 set, gives it `/dev/null` instead.
 
-# reviewing the working tree
+# reviewing changes
 
 > git df
+> git sh [log options]
+> git sh <commit>
 
-every changed file of the working tree -- staged, not staged and untracked,
-not the ignored ones -- in fzf, with the current file's diff in the preview.
-a file with staged and unstaged changes shows both, staged first. the
-script behind the alias is `git-review.sh`; wsl and linux only for now, on
-windows the alias says so.
+`git df` lists every changed file of the working tree -- staged, not staged
+and untracked, not the ignored ones -- in fzf, with the current file's diff
+in the preview. a file with staged and unstaged changes shows both, staged
+first.
 
-    enter               open the file in nvim at the hunk on screen
+`git sh` lists the history as `git lg` draws it, with the current commit's
+message, stat and diff in the preview. enter on a commit lists its files
+the same way `git df` does; esc there goes back to the history, where it
+was, and ctrl-c quits both. its options go to `git log`: `git sh -- src/`,
+`git sh main..`. a merge is shown against its first parent, as what it
+brought in -- plain `git show` gives a combined diff, which for a clean
+merge has no files.
+
+one commit and nothing else -- a hash, `HEAD`, a branch, `HEAD~2`, whatever
+`git show` takes -- skips the history and lists that commit's files at once:
+`git sh HEAD`. esc quits there. with `--` after it, it goes to `git log`
+again: `git sh main --` is main's history.
+
+both are `git-review.sh`; wsl and linux only for now, on windows the aliases
+say so.
+
+    enter               git df: open the file in nvim at the hunk on screen
+                        git sh: the commit's files; there, open the file as
+                        the commit has it, read-only, at the hunk on screen
     alt-d alt-t alt-g   the preview in delta, difftastic, git's own diff
     alt-n alt-p         next / previous hunk
     ctrl-d ctrl-u       half a page down / up
     ctrl-f ctrl-b       a page down / up
     shift-down/up       a line down / up
-    esc                 quit
+    esc                 quit; in a commit's files, back to the history
+    ctrl-c              quit, from a commit's files as well
 
 fzf steps aside while nvim runs and comes back when it quits, on the same
-file and hunk, with the preview showing the edit. ctrl-z in nvim stops the
-whole `git df` like any job, and `fg` brings it back.
+file and hunk -- in `git df` with the preview showing the edit. ctrl-z in
+nvim stops the whole `git df` or `git sh` like any job, and `fg` brings it
+back.
 
 fzf can neither search its preview nor tell a command how far it is
 scrolled, so the hunk jumps work around it: the preview is rendered once

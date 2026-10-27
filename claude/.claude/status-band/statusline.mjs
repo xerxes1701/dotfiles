@@ -292,7 +292,7 @@ function gitHead(cwd) {
   let out
   try {
     out = execFileSync(GIT, ['rev-parse', '--show-toplevel', '--absolute-git-dir', '--short', 'HEAD'], {
-      cwd, encoding: 'utf8', timeout: 2000, stdio: ['ignore', 'pipe', 'ignore'],
+      cwd, encoding: 'utf8', timeout: 2000, stdio: ['ignore', 'pipe', 'ignore'], windowsHide: true,
     })
   } catch (error) {
     out = typeof error.stdout === 'string' ? error.stdout : ''
@@ -343,7 +343,10 @@ function startJob(mode, lock, root, base) {
     }
     try {
       // detached and without our stdio, so Claude Code isn't kept waiting for it.
-      const child = spawn(process.execPath, [SELF, mode, root, base], { detached: true, stdio: 'ignore' })
+      // On Windows that leaves the job without a console, so every console
+      // program it runs (starship, git) would flash a window of its own unless
+      // started with windowsHide.
+      const child = spawn(process.execPath, [SELF, mode, root, base], { detached: true, stdio: 'ignore', windowsHide: true })
       child.on('error', () => {})
       child.unref()
       writeFileSync(fd, String(child.pid ?? ''))
@@ -403,7 +406,7 @@ function scan(root, base) {
       const env = { ...process.env, PATH: GIT_PATH, STARSHIP_CONFIG: GIT_STATUS_CONFIG, GIT_OPTIONAL_LOCKS: '0' }
       delete env.STARSHIP_SHELL
       const out = execFileSync('starship', ['module', 'git_status'], {
-        cwd: root, env, encoding: 'utf8', timeout: 310_000, stdio: ['ignore', 'pipe', 'ignore'],
+        cwd: root, env, encoding: 'utf8', timeout: 310_000, stdio: ['ignore', 'pipe', 'ignore'], windowsHide: true,
       })
       writeFileSync(`${base}.tmp`, out.replace(/\n$/, ''))
       renameSync(`${base}.tmp`, `${base}.status`)
@@ -423,11 +426,11 @@ function fetch(root, base) {
     let sshCommand = ''
     try {
       sshCommand = execFileSync(GIT, ['config', 'core.sshCommand'], {
-        cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'],
+        cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], windowsHide: true,
       })
     } catch {}
     if (!sshCommand.trim() && !env.GIT_SSH_COMMAND) env.GIT_SSH_COMMAND = 'ssh -o BatchMode=yes'
-    execFileSync(GIT, ['fetch', '--quiet'], { cwd: root, env, timeout: 120_000, stdio: 'ignore' })
+    execFileSync(GIT, ['fetch', '--quiet'], { cwd: root, env, timeout: 120_000, stdio: 'ignore', windowsHide: true })
   } catch {
   } finally {
     rmSync(`${base}.fetch.lock`, { force: true })

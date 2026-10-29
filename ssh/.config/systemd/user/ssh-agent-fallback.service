@@ -5,13 +5,20 @@
 #
 #   systemctl --user enable --now ssh-agent-fallback.service
 #
-# Only where openssh brings no agent unit of its own. Arch's openssh, and so
+# Only where nothing listens on that path yet. Arch's openssh, and so
 # cachyos's, ships ssh-agent.socket, enabled by default, which listens on the
 # same path and starts its own ssh-agent.service on the first connection.
-# This unit used to be called ssh-agent.service as well: it replaced that one,
-# was started by that socket, and could not bind the path the socket already
-# held. Under a name of its own it leaves openssh's pair alone, and the
-# condition below keeps it from starting next to them.
+# Debian's and Ubuntu's openssh ship an ssh-agent.socket too, but it listens on
+# %t/openssh_agent, so the condition below asks for the path itself rather
+# than for openssh's unit file. Socket units are bound before sockets.target,
+# which every service waits for through basic.target, so on arch the path is
+# there by the time the condition is checked. ssh-agent removes its socket
+# when it stops; one killed outright leaves it behind, and this unit then
+# stays down until /run/user is emptied at the next login.
+#
+# This unit used to be called ssh-agent.service as well: it replaced openssh's,
+# was started by its socket, and could not bind the path the socket already
+# held. Under a name of its own it leaves openssh's pair alone.
 #
 # Its socket is $XDG_RUNTIME_DIR/ssh-agent.socket (%t below), the same path as
 # openssh's, and the shells export SSH_AUTH_SOCK for it when it exists. -D
@@ -19,9 +26,9 @@
 # ssh-agent lives at /usr/bin on Ubuntu and Arch alike.
 
 [Unit]
-Description=ssh-agent, where openssh ships none
+Description=ssh-agent, where none listens on its socket yet
 Documentation=man:ssh-agent(1)
-ConditionPathExists=!/usr/lib/systemd/user/ssh-agent.socket
+ConditionPathExists=!%t/ssh-agent.socket
 
 [Service]
 Type=simple

@@ -1080,11 +1080,12 @@ of its own that adds keepalives, so none are set here.
 
 the `ssh` package is that config and the agent it relies on:
 
-    .ssh/config                          AddKeysToAgent, and the Host aliases
+    .ssh/config                          AddKeysToAgent, IdentityAgent, and
+                                         the Host aliases
     .config/systemd/user/
       ssh-agent-fallback.service         one agent per login, listening at
                                          $XDG_RUNTIME_DIR/ssh-agent.socket,
-                                         where openssh ships no agent unit
+                                         unless one listens there already
 
 the key has a passphrase, and herdr's saved machines connect in the background
 where nothing can ask for one -- the machine shows "attention" instead. so the
@@ -1101,8 +1102,11 @@ once per machine, after deploying:
 
 arch's openssh, and so cachyos's, brings an agent of its own: ssh-agent.socket,
 enabled by default, on the same path, starting its ssh-agent.service on the
-first connection. the fallback stands down wherever that socket is installed,
-so there it needs no enabling and enabling it does no harm. it used to be
+first connection. the fallback stands down wherever something listens on that
+path already, so there it needs no enabling and enabling it does no harm.
+debian's and ubuntu's openssh ship an ssh-agent.socket as well, but on
+`$XDG_RUNTIME_DIR/openssh_agent`; there the fallback runs, and their socket
+stays unused next to it. it used to be
 called ssh-agent.service too, which replaced openssh's unit and failed under
 its socket. a machine that enabled it by that old name keeps a link to it in
 `default.target.wants`, and the restow leaves a dangling one next to it; stop

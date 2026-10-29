@@ -35,6 +35,7 @@
     ]
   },
   "model": "opus",
+  "outputStyle": "Concise",
   "permissions": {
     "defaultMode": "auto"
   },

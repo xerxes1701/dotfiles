@@ -29,6 +29,7 @@ local ensure_installed = {
 	"xml",
 	"rust",
 	"c_sharp",
+	"fsharp",
 	"markdown",
 	"markdown_inline",
 	"typst",

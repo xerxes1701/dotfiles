@@ -68,7 +68,7 @@ local function wait_for_parsers(langs)
 		return true
 	end, 500)
 end
-wait_for_parsers({ "rust", "c_sharp", "typst", "lua", "markdown" })
+wait_for_parsers({ "rust", "c_sharp", "fsharp", "typst", "lua", "markdown" })
 
 -- rustaceanvim names its client "rust-analyzer"; mason-started servers
 -- use "rust_analyzer". Accept either spelling.
@@ -164,6 +164,94 @@ open(config .. "/verify/fixture/src/main.rs", "rust", rust_lsp)
 -- install, so normally this probe checks the filetype and the parser.
 local cs_lsp = vim.fn.executable("roslyn-language-server") == 1 and "roslyn" or nil
 open(config .. "/verify/fixture-cs/Program.cs", "cs", cs_lsp)
+
+-- F#: the fixture project, so fsautocomplete has a `.fsproj` to load. `.fs`
+-- is also Forth, and Neovim picks between the two by content, so the filetype
+-- half of `open` matters here. Beyond attaching, F# support is checked the way
+-- it is used: the buffer must be highlighted, not just parsed, hover must answer
+-- with a type (that needs the project loaded and type-checked, which a bare
+-- attach does not), and conform must format through Fantomas. The server and
+-- the formatter come from mason, which the sandbox does not install, so each
+-- half is required only when its tool is on PATH.
+local function check_fsharp()
+	local fs_lsp = vim.fn.executable("fsautocomplete") == 1 and "fsautocomplete" or nil
+	open(config .. "/verify/fixture-fs/Program.fs", "fsharp", fs_lsp)
+	if vim.bo.filetype ~= "fsharp" then
+		return
+	end
+	local buf = vim.api.nvim_get_current_buf()
+	local results = {}
+
+	if have_ts_cli then
+		results.highlight = vim.treesitter.highlighter.active[buf] and "on" or "off"
+		if results.highlight == "off" then
+			table.insert(errs, "Program.fs: treesitter highlighting did not start")
+		end
+	end
+
+	local row
+	for i, line in ipairs(vim.api.nvim_buf_get_lines(buf, 0, -1, false)) do
+		if line:find("^let greet") then
+			row = i - 1
+		end
+	end
+	local client = fs_lsp and vim.lsp.get_clients({ bufnr = buf, name = fs_lsp })[1]
+	if client and row then
+		-- fsautocomplete answers hover with nothing until the project has loaded,
+		-- so ask again until the type arrives. The first load runs a design-time
+		-- build of the fixture, which takes a while on a cold machine. A plain
+		-- loop, not vim.wait: request_sync waits itself, and a wait nested in a
+		-- wait's condition re-enters it and floods the server with requests.
+		-- The reply is a list of MarkedStrings with the signature broken over
+		-- lines, so flatten it and fold whitespace before matching.
+		local params = { textDocument = { uri = vim.uri_from_bufnr(buf) }, position = { line = row, character = 5 } }
+		local want_sig = "who: string -> string"
+		local text = ""
+		local deadline = vim.uv.now() + 120000
+		while vim.uv.now() < deadline do
+			local res = client:request_sync("textDocument/hover", params, 5000, buf)
+			local contents = res and res.result and res.result.contents
+			local parts = {}
+			for _, part in ipairs(vim.islist(contents) and contents or { contents }) do
+				table.insert(parts, type(part) == "table" and part.value or part)
+			end
+			text = table.concat(parts, " "):gsub("%s+", " ")
+			if text:find(want_sig, 1, true) then
+				break
+			end
+			vim.wait(1000)
+		end
+		results.hover = text:find(want_sig, 1, true) and "ok" or "none"
+		if results.hover ~= "ok" then
+			table.insert(errs, ("Program.fs: hover on greet gave %q, expected its type"):format(text:sub(1, 80)))
+		end
+	end
+
+	-- Mangle the definition in the buffer, let conform put it back, and throw
+	-- the edit away: nothing is written, so format-on-save does not fire and
+	-- the committed fixture stays as it is.
+	if vim.fn.executable("fantomas") == 1 and row then
+		local want = vim.api.nvim_buf_get_lines(buf, row, row + 1, false)[1]
+		vim.api.nvim_buf_set_lines(buf, row, row + 1, false, { [[let   greet(who:string) =  $"hello, {who}"]] })
+		local ok, err = pcall(require("conform").format, { bufnr = buf, async = false, timeout_ms = 10000 })
+		local got = vim.api.nvim_buf_get_lines(buf, row, row + 1, false)[1]
+		results.format = ok and got == want and "ok" or "failed"
+		if not ok then
+			table.insert(errs, ("Program.fs: formatting threw: %s"):format(tostring(err):gsub("\n.*", "")))
+		elseif got ~= want then
+			table.insert(errs, ("Program.fs: formatting gave %q, expected %q"):format(got, want))
+		end
+		vim.cmd("edit!")
+	end
+
+	io.stderr:write(("  %-18s highlight=%s hover=%s format=%s\n"):format(
+		"Program.fs",
+		results.highlight or "-",
+		results.hover or "-",
+		results.format or "-"
+	))
+end
+check_fsharp()
 
 -- Typst: the fixture project. Its `typst.toml` is the root marker both
 -- tinymist and typst-preview.nvim look for, and main.typ imports chapter.typ,

@@ -30,6 +30,7 @@ return {
 				"markdown_oxide", -- markdown
 				"rust_analyzer", -- rust
 				"tinymist", -- typst
+				"fsautocomplete", -- f#
 			},
 			-- rustaceanvim owns the rust-analyzer client (clippy-on-save, debugging,
 			-- code lens, macro expand) and roslyn.nvim owns the C# client. Excluding
@@ -51,6 +52,7 @@ return {
 				"roslyn",
 				"prettier", -- universal formatter
 				"stylua", -- lua formatter
+				"fantomas", -- f# formatter
 				"vale", -- markdown linter
 				"eslint_d", -- javascript/typescript linter
 				"codelldb", -- native debugger (c, rust, ...)

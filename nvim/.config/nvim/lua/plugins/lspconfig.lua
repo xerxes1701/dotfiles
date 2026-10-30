@@ -42,6 +42,12 @@ return {
 			vim.lsp.enable("tinymist")
 		end
 
+		-- fsautocomplete (F#), same reason: upstream's preferred install is
+		-- `dotnet tool install --global fsautocomplete`, which mason never sees.
+		if vim.fn.executable("fsautocomplete") == 1 then
+			vim.lsp.enable("fsautocomplete")
+		end
+
 		-- define keybinding that will be avaiable if a LSP Server is attached to the current buffer
 		vim.api.nvim_create_autocmd("LspAttach", {
 			group = vim.api.nvim_create_augroup("UserLspConfig", {}),

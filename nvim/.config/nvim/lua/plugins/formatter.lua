@@ -23,6 +23,9 @@ return {
 				markdown = { "prettier" },
 				graphql = { "prettier" },
 				lua = { "stylua" },
+				-- fsautocomplete formats too, but only through a Fantomas it finds as a
+				-- dotnet tool; calling mason's directly does not depend on that lookup.
+				fsharp = { "fantomas" },
 			},
 			format_on_save = {
 				lsp_fallback = true,

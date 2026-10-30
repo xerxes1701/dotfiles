@@ -112,7 +112,11 @@ autocmd, which calls `vim.treesitter.start` without a pcall.
 `verify/fixture/` is a real crate, committed so that no one has to build
 one, and so rust-analyzer has a `Cargo.toml` to attach to.
 `verify/fixture-cs/` is the same idea for C#, so roslyn has a `.csproj`,
-and `verify/fixture-typst/` for Typst, so tinymist has a `typst.toml`.
+`verify/fixture-fs/` for F#, so fsautocomplete has a `.fsproj`, and
+`verify/fixture-typst/` for Typst, so tinymist has a `typst.toml`. The F#
+probe goes further than an attach: it requires treesitter highlighting to be
+active, hover on `greet` to return its type (proof that the project loaded
+and type-checked), and conform to restore a mangled line through Fantomas.
 `check.lua` also opens a Typst file it creates on the spot: empty, in a
 temporary directory with no `typst.toml`, which is how a new file is met in
 practice and the case that first showed the missing-parser error.
@@ -128,8 +132,8 @@ through `git.exe`: the status line's git band, gitsigns, oil-git-status,
 neogit's status and diffview, plus a commit whose editor is a WSL command,
 which must fall back to Linux's git. Elsewhere it reports itself skipped.
 
-`check.lua` requires rust-analyzer, roslyn and tinymist to attach only when
-they are on `PATH`. The Lua probes expect no client, because the servers
+`check.lua` requires rust-analyzer, roslyn, tinymist and fsautocomplete to
+attach, and Fantomas to format, only when they are on `PATH`. The Lua probes expect no client, because the servers
 come from mason and the sandbox does not install them.
 
 `verify.sh` restores `lazy-lock.json` after every run and says so when it
@@ -245,6 +249,7 @@ Tags: `entry` `options` `keymaps` `plugin-spec` `generated` `inventory`
 | `verify/check.lua`                 | The checks `verify.sh` runs inside the sandbox profile.                                           | script         |
 | `verify/fixture/`                  | Committed Rust crate the check opens, so rust-analyzer and the Rust parser get exercised.         | script         |
 | `verify/fixture-cs/`               | Committed .NET project the check opens, so roslyn and the C# parser get exercised.                | script         |
+| `verify/fixture-fs/`               | Committed .NET project the check opens, so fsautocomplete, Fantomas and the F# parser get exercised. | script |
 | `verify/fixture-typst/`            | Committed Typst project the check opens, so tinymist and the Typst parser get exercised.          | script         |
 | `verify/fixture-md/`               | Committed markdown file the check runs `g=` over, so mini.operators' evaluate is exercised.       | script         |
 | `lua/defaults.lua`                 | Core options, leader keys and the statuscolumn setup.                                             | options        |

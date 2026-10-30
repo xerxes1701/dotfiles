@@ -641,6 +641,14 @@ shows only what the rebase changed in that merge request, and not what it
 changed below. a table sums the stack up, and one `git push --atomic` leases
 every branch to the version checked; the exit code is the worst of them.
 
+`-o <file>` writes the report to a file instead, and `-O <dir>` to a
+directory, a file per branch: `00-summary.txt`, then `01-<branch>.txt` and on
+from the bottom of the stack. the terminal then shows only the verdict -- for
+a stack with its table -- and where the report went. the files get no colors,
+and keep diff lines and commands whole. `-O` takes a new or empty directory,
+or one an earlier run wrote, whose files it clears first, so that no report of
+a longer stack is left over.
+
 it is `git-verify-rebase.cs`, a .NET 10 file-based app the aliases run with
 `dotnet run --file`; the first run builds it, which takes a few seconds. it
 needs git 2.40, and on wsl hands a repository under `/mnt/<drive>` to

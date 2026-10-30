@@ -26,19 +26,22 @@ push (see 5).
 - Don't `git fetch` between the rebase and the check: a fetch moves
   `origin/<branch>`, which is what the check compares against and what the
   lease expects. Pass `--check-remote` to ask the remote instead; that moves nothing.
-- Always pass `--diff --no-color`, and set `COLUMNS=250` so that tables and
-  paths don't wrap. Send stderr along (`2>&1`), and write the output to a file
-  (your scratchpad if you have one), because `--diff` output can be long.
-  Note the exit code.
+- Always pass `--diff`, and `-O <dir>` with an absolute path to a new
+  directory (in your scratchpad if you have one). The report goes there, one
+  file per branch, without colors and with long lines whole, because `--diff`
+  output can be long. The terminal shows only the verdict (for a stack, its
+  table), the push command and the files written. Note the exit code.
+- Re-run into the same directory: the script clears the files of its last run
+  there. It refuses a directory that holds anything else.
 
 How to call it:
 
 ```bash
 # a repository in the Linux filesystem, or on Windows:
-COLUMNS=250 git rbv <args> --diff --no-color > "$OUT" 2>&1; echo "exit $?"
+git rbv <args> --diff -O "$DIR"; echo "exit $?"
 
 # WSL, repository under /mnt/<drive>: keep WSL's git out of it (the script itself uses git.exe)
-COLUMNS=250 dotnet run --file "$(readlink -f ~/.local/bin/git-verify-rebase.cs)" -- -C <repo> <args> --diff --no-color > "$OUT" 2>&1; echo "exit $?"
+dotnet run --file "$(readlink -f ~/.local/bin/git-verify-rebase.cs)" -- -C <repo> <args> --diff -O "$DIR"; echo "exit $?"
 ```
 
 The first run builds the script, which takes a few seconds. `git rbv -h` lists every option.
@@ -66,7 +69,12 @@ expired reflog), check that branch alone with
 
 ## 2. Read the report
 
-Read the file section by section. The sections start with `── ` rules.
+Read `00-summary.txt` first. For a stack it lists the branches, then the
+table and the overall verdict with the push command; for one branch it holds
+just the verdict. Then read each branch's file, `01-<branch>.txt` and on, from
+the bottom of the stack up, section by section. The sections start with `── `
+rules. If the script stopped before it checked anything (exit 2),
+`00-summary.txt` holds only its error.
 
 - **Header rows**: `rebased` (local), `pushed` (the version the force-push
   would overwrite), `onto`, `fork point` (old → new base, and what moved
@@ -92,7 +100,8 @@ Read the file section by section. The sections start with `── ` rules.
   - `conflict markers were committed`: always a defect.
 - **diffs**: two kinds (step 3).
 - **verdict** box, and below it the exact push command. It leases to the
-  version that was checked, with the full SHA.
+  version that was checked, with the full SHA. For a stack, each branch's
+  file has its verdict, and `00-summary.txt` the one push for all of them.
 
 Exit codes:
 - `0`: the same, or only reshaped commits.

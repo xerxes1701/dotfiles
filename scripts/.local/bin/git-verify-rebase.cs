@@ -54,7 +54,7 @@ static class ExitCodes
 
 sealed record Settings(
     IReadOnlyList<string> Branches, bool Stack, string? Remote, string? Base, string? OldBase, string? NewBase,
-    string Repo, bool Diff, int Context, bool Strict, bool CheckRemote, bool Verbose)
+    string Repo, bool Diff, int Context, bool Strict, bool CheckRemote, bool Verbose, string? Output, string? OutputDir)
 {
     // Several branches are a stack too.
     public bool IsStack => Stack || Branches.Count > 1;
@@ -145,6 +145,20 @@ static class Cli
             Description = "Ask the remote (git ls-remote) whether the branch is still where your last fetch saw it. If someone pushed since, the lease is stale and the push would be rejected.",
         };
 
+        var output = new Option<string?>("--output", "-o")
+        {
+            Description = "Write the report to this file, and show only the verdict here. The file gets no colors and keeps long lines whole; an existing one is overwritten.",
+            HelpName = "file",
+        };
+        defaults[output] = "the terminal";
+
+        var outputDir = new Option<string?>("--output-dir", "-O")
+        {
+            Description = $"Write the report to this directory, and show only the verdict here: the summary in {Output.SummaryFile}, each branch in a file of its own, "
+                + "01-<branch>.txt and on from the bottom of a stack. The directory must be new, empty, or written by an earlier run, whose files are cleared.",
+            HelpName = "dir",
+        };
+
         var repo = new Option<string>("--repo", "-C")
         {
             Description = "The repository to work in.",
@@ -166,7 +180,7 @@ static class Cli
         var root = new RootCommand(
             "Checks that a rebased branch still makes the changes its pushed version made, before you force-push it.")
         {
-            local, stack, remote, @base, oldBase, newBase, diff, context, strict, checkRemote, repo, noColor, verbose,
+            local, stack, remote, @base, oldBase, newBase, diff, context, strict, checkRemote, output, outputDir, repo, noColor, verbose,
         };
         root.Options.Remove(root.Options.OfType<VersionOption>().Single());
         root.Options.OfType<HelpOption>().Single().Description = "Show this help.";
@@ -186,6 +200,20 @@ static class Cli
             if (!Directory.Exists(FromCaller(path)))
                 result.AddError($"--repo: there is no directory '{path}'. Pass a directory inside the repository, or leave --repo out to use the current one.");
         });
+        foreach (var (option, example) in new[] { (output, "rebase.txt"), (outputDir, "rebase") })
+            option.Validators.Add(result =>
+            {
+                var value = result.GetValueOrDefault<string?>();
+                if (string.IsNullOrWhiteSpace(value))
+                    result.AddError($"{option.Name} needs a path, e.g. {option.Name} {example}.");
+                else if (value.StartsWith('-'))
+                    result.AddError($"{option.Name} needs a path, and '{value}' looks like an option: e.g. {option.Name} {example}.");
+                else if (option == output && Directory.Exists(FromCaller(value)))
+                    result.AddError($"--output: '{value}' is a directory. Name a file in it, e.g. --output {Path.Combine(value, example)}, "
+                        + $"or pass --output-dir {value} for a file per branch.");
+                else if (option == outputDir && Output.Problem(FromCaller(value), value) is { } problem)
+                    result.AddError(problem);
+            });
         // Here rather than on <local>, whose validators do not run once it takes several values.
         root.Validators.Add(result =>
         {
@@ -197,6 +225,9 @@ static class Cli
                     result.AddError("<local> is empty: name a branch or commit, or leave it out to check HEAD.");
             if (result.GetResult(context) is { Implicit: false } && !result.GetValue(diff))
                 result.AddError("--context only shapes the --diff output: add --diff, or leave --context out.");
+            if (result.GetResult(output) is { Implicit: false } && result.GetResult(outputDir) is { Implicit: false })
+                result.AddError("--output and --output-dir both say where the report goes: pick one. "
+                    + "--output writes it to one file, --output-dir to a file per branch and one for the summary.");
             // An unknown option is no second branch.
             if (!result.GetValue(stack) && branches.Count(b => !b.StartsWith('-')) < 2) return;
             foreach (var (option, what) in new[]
@@ -214,7 +245,9 @@ static class Cli
             result.GetValue(local)!, result.GetValue(stack), result.GetValue(remote), result.GetValue(@base),
             result.GetValue(oldBase), result.GetValue(newBase), FromCaller(result.GetValue(repo)!),
             result.GetValue(diff), result.GetValue(context), result.GetValue(strict),
-            result.GetValue(checkRemote), result.GetValue(verbose))));
+            result.GetValue(checkRemote), result.GetValue(verbose),
+            result.GetValue(output) is { } file ? FromCaller(file) : null,
+            result.GetValue(outputDir) is { } dir ? FromCaller(dir) : null)));
 
         Ui.Configure(noColor: args.Contains("--no-color"));
         try
@@ -361,6 +394,7 @@ sealed class HelpPage(RootCommand root, IReadOnlyDictionary<Symbol, string> defa
             ($"{Cli.Name} feature -b origin/develop", "feature, which was rebased onto develop"),
             ($"{Cli.Name} --stack -b origin/develop", "the stack of merge requests below the checked-out branch, the bottom one into develop"),
             ($"{Cli.Name} mr-1 mr-2 mr-3 --diff", "a stack named bottom first, and show what differs"),
+            ($"{Cli.Name} --stack --diff -O rebase", "the stack below the checked-out branch, and what differs, each branch's report in a file of its own in rebase/"),
             ($"{Cli.Name} -r origin/feature-v1", "against a branch pushed under another name"),
             ($"{Cli.Name} --old-base v1.2 -b origin/main", "after git rebase --onto origin/main v1.2"),
             ($"{Cli.Name} --strict --check-remote", "fail on any commit difference, and on a stale lease"),
@@ -374,7 +408,7 @@ sealed class HelpPage(RootCommand root, IReadOnlyDictionary<Symbol, string> defa
         var environment = Table();
         environment.AddRow(new Markup("[bold]NO_COLOR[/]"), new Markup("Set to anything: no colors, as --no-color."));
         environment.AddRow(new Markup("[bold]COLUMNS[/]"), new Markup(
-            "The width of output that goes to a file or a pipe, which is otherwise 80 columns; a terminal has its own."));
+            $"The width of output that goes to a file or a pipe, which is otherwise 80 columns -- {Output.FileWidth} for --output and --output-dir; a terminal has its own."));
         environment.AddRow(new Markup("[bold]WSL_GIT[/]"), new Markup(
             "On WSL, [bold]windows[/] or [bold]linux[/] picks the git to run. Unset, a repository under /mnt/<drive> "
             + "gets Windows' git.exe, which is much faster there, and any other Linux's git."));
@@ -468,26 +502,40 @@ static class Ui
         return Box("✘ cannot verify", Color.Red, rows);
     }
 
-    // A command to copy, on one line however long: the terminal wraps it, so
-    // that a copy of it is still one line, with no box border in it.
-    public static void Command(IAnsiConsole c, string command)
+    // A command to copy, on one line however long, with no box border in it.
+    public static void Command(IAnsiConsole c, string command) =>
+        Unwrapped(c, () => c.MarkupLine($"   [deepskyblue1]{E(command)}[/]"));
+
+    // What must not wrap -- a command to copy, a diff line, a path -- on one
+    // line however long: a terminal wraps it, so that a copy is still one
+    // line, and a file keeps it whole.
+    public static void Unwrapped(IAnsiConsole c, Action write)
     {
         var width = c.Profile.Width;
-        c.Profile.Width = Math.Max(width, command.Length + 4);
-        c.MarkupLine($"   [deepskyblue1]{E(command)}[/]");
-        c.Profile.Width = width;
+        c.Profile.Width = 1 << 16;
+        try
+        {
+            write();
+        }
+        finally
+        {
+            c.Profile.Width = width;
+        }
     }
 
     public static void Crash(Exception error, bool verbose)
     {
-        Err.Write(Box("✘ unexpected error", Color.Red, [
+        Err.Write(CrashBox(error, verbose));
+        if (verbose) Err.WriteException(error, ExceptionFormats.ShortenPaths);
+    }
+
+    public static Panel CrashBox(Exception error, bool verbose) =>
+        Box("✘ unexpected error", Color.Red, [
             new Markup($"[bold]{E(error.GetType().Name)}: {E(error.Message)}[/]"),
             new Markup(verbose
                 ? "[yellow]→[/] This is a bug in git-verify-rebase; the stack trace follows."
                 : "[yellow]→[/] Run again with [deepskyblue1]--verbose[/] for the git commands and a stack trace."),
-        ]));
-        if (verbose) Err.WriteException(error, ExceptionFormats.ShortenPaths);
-    }
+        ]);
 
     public static Panel Box(string title, Color color, IEnumerable<IRenderable> rows) =>
         new Panel(new Rows(rows))
@@ -496,6 +544,180 @@ static class Ui
             .BorderColor(color)
             .Padding(1, 0, 1, 0)
             .Expand();
+}
+
+// Where the report goes: the terminal, one file (--output), or a directory
+// (--output-dir) with the summary in 00-summary.txt and each branch in a file
+// of its own. Files get no colors, and are COLUMNS wide, else FileWidth.
+sealed class Output : IDisposable
+{
+    public const string SummaryFile = "00-summary.txt";
+    public const int FileWidth = 200;
+    // Lists the files a run wrote to the directory, for the next run to clear.
+    const string Marker = ".git-verify-rebase";
+
+    public string? ReportFile { get; private init; }
+    public string? ReportDir { get; private init; }
+    // Where the report starts, and for a stack ends with the summary.
+    public IAnsiConsole Main { get; private set; } = Ui.Out;
+    public bool ToTerminal => ReportFile is null && ReportDir is null;
+    readonly List<string> written = [];
+    readonly List<TextWriter> writers = [];
+
+    public static Output Open(Settings s)
+    {
+        if (s.Output is { } file)
+        {
+            var output = new Output { ReportFile = file };
+            output.Main = output.Create(file);
+            return output;
+        }
+        if (s.OutputDir is { } dir)
+        {
+            // Checked when parsing too; again in case it changed since.
+            if (Problem(dir, dir) is { } problem) throw new UserError(problem);
+            var output = new Output { ReportDir = dir };
+            output.Clear();
+            output.Main = output.Create(Path.Combine(dir, SummaryFile));
+            return output;
+        }
+        return new Output();
+    }
+
+    // Why --output-dir cannot take the directory, or null when it can: one
+    // that does not exist yet, an empty one, or one an earlier run wrote.
+    public static string? Problem(string dir, string shown)
+    {
+        if (File.Exists(dir))
+            return $"--output-dir: '{shown}' is a file. Name a directory, or pass --output {shown} to write the report to that file.";
+        if (!Directory.Exists(dir)) return null;
+        var ours = Ours(dir);
+        var others = Directory.EnumerateFileSystemEntries(dir)
+            .Select(entry => Path.GetFileName(entry))
+            .Where(name => name != Marker && !ours.Contains(name!))
+            .Order(StringComparer.Ordinal)
+            .ToList();
+        if (others.Count == 0) return null;
+        var names = string.Join(", ", others.Take(3)) + (others.Count > 3 ? $" and {others.Count - 3} more" : "");
+        return $"--output-dir: '{shown}' holds files {Cli.Name} did not write ({names}), and it clears only its own. "
+            + "Name a new or an empty directory.";
+    }
+
+    // The file names the marker lists; never a path, which could reach out of the directory.
+    static HashSet<string> Ours(string dir)
+    {
+        var marker = Path.Combine(dir, Marker);
+        return File.Exists(marker)
+            ? File.ReadAllLines(marker).Where(l => l.Length > 0 && !l.StartsWith('#') && Path.GetFileName(l) == l).ToHashSet()
+            : [];
+    }
+
+    // The files of the run before, so that none of a longer stack's is left over.
+    void Clear()
+    {
+        foreach (var name in Ours(ReportDir!))
+            if (File.Exists(Path.Combine(ReportDir!, name))) Write(() => File.Delete(Path.Combine(ReportDir!, name)), name);
+        Write(() =>
+        {
+            Directory.CreateDirectory(ReportDir!);
+            File.WriteAllText(Path.Combine(ReportDir!, Marker), $"# {Cli.Name} wrote these files, and clears them before it writes new ones.\n");
+        }, ReportDir!);
+    }
+
+    // Where a branch's section goes: number index of the stack, from 0.
+    public IAnsiConsole Branch(int index, RefInfo branch) =>
+        ReportDir is null ? Main : Create(Path.Combine(ReportDir, $"{index + 1:D2}-{Regex.Replace(branch.Label, @"[^\w.@+-]", "_")}.txt"));
+
+    IAnsiConsole Create(string path)
+    {
+        var writer = Write(() =>
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            if (ReportDir is not null) File.AppendAllText(Path.Combine(ReportDir, Marker), Path.GetFileName(path) + "\n");
+            return new Trimmed(new StreamWriter(path, false, new UTF8Encoding(false)));
+        }, path);
+        writers.Add(writer);
+        written.Add(path);
+        var c = AnsiConsole.Create(new AnsiConsoleSettings
+        {
+            Ansi = AnsiSupport.No,
+            ColorSystem = ColorSystemSupport.NoColors,
+            Interactive = InteractionSupport.No,
+            Out = new AnsiConsoleOutput(writer),
+        });
+        c.Profile.Width = int.TryParse(Environment.GetEnvironmentVariable("COLUMNS"), out var columns) && columns > 0 ? columns : FileWidth;
+        c.Profile.Capabilities.Unicode = true;
+        return c;
+    }
+
+    static void Write(Action write, string path) => Write(() => { write(); return 0; }, path);
+
+    static T Write<T>(Func<T> write, string path)
+    {
+        try
+        {
+            return write();
+        }
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException)
+        {
+            throw new UserError($"Cannot write {path}.", error.Message, "Check the path and its permissions, or write the report somewhere else.");
+        }
+    }
+
+    // On the terminal, where the report went.
+    public void Point()
+    {
+        var c = Ui.Out;
+        if (ToTerminal) return;
+        if (ReportFile is not null)
+        {
+            Ui.Unwrapped(c, () => c.MarkupLine($" [grey]The report is in[/] {Ui.E(ReportFile)}"));
+            return;
+        }
+        Ui.Unwrapped(c, () => c.MarkupLine($" [grey]The reports are in[/] {Ui.E(ReportDir!)}[grey]:[/]"));
+        foreach (var path in written) c.MarkupLine($"   {Ui.E(Path.GetFileName(path))}");
+    }
+
+    // An error that stopped the check, in place of the report, so that none
+    // from a run before is taken for this one's.
+    public void Fail(IRenderable box)
+    {
+        if (!ToTerminal) Main.Write(box);
+    }
+
+    public void Dispose()
+    {
+        foreach (var writer in writers) writer.Dispose();
+    }
+
+    // Drops the spaces at the ends of lines, to which Spectre pads grids to
+    // the full width.
+    sealed class Trimmed(TextWriter inner) : TextWriter
+    {
+        int spaces;
+
+        public override Encoding Encoding => inner.Encoding;
+
+        public override void Write(char value)
+        {
+            if (value == ' ')
+            {
+                spaces++;
+                return;
+            }
+            if (spaces > 0 && value is not ('\r' or '\n')) inner.Write(new string(' ', spaces));
+            spaces = 0;
+            inner.Write(value);
+        }
+
+        public override void Flush() => inner.Flush();
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing) inner.Dispose();
+            base.Dispose(disposing);
+        }
+    }
 }
 
 // ─── git ─────────────────────────────────────────────────────────────────────
@@ -1049,22 +1271,30 @@ static class Verifier
 {
     public static int Run(Settings settings)
     {
+        Output? output = null;
         try
         {
+            output = Output.Open(settings);
             var git = Git.Open(settings.Repo, settings.Verbose);
-            if (settings.IsStack) return RunStack(git, settings);
+            if (settings.IsStack) return RunStack(git, settings, output);
             var analysis = Spin(settings, "Resolving refs…", status => Analyze(git, settings, status));
-            return Report.Render(analysis, settings);
+            return Report.Render(analysis, settings, output);
         }
         catch (UserError error)
         {
             Ui.Fail(error);
+            output?.Fail(Ui.ErrorBox(error));
             return ExitCodes.Error;
         }
         catch (Exception error)
         {
             Ui.Crash(error, settings.Verbose);
+            output?.Fail(Ui.CrashBox(error, settings.Verbose));
             return ExitCodes.Error;
+        }
+        finally
+        {
+            output?.Dispose();
         }
     }
 
@@ -1078,13 +1308,13 @@ static class Verifier
                 .Start(first, ctx => work(message => ctx.Status(message)));
 
     // Each branch of the stack, reported as soon as it is checked, then the whole.
-    static int RunStack(Git git, Settings s)
+    static int RunStack(Git git, Settings s, Output output)
     {
         var stack = Spin(s, "Finding the stack…", status => ResolveStack(git, s, status));
         var asked = s.CheckRemote
             ? Spin(s, "Asking the remote…", status => AskRemote(git, stack.Layers.Select(l => l.Remote).OfType<RefInfo>(), status))
             : null;
-        Report.Intro(stack);
+        Report.Intro(output.Main, stack);
         for (var i = 0; i < stack.Layers.Count; i++)
         {
             var layer = stack.Layers[i];
@@ -1098,9 +1328,15 @@ static class Verifier
                 {
                     layer.Error = error;
                 }
-            layer.Outcome = Report.RenderLayer(stack, i, s);
+            layer.Outcome = Report.RenderLayer(output.Branch(i, layer.Local), stack, i, s);
         }
-        return Report.Summary(stack, s);
+        var exitCode = Report.Summary(output.Main, stack, s, output.ReportDir is null ? "above" : null);
+        if (!output.ToTerminal)
+        {
+            Report.Summary(Ui.Out, stack, s, output.ReportDir is null ? "in the report" : null, alone: true);
+            output.Point();
+        }
+        return exitCode;
     }
 
     static Analysis Analyze(Git git, Settings s, Action<string> status)
@@ -1526,15 +1762,36 @@ static class Verifier
 
 static class Report
 {
-    public static int Render(Analysis a, Settings s)
+    public static int Render(Analysis a, Settings s, Output output)
     {
-        var c = Ui.Out;
+        var c = output.Branch(0, a.Local);
         c.WriteLine();
         c.Write(new Rule("[bold deepskyblue1]verify rebase[/]").LeftJustified().RuleStyle(new Style(Color.Grey)));
         var outcome = Body(c, a, s);
+        Push(c, a, outcome);
+        // Elsewhere only the verdict: in the summary file, and on the terminal.
+        if (output.ReportDir is not null) Brief(output.Main, a, outcome);
+        if (!output.ToTerminal)
+        {
+            Brief(Ui.Out, a, outcome);
+            output.Point();
+        }
+        return outcome.ExitCode;
+    }
+
+    static void Brief(IAnsiConsole c, Analysis a, Outcome outcome)
+    {
+        c.WriteLine();
+        c.Write(new Rule($"[bold deepskyblue1]verify rebase[/] [grey]·[/] [bold]{Ui.E(a.Local.Label)}[/]").LeftJustified().RuleStyle(new Style(Color.Grey)));
+        c.WriteLine();
+        Box(c, outcome);
+        Push(c, a, outcome);
+    }
+
+    static void Push(IAnsiConsole c, Analysis a, Outcome outcome)
+    {
         if (outcome.PushPrefix is { } prefix && PushCommand(a) is { } push)
             Offer(c, prefix, "the version checked here", [push]);
-        return outcome.ExitCode;
     }
 
     // A branch's refs, commits, content and diffs, and the verdict on them.
@@ -1743,7 +2000,7 @@ static class Report
                 : line.StartsWith('-') ? "red"
                 : line.StartsWith('\\') ? "grey italic"
                 : "default";
-            c.MarkupLine($"[{style}]{Visible(line)}[/]");
+            Ui.Unwrapped(c, () => c.MarkupLine($"[{style}]{Visible(line)}[/]"));
         }
     }
 
@@ -1778,12 +2035,12 @@ static class Report
             gap = false;
             var (op, line) = ops[i];
             var inner = line.StartsWith("@@") ? "deepskyblue1" : line.StartsWith('+') ? "green" : line.StartsWith('-') ? "red" : "default";
-            c.MarkupLine(op switch
+            Ui.Unwrapped(c, () => c.MarkupLine(op switch
             {
                 '-' => $"[red bold]-[/][red]{Visible(line)}[/]",
                 '+' => $"[green bold]+[/][green]{Visible(line)}[/]",
                 _ => $" [{inner} dim]{Visible(line)}[/]",
-            });
+            }));
         }
     }
 
@@ -1900,12 +2157,11 @@ static class Report
 
     // ─── stacks
 
-    public static void Intro(StackInfo stack)
+    public static void Intro(IAnsiConsole c, StackInfo stack)
     {
-        var c = Ui.Out;
         var n = stack.Layers.Count;
         c.WriteLine();
-        c.Write(new Rule($"[bold deepskyblue1]verify rebase[/] [grey]·[/] [bold]a stack of {n} branch{(n == 1 ? "" : "es")}[/]")
+        c.Write(new Rule($"[bold deepskyblue1]verify rebase[/] [grey]·[/] [bold]{Stack(stack)}[/]")
             .LeftJustified().RuleStyle(new Style(Color.Grey)));
         var grid = new Grid();
         grid.AddColumn(new GridColumn().NoWrap().PadLeft(1).PadRight(2));
@@ -1923,10 +2179,11 @@ static class Report
                 + $"to {Ui.E(stack.Layers[^1].Local.Label)}; name the branches, bottom first, to check others.[/]");
     }
 
+    static string Stack(StackInfo stack) => $"a stack of {stack.Layers.Count} branch{(stack.Layers.Count == 1 ? "" : "es")}";
+
     // One branch of the stack, under a header that says which.
-    public static Outcome RenderLayer(StackInfo stack, int i, Settings s)
+    public static Outcome RenderLayer(IAnsiConsole c, StackInfo stack, int i, Settings s)
     {
-        var c = Ui.Out;
         var layer = stack.Layers[i];
         c.WriteLine();
         c.Write(new Rule($"[bold deepskyblue1]{i + 1}/{stack.Layers.Count}[/] [bold]{Ui.E(layer.Local.Label)}[/]")
@@ -1948,12 +2205,14 @@ static class Report
         return outcome;
     }
 
-    // The stack at a glance, the verdict on all of it, and one push for all of it.
-    public static int Summary(StackInfo stack, Settings s)
+    // The stack at a glance, the verdict on all of it, and one push for all of
+    // it. Where says where the branches' sections are, null for in files of
+    // their own; alone, that this is all there is to read here.
+    public static int Summary(IAnsiConsole c, StackInfo stack, Settings s, string? where, bool alone = false)
     {
-        var c = Ui.Out;
         c.WriteLine();
-        c.Write(new Rule("[bold]the stack[/]").LeftJustified().RuleStyle(new Style(Color.Grey)));
+        c.Write(new Rule(alone ? $"[bold deepskyblue1]verify rebase[/] [grey]·[/] [bold]{Stack(stack)}[/]" : "[bold]the stack[/]")
+            .LeftJustified().RuleStyle(new Style(Color.Grey)));
         var table = new Table().Border(TableBorder.Rounded).BorderColor(Color.Grey);
         table.AddColumn(new TableColumn("[grey]#[/]").RightAligned().NoWrap());
         table.AddColumn(new TableColumn("[grey]branch[/]"));
@@ -1973,7 +2232,7 @@ static class Report
         c.Write(table);
         c.WriteLine();
 
-        var verdict = StackVerdict(stack, s);
+        var verdict = StackVerdict(stack, s, where);
         Box(c, verdict);
         if (verdict.PushPrefix is { } prefix && StackPushes(stack) is { Count: > 0 } pushes)
         {
@@ -2003,17 +2262,19 @@ static class Report
             + (conflicts > 0 ? $"[grey],[/] [yellow]{conflicts} after a conflict[/]" : "");
     }
 
-    static Outcome StackVerdict(StackInfo stack, Settings s)
+    static Outcome StackVerdict(StackInfo stack, Settings s, string? where)
     {
         var layers = stack.Layers;
         var n = layers.Count;
         static string Names(IEnumerable<Layer> which) => string.Join(", ", which.Select(l => l.Local.Label));
-        static string Their(int count, string what) => count == 1 ? $"its section says {what}" : $"their sections say {what}";
+        string Their(int count, string what) => where is null
+            ? count == 1 ? $"its file says {what}" : $"their files say {what}"
+            : count == 1 ? $"its section says {what}, {where}" : $"their sections say {what}, {where}";
 
         var failed = layers.Where(l => l.Outcome!.ExitCode == ExitCodes.Error).ToList();
         if (failed.Count > 0)
             return new(Color.Red, $"✘ could not check {failed.Count} of {n}", ExitCodes.Error,
-                [$"{Names(failed)}: {Their(failed.Count, "why")}, above.", "Fix that, and run this again before you push any of them."]);
+                [$"{Names(failed)}: {Their(failed.Count, "why")}.", "Fix that, and run this again before you push any of them."]);
 
         var differ = layers.Where(l => l.Outcome!.ExitCode == ExitCodes.Differs).ToList();
         if (differ.Count > 0)
@@ -2026,7 +2287,7 @@ static class Report
                     : red ? $"✘ {differ.Count} of {n} branches differ"
                     : $"⚠ review the conflict resolutions in {differ.Count} of {n}",
                 ExitCodes.Differs,
-                [.. changed.Count > 0 ? [$"{Names(changed)}: {Their(changed.Count, "what differs")}, above{(s.Diff ? "" : "; `--diff` shows it line by line")}."] : Array.Empty<string>(),
+                [.. changed.Count > 0 ? [$"{Names(changed)}: {Their(changed.Count, "what differs")}{(s.Diff ? "" : "; `--diff` shows it line by line")}."] : Array.Empty<string>(),
                 .. moved.Count > 0 ? [$"The remote moved for {Names(moved)} since your last fetch: fetch, and verify again before you push."] : Array.Empty<string>()],
                 moved.Count > 0 ? null : red ? "Only if every difference is intended, " : "Once they are right, ");
         }

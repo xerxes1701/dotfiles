@@ -646,6 +646,13 @@ it is `git-verify-rebase.cs`, a .NET 10 file-based app the aliases run with
 needs git 2.40, and on wsl hands a repository under `/mnt/<drive>` to
 windows' git.exe, as the git shim for the prompt does.
 
+the claude code skill `verify-rebase` (`claude/.claude/skills/verify-rebase`)
+has claude run it after every rebase of a pushed branch, before the
+force-push: with `--diff`, every difference judged -- a conflict resolution
+against both sides, an edit no conflict explains, an added or dropped commit
+against what the rebase was meant to do -- and a summary with a verdict: safe
+to push, needs your review, or do not push.
+
 # journal
 
 > /mg-journal [YYYY-MM-DD]

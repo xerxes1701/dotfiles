@@ -33,3 +33,14 @@ binds {
     Mod+F                               { maximize-window-to-edges; } // Fills the screen but stays in the layout, so window opacity still shows the wallpaper
     Mod+CTRL+M                          hotkey-overlay-title="Stack: maximize window, float the one to its right on top" { spawn-sh "~/.config/niri/scripts/stack-right-on-maximized.sh"; }
 }
+
+// Satisfactory without gamescope: what gamescope's -W/-H/-f did.
+// Proton names its X11 windows steam_app_<appid>; gamescope's own window is
+// app-id "gamescope", so this does nothing while the game still runs in it.
+window-rule {
+    match app-id="^steam_app_526870$"
+    open-on-output "DP-3"
+    open-fullscreen true
+    geometry-corner-radius 0
+    clip-to-geometry false
+}

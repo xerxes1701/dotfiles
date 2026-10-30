@@ -39,6 +39,7 @@
   "permissions": {
     "defaultMode": "auto"
   },
+  "skipWorkflowUsageWarning": true,
   "statusLine": {
     "command": "node \"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/status-band/statusline.mjs\"",
     "hideVimModeIndicator": true,

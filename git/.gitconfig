@@ -111,6 +111,12 @@
 	rbc = rebase --continue
 	rba = rebase --abort
 	rbm = "!git rebase $(git main-branch) -i"
+	# Before a force-push: does the rebased branch still make the changes its
+	# pushed version made? A .NET file-based app; see git-verify-rebase.cs.
+	# Run by its real path: dotnet run goes by the timestamp of the link stow
+	# put in ~/.local/bin, and would keep running a stale build.
+	verify-rebase = "!dotnet run --file \"$(readlink -f \"$HOME/.local/bin/git-verify-rebase.cs\")\" --"
+	rbv = verify-rebase
 	rs  = reset
 
 	# --- stash / worktree ---

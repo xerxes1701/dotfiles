@@ -599,6 +599,39 @@ scrolling with it, the next jump starts where the keys left the preview. in
 difftastic, which finds hunks of its own, enter opens nvim at the git hunk
 with the same number, near but not always at the one on screen.
 
+## verifying a rebase
+
+> git verify-rebase [branch] [options]
+> git rbv [branch] [options]
+
+before a force-push: does the rebased branch still make the changes its
+pushed version made? two checks answer it, and neither touches the work tree
+or the index. the content check replays the pushed commits' changes onto the
+new base with `git merge-tree` and compares the result with the rebased
+branch, file by file -- equal means the rebase moved the branch and nothing
+else. the commit check pairs pushed and rebased commits by their patch, with
+no context and no line numbers so a hunk that only moved still matches, then
+by subject; reworded commits pass, and changed, squashed, dropped, added and
+reordered ones are listed with the files whose changes differ. a differing
+file where the rebase had a conflict is marked as such, and so are
+committed conflict markers.
+
+the pushed version is where `git push` sends the branch -- `origin/<branch>`
+mostly -- and the base is `origin/HEAD`; `-r` and `-b` name others. `--diff`
+shows each differing file against the clean replay, and each changed commit's
+old patch against its new one, as `git range-diff` does. a verified branch
+gets the `git push --force-with-lease=<branch>:<sha>` that overwrites exactly
+the version checked, and nothing pushed since. it exits 0 when the content
+matches, 1 when something differs, 2 when it could not tell; `--strict` makes
+reshaped commits fail too, and `--check-remote` asks the remote whether the
+lease is still current. `git rbv -h` explains the rest -- `--help` goes to
+git, which looks for a man page.
+
+it is `git-verify-rebase.cs`, a .NET 10 file-based app the aliases run with
+`dotnet run --file`; the first run builds it, which takes a few seconds. it
+needs git 2.40, and on wsl hands a repository under `/mnt/<drive>` to
+windows' git.exe, as the git shim for the prompt does.
+
 # journal
 
 > /mg-journal [YYYY-MM-DD]

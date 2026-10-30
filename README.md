@@ -603,6 +603,8 @@ with the same number, near but not always at the one on screen.
 
 > git verify-rebase [branch] [options]
 > git rbv [branch] [options]
+> git rbv --stack [top] [options]
+> git rbv <bottom> … <top> [options]
 
 before a force-push: does the rebased branch still make the changes its
 pushed version made? two checks answer it, and neither touches the work tree
@@ -626,6 +628,18 @@ matches, 1 when something differs, 2 when it could not tell; `--strict` makes
 reshaped commits fail too, and `--check-remote` asks the remote whether the
 lease is still current. `git rbv -h` explains the rest -- `--help` goes to
 git, which looks for a man page.
+
+`--stack` checks a stack of merge requests after a rebase of all of it, as
+`git rebase --update-refs` does one: the top branch and, below it, the local
+branches with a pushed version on its first-parent line down to `-b`, which
+names what the bottom merge request targets -- or the branches named, bottom
+first. each is checked as a merge request on the branch below it: its pushed
+version starts at the version of that branch it was built on, which `git
+merge-base --fork-point` finds in the reflogs even once that branch was
+force-pushed, and is replayed onto that branch as rebased. so each report
+shows only what the rebase changed in that merge request, and not what it
+changed below. a table sums the stack up, and one `git push --atomic` leases
+every branch to the version checked; the exit code is the worst of them.
 
 it is `git-verify-rebase.cs`, a .NET 10 file-based app the aliases run with
 `dotnet run --file`; the first run builds it, which takes a few seconds. it

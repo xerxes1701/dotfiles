@@ -16,11 +16,16 @@
 //             files whose changes differ.
 //
 // The fork points are the merge-bases of either tip with --base (origin/HEAD
-// unless given). merge-tree --write-tree leaves the replayed trees in the
-// object store, unreferenced, for gc to collect. Needs git 2.40, for
-// merge-tree --merge-base. On WSL a repository on a Windows drive is handed to
-// Windows' git.exe, as the wsl-git shim does; WSL_GIT and WINDOWS_GIT work as
-// there.
+// unless given). With --stack, or several branches, the branches are a stack
+// of merge requests, each checked as one on the branch below it: its pushed
+// version starts at the version of that branch it was built on -- `git
+// merge-base --fork-point` finds that in the reflogs, even once it was
+// force-pushed -- and is replayed onto that branch as rebased.
+//
+// merge-tree --write-tree leaves the replayed trees in the object store,
+// unreferenced, for gc to collect. Needs git 2.40, for merge-tree
+// --merge-base. On WSL a repository on a Windows drive is handed to Windows'
+// git.exe, as the wsl-git shim does; WSL_GIT and WINDOWS_GIT work as there.
 #:package System.CommandLine@2.0.14
 #:package Spectre.Console@0.57.2
 #:property PublishAot=false
@@ -48,8 +53,12 @@ static class ExitCodes
 }
 
 sealed record Settings(
-    string Local, string? Remote, string? Base, string? OldBase, string? NewBase,
-    string Repo, bool Diff, int Context, bool Strict, bool CheckRemote, bool Verbose);
+    IReadOnlyList<string> Branches, bool Stack, string? Remote, string? Base, string? OldBase, string? NewBase,
+    string Repo, bool Diff, int Context, bool Strict, bool CheckRemote, bool Verbose)
+{
+    // Several branches are a stack too.
+    public bool IsStack => Stack || Branches.Count > 1;
+}
 
 static class Cli
 {
@@ -62,13 +71,19 @@ static class Cli
         CultureInfo.CurrentUICulture = CultureInfo.InvariantCulture;
         var defaults = new Dictionary<Symbol, string>();
 
-        var local = new Argument<string>("local")
+        var local = new Argument<string[]>("local")
         {
-            Description = "The rebased branch or commit to check.",
-            Arity = ArgumentArity.ZeroOrOne,
-            DefaultValueFactory = _ => "HEAD",
+            Description = "The rebased branch or commit to check. Several branches are a stack of merge requests, named bottom first: see --stack.",
+            Arity = ArgumentArity.ZeroOrMore,
+            DefaultValueFactory = _ => ["HEAD"],
         };
         defaults[local] = "HEAD, the checked-out branch";
+
+        var stack = new Option<bool>("--stack")
+        {
+            Description = "Check a stack of merge requests: <local> as the top one, and below it the local branches with a pushed version, down to --base. "
+                + "Each is checked as a merge request on the branch below it, so its report shows only what the rebase changed in it.",
+        };
 
         var remote = new Option<string?>("--remote", "-r")
         {
@@ -79,7 +94,7 @@ static class Cli
 
         var @base = new Option<string?>("--base", "-b")
         {
-            Description = "The branch <local> was rebased onto. Both versions' fork points are their merge-bases with it.",
+            Description = "The branch <local> was rebased onto -- for a stack, the one its bottom merge request targets. Both versions' fork points are their merge-bases with it.",
             HelpName = "ref",
         };
         defaults[@base] = "<remote>/HEAD, else <remote>/main, <remote>/master, main, master";
@@ -151,19 +166,11 @@ static class Cli
         var root = new RootCommand(
             "Checks that a rebased branch still makes the changes its pushed version made, before you force-push it.")
         {
-            local, remote, @base, oldBase, newBase, diff, context, strict, checkRemote, repo, noColor, verbose,
+            local, stack, remote, @base, oldBase, newBase, diff, context, strict, checkRemote, repo, noColor, verbose,
         };
         root.Options.Remove(root.Options.OfType<VersionOption>().Single());
         root.Options.OfType<HelpOption>().Single().Description = "Show this help.";
 
-        local.Validators.Add(result =>
-        {
-            var value = result.GetValueOrDefault<string>();
-            if (value.StartsWith('-'))
-                result.AddError($"Unknown option '{value}'.{Suggest(value, root)}");
-            else if (string.IsNullOrWhiteSpace(value))
-                result.AddError("<local> is empty: name a branch or commit, or leave it out to check HEAD.");
-        });
         foreach (var (option, example) in new[] { (remote, "origin/feature"), (@base, "origin/main"), (oldBase, "a1b2c3d"), (newBase, "a1b2c3d") })
             option.Validators.Add(result =>
             {
@@ -179,15 +186,32 @@ static class Cli
             if (!Directory.Exists(FromCaller(path)))
                 result.AddError($"--repo: there is no directory '{path}'. Pass a directory inside the repository, or leave --repo out to use the current one.");
         });
+        // Here rather than on <local>, whose validators do not run once it takes several values.
         root.Validators.Add(result =>
         {
+            var branches = result.GetValue(local)!;
+            foreach (var value in branches)
+                if (value.StartsWith('-'))
+                    result.AddError($"Unknown option '{value}'.{Suggest(value, root)}");
+                else if (string.IsNullOrWhiteSpace(value))
+                    result.AddError("<local> is empty: name a branch or commit, or leave it out to check HEAD.");
             if (result.GetResult(context) is { Implicit: false } && !result.GetValue(diff))
                 result.AddError("--context only shapes the --diff output: add --diff, or leave --context out.");
+            // An unknown option is no second branch.
+            if (!result.GetValue(stack) && branches.Count(b => !b.StartsWith('-')) < 2) return;
+            foreach (var (option, what) in new[]
+            {
+                (remote, "names one branch's pushed version; in a stack each branch's is found by its name"),
+                (oldBase, "says where one branch's pushed version starts; in a stack each starts where it was built on the branch below it"),
+                (newBase, "says where one rebased branch starts; in a stack each starts at the branch below it"),
+            })
+                if (result.GetResult(option) is { Implicit: false })
+                    result.AddError($"{option.Name} {what}. Leave it out, or check that branch alone: {Name} <branch> {option.Name} <{option.HelpName}>.");
         });
 
         root.Options.OfType<HelpOption>().Single().Action = new HelpPage(root, defaults);
         root.SetAction(result => Verifier.Run(new Settings(
-            result.GetValue(local)!, result.GetValue(remote), result.GetValue(@base),
+            result.GetValue(local)!, result.GetValue(stack), result.GetValue(remote), result.GetValue(@base),
             result.GetValue(oldBase), result.GetValue(newBase), FromCaller(result.GetValue(repo)!),
             result.GetValue(diff), result.GetValue(context), result.GetValue(strict),
             result.GetValue(checkRemote), result.GetValue(verbose))));
@@ -216,12 +240,10 @@ static class Cli
         if (error.SymbolResult is OptionResult { Option: var option } result
             && result.Tokens.Count == 0 && option.ValueType != typeof(bool))
             return $"{option.Name} needs a value: {option.Name} <{option.HelpName}>.";
-        var unmatched = Regex.Match(error.Message, "^Unrecognized command or argument '(.*)'");
+        var unmatched = Regex.Match(error.Message, "^Unrecognized command or argument '(-.*)'");
         if (!unmatched.Success) return error.Message;
         var token = unmatched.Groups[1].Value;
-        return token.StartsWith('-')
-            ? $"Unknown option '{token}'.{Suggest(token, command)}"
-            : $"'{token}' is one argument too many: name one branch or commit to check.";
+        return $"Unknown option '{token}'.{Suggest(token, command)}";
     }
 
     // A git alias starts in the top of the repository and says in GIT_PREFIX
@@ -273,13 +295,23 @@ sealed class HelpPage(RootCommand root, IReadOnlyDictionary<Symbol, string> defa
         c.Write(new Padder(new Markup(Markup.Escape(root.Description ?? "")), new Padding(2, 0, 0, 0)));
 
         Section(c, "Usage");
-        c.MarkupLine($"  [bold]{Cli.Name}[/] [[<local>]] [[options]]");
-        c.MarkupLine("  [bold]git rbv[/] [[<local>]] [[options]]          [grey]the same, shorter[/]");
+        var usage = Table();
+        foreach (var (command, rest, what) in new[]
+        {
+            (Cli.Name, " [<local>] [options]", ""),
+            (Cli.Name, " --stack [<top>] [options]", "a stack of merge requests, found below <top>"),
+            (Cli.Name, " <bottom> … <top> [options]", "a stack of merge requests, named bottom first"),
+            ("git rbv", " …", "the same, shorter"),
+        })
+            usage.AddRow(new Markup($"[bold]{command}[/]{Markup.Escape(rest)}"), new Markup($"[grey]{Markup.Escape(what)}[/]"));
+        c.Write(usage);
 
         Section(c, "Arguments");
         var arguments = Table();
         foreach (var argument in root.Arguments)
-            arguments.AddRow(new Markup($"[bold]<{Markup.Escape(argument.Name)}>[/]"), Describe(argument, argument.Description));
+            arguments.AddRow(
+                new Markup($"[bold]<{Markup.Escape(argument.Name)}>{(argument.Arity.MaximumNumberOfValues > 1 ? "…" : "")}[/]"),
+                Describe(argument, argument.Description));
         c.Write(arguments);
 
         Section(c, "Options");
@@ -289,7 +321,7 @@ sealed class HelpPage(RootCommand root, IReadOnlyDictionary<Symbol, string> defa
             var aliases = option is HelpOption
                 ? ["-h", "--help"]
                 : option.Aliases.Prepend(option.Name).OrderBy(a => a.StartsWith("--")).ToArray();
-            var value = option.ValueType != typeof(bool) ? $" [grey]<{Markup.Escape(option.HelpName ?? "value")}>[/]" : "";
+            var value = option.ValueType != typeof(bool) && option is not HelpOption ? $" [grey]<{Markup.Escape(option.HelpName ?? "value")}>[/]" : "";
             options.AddRow(new Markup($"[bold]{string.Join(", ", aliases)}[/]{value}"), Describe(option, option.Description));
         }
         c.Write(options);
@@ -303,7 +335,11 @@ sealed class HelpPage(RootCommand root, IReadOnlyDictionary<Symbol, string> defa
                 + "moved the branch and changed nothing else.",
             "[bold]Commits[/]: pushed and rebased commits are paired by their patch -- zero context, no line numbers, so "
                 + "a hunk that moved is still the same patch -- then by subject. Reworded commits pass; changed, squashed, "
-                + "dropped, added and reordered ones are listed with the files whose changes differ.");
+                + "dropped, added and reordered ones are listed with the files whose changes differ.",
+            "[bold]Stacks[/]: with --stack, or several branches, each branch is checked as a merge request on the one below "
+                + "it. Its pushed version starts at the version of that branch it was built on -- `git merge-base --fork-point` "
+                + "finds it in the reflogs, even once it was force-pushed -- and is replayed onto that branch as rebased, so each "
+                + "report shows only what the rebase changed in that merge request. The exit code is the worst of them.");
 
         Section(c, "Exit codes");
         var codes = Table();
@@ -323,6 +359,8 @@ sealed class HelpPage(RootCommand root, IReadOnlyDictionary<Symbol, string> defa
             ($"{Cli.Name}", "the checked-out branch against what you pushed"),
             ($"{Cli.Name} --diff", "the same, and show what differs"),
             ($"{Cli.Name} feature -b origin/develop", "feature, which was rebased onto develop"),
+            ($"{Cli.Name} --stack -b origin/develop", "the stack of merge requests below the checked-out branch, the bottom one into develop"),
+            ($"{Cli.Name} mr-1 mr-2 mr-3 --diff", "a stack named bottom first, and show what differs"),
             ($"{Cli.Name} -r origin/feature-v1", "against a branch pushed under another name"),
             ($"{Cli.Name} --old-base v1.2 -b origin/main", "after git rebase --onto origin/main v1.2"),
             ($"{Cli.Name} --strict --check-remote", "fail on any commit difference, and on a stale lease"),
@@ -335,6 +373,8 @@ sealed class HelpPage(RootCommand root, IReadOnlyDictionary<Symbol, string> defa
         Section(c, "Environment");
         var environment = Table();
         environment.AddRow(new Markup("[bold]NO_COLOR[/]"), new Markup("Set to anything: no colors, as --no-color."));
+        environment.AddRow(new Markup("[bold]COLUMNS[/]"), new Markup(
+            "The width of output that goes to a file or a pipe, which is otherwise 80 columns; a terminal has its own."));
         environment.AddRow(new Markup("[bold]WSL_GIT[/]"), new Markup(
             "On WSL, [bold]windows[/] or [bold]linux[/] picks the git to run. Unset, a repository under /mnt/<drive> "
             + "gets Windows' git.exe, which is much faster there, and any other Linux's git."));
@@ -393,6 +433,12 @@ static class Ui
         var colors = noColor ? ColorSystemSupport.NoColors : ColorSystemSupport.Detect;
         Out = AnsiConsole.Create(new AnsiConsoleSettings { ColorSystem = colors, Out = new AnsiConsoleOutput(Console.Out) });
         Err = AnsiConsole.Create(new AnsiConsoleSettings { ColorSystem = colors, Out = new AnsiConsoleOutput(Console.Error) });
+        // Piped, the output is 80 columns wide, unless COLUMNS says otherwise.
+        if (int.TryParse(Environment.GetEnvironmentVariable("COLUMNS"), out var columns) && columns > 0)
+        {
+            if (Console.IsOutputRedirected) Out.Profile.Width = columns;
+            if (Console.IsErrorRedirected) Err.Profile.Width = columns;
+        }
     }
 
     public static string E(string text) => Markup.Escape(text);
@@ -411,13 +457,25 @@ static class Ui
         Err.Write(Box("✘ invalid usage", Color.Red, rows));
     }
 
-    public static void Fail(UserError error)
+    public static void Fail(UserError error) => Err.Write(ErrorBox(error));
+
+    public static Panel ErrorBox(UserError error)
     {
         var rows = new List<IRenderable> { new Markup($"[bold]{E(error.Message)}[/]") };
         if (!string.IsNullOrWhiteSpace(error.Detail))
             rows.Add(new Padder(new Text(error.Detail.Trim(), new Style(Color.Grey)), new Padding(2, 0, 0, 0)));
         rows.AddRange(error.Hints.Select(h => new Markup($"[yellow]→[/] {Code(h)}")));
-        Err.Write(Box("✘ cannot verify", Color.Red, rows));
+        return Box("✘ cannot verify", Color.Red, rows);
+    }
+
+    // A command to copy, on one line however long: the terminal wraps it, so
+    // that a copy of it is still one line, with no box border in it.
+    public static void Command(IAnsiConsole c, string command)
+    {
+        var width = c.Profile.Width;
+        c.Profile.Width = Math.Max(width, command.Length + 4);
+        c.MarkupLine($"   [deepskyblue1]{E(command)}[/]");
+        c.Profile.Width = width;
     }
 
     public static void Crash(Exception error, bool verbose)
@@ -946,7 +1004,10 @@ sealed record RemoteCheck(string? Sha);
 sealed class Analysis
 {
     public required Git Git;
-    public required RefInfo Local, Remote, Base;
+    // Onto is what Local was rebased onto: --base, --new-base, or in a stack
+    // the branch below, which makes it Stacked.
+    public required RefInfo Local, Remote, Onto;
+    public bool Stacked;
     public string OldBase = "", NewBase = "";
     public int UpstreamAhead, UpstreamBehind;
     public Relation Relation;
@@ -965,6 +1026,25 @@ sealed class Analysis
     public bool RemoteMoved => RemoteCheck is not null && RemoteCheck.Sha != Remote.Sha;
 }
 
+// A verdict: its box, its exit code, and -- when a push is to be offered --
+// what to say before it.
+sealed record Outcome(Color Color, string Title, int ExitCode, IReadOnlyList<string> Lines, string? PushPrefix = null);
+
+// A branch of a stack, with its pushed version -- none if it was never
+// pushed -- and, once checked, what was found.
+sealed class Layer(RefInfo local, RefInfo? remote)
+{
+    public RefInfo Local { get; } = local;
+    public RefInfo? Remote { get; } = remote;
+    public Analysis? Analysis;
+    public UserError? Error;
+    public Outcome? Outcome;
+}
+
+// The branches of a stack, bottom first, on --base; Found when they were
+// looked up rather than named.
+sealed record StackInfo(RefInfo Base, IReadOnlyList<Layer> Layers, bool Found);
+
 static class Verifier
 {
     public static int Run(Settings settings)
@@ -972,12 +1052,8 @@ static class Verifier
         try
         {
             var git = Git.Open(settings.Repo, settings.Verbose);
-            var analysis = settings.Verbose || !Ui.Out.Profile.Capabilities.Interactive
-                ? Analyze(git, settings, _ => { })
-                : Ui.Out.Status()
-                    .Spinner(Spinner.Known.Dots)
-                    .SpinnerStyle(new Style(Color.DeepSkyBlue1))
-                    .Start("Resolving refs…", ctx => Analyze(git, settings, message => ctx.Status(message)));
+            if (settings.IsStack) return RunStack(git, settings);
+            var analysis = Spin(settings, "Resolving refs…", status => Analyze(git, settings, status));
             return Report.Render(analysis, settings);
         }
         catch (UserError error)
@@ -992,31 +1068,66 @@ static class Verifier
         }
     }
 
+    // The work under a spinner that says what it does, when someone watches.
+    static T Spin<T>(Settings s, string first, Func<Action<string>, T> work) =>
+        s.Verbose || !Ui.Out.Profile.Capabilities.Interactive
+            ? work(_ => { })
+            : Ui.Out.Status()
+                .Spinner(Spinner.Known.Dots)
+                .SpinnerStyle(new Style(Color.DeepSkyBlue1))
+                .Start(first, ctx => work(message => ctx.Status(message)));
+
+    // Each branch of the stack, reported as soon as it is checked, then the whole.
+    static int RunStack(Git git, Settings s)
+    {
+        var stack = Spin(s, "Finding the stack…", status => ResolveStack(git, s, status));
+        var asked = s.CheckRemote
+            ? Spin(s, "Asking the remote…", status => AskRemote(git, stack.Layers.Select(l => l.Remote).OfType<RefInfo>(), status))
+            : null;
+        Report.Intro(stack);
+        for (var i = 0; i < stack.Layers.Count; i++)
+        {
+            var layer = stack.Layers[i];
+            if (layer.Remote is not null)
+                try
+                {
+                    layer.Analysis = Spin(s, $"Checking {layer.Local.Label}…",
+                        status => AnalyzeLayer(git, stack, i, s, asked, message => status($"{layer.Local.Label}: {message}")));
+                }
+                catch (UserError error)
+                {
+                    layer.Error = error;
+                }
+            layer.Outcome = Report.RenderLayer(stack, i, s);
+        }
+        return Report.Summary(stack, s);
+    }
+
     static Analysis Analyze(Git git, Settings s, Action<string> status)
     {
         RejectRebaseInProgress(git);
-        var local = ResolveLocal(git, s.Local);
+        var local = ResolveLocal(git, s.Branches[0]);
         var remote = ResolveRemote(git, s.Remote, local);
-        var @base = ResolveBase(git, s.Base, remote);
-        var a = new Analysis { Git = git, Local = local, Remote = remote, Base = @base };
+        // --base is only needed for a fork point not given.
+        var @base = s.OldBase is null || s.NewBase is null || s.Base is not null
+            ? ResolveBase(git, s.Base, remote.RemoteName, remote.Label)
+            : null;
+        var onto = s.NewBase is { } newBase ? new RefInfo(newBase, Require(git, newBase, "--new-base"), "--new-base") : @base!;
+        var a = new Analysis { Git = git, Local = local, Remote = remote, Onto = onto };
 
-        a.OldBase = s.OldBase is { } oldBase ? Require(git, oldBase, "--old-base") : MergeBase(git, remote, @base, "--old-base");
-        a.NewBase = s.NewBase is { } newBase ? Require(git, newBase, "--new-base") : MergeBase(git, local, @base, "--new-base");
+        a.OldBase = s.OldBase is { } oldBase ? Require(git, oldBase, "--old-base") : MergeBase(git, remote, @base!, "--old-base");
+        a.NewBase = s.NewBase is null ? MergeBase(git, local, @base!, "--new-base") : onto.Sha;
+        var baseLabel = @base?.Label ?? "<base>";
         if (!git.IsAncestor(a.OldBase, remote.Sha))
             throw new UserError(
                 $"--old-base {Ui.Short(a.OldBase)} is not in the history of {remote.Label}.",
                 null,
-                $"Pass the commit {remote.Label} was branched from, e.g. the one `git merge-base {remote.Label} {@base.Label}` prints.");
+                $"Pass the commit {remote.Label} was branched from, e.g. the one `git merge-base {remote.Label} {baseLabel}` prints.");
         if (!git.IsAncestor(a.NewBase, local.Sha))
             throw new UserError(
                 $"--new-base {Ui.Short(a.NewBase)} is not in the history of {local.Label}.",
                 null,
-                $"Pass the commit {local.Label} was rebased onto, e.g. the one `git merge-base {local.Label} {@base.Label}` prints.");
-        if (a.OldBase != a.NewBase)
-        {
-            a.UpstreamAhead = git.Count($"{a.OldBase}..{a.NewBase}");
-            a.UpstreamBehind = git.Count($"{a.NewBase}..{a.OldBase}");
-        }
+                $"Pass the commit {local.Label} was rebased onto, e.g. the one `git merge-base {local.Label} {baseLabel}` prints.");
 
         if (s.CheckRemote)
         {
@@ -1025,28 +1136,31 @@ static class Verifier
                     $"--check-remote asks a remote, and {remote.Label} is not a remote-tracking branch.",
                     null,
                     "Pass the pushed branch as `--remote <remote>/<branch>`, e.g. `--remote origin/feature`.");
-            status($"Asking {remote.RemoteName} where {remote.RemoteBranch} is…");
-            var answer = git.Try(["ls-remote", "--exit-code", remote.RemoteName, $"refs/heads/{remote.RemoteBranch}"], TimeSpan.FromSeconds(30));
-            a.RemoteCheck = answer.ExitCode switch
-            {
-                0 => new RemoteCheck(answer.Out.Split('\t')[0].Trim()),
-                2 => new RemoteCheck(null),
-                _ => throw new UserError(
-                    $"Could not ask {remote.RemoteName} where {remote.RemoteBranch} is.",
-                    answer.Err,
-                    "Check the network, VPN and credentials, or leave `--check-remote` out to verify against your last fetch."),
-            };
+            a.RemoteCheck = AskRemote(git, [remote], status)[remote];
+        }
+        Compare(git, a, s, status);
+        return a;
+    }
+
+    // The pushed and the rebased version compared, once their fork points are known.
+    static void Compare(Git git, Analysis a, Settings s, Action<string> status)
+    {
+        var (local, remote) = (a.Local, a.Remote);
+        if (a.OldBase != a.NewBase)
+        {
+            a.UpstreamAhead = git.Count($"{a.OldBase}..{a.NewBase}");
+            a.UpstreamBehind = git.Count($"{a.NewBase}..{a.OldBase}");
         }
 
         a.Relation = local.Sha == remote.Sha ? Relation.Same
             : git.IsAncestor(remote.Sha, local.Sha) ? Relation.Ahead
             : git.IsAncestor(local.Sha, remote.Sha) ? Relation.Behind
             : Relation.Diverged;
-        if (a.Relation == Relation.Same) return a;
+        if (a.Relation == Relation.Same) return;
         if (a.Relation == Relation.Ahead)
         {
             a.Distance = git.Count($"{remote.Sha}..{local.Sha}");
-            return a;
+            return;
         }
         if (a.Relation == Relation.Behind) a.Distance = git.Count($"{local.Sha}..{remote.Sha}");
 
@@ -1085,7 +1199,159 @@ static class Verifier
                     a.CommitDiffs.Add(new CommitDiff(row, path, Normalize(old.GetValueOrDefault(path)), Normalize(@new.GetValueOrDefault(path))));
             }
         }
+    }
+
+    // The stack's branches, bottom first, each with its pushed version if it has one.
+    static StackInfo ResolveStack(Git git, Settings s, Action<string> status)
+    {
+        RejectRebaseInProgress(git);
+        var named = new List<RefInfo>();
+        foreach (var spec in s.Branches)
+        {
+            var info = ResolveLocal(git, spec);
+            if (info.Branch is null)
+                throw spec == "HEAD"
+                    ? new UserError("HEAD is detached, so it is no branch of a stack.", null,
+                        $"Name the top branch of the stack: `{Cli.Name} --stack <branch>`.")
+                    : new UserError($"'{spec}' is not a local branch, and each merge request of a stack is one.", null,
+                        "`git branch` lists the local branches.");
+            if (named.Any(n => n.Branch == info.Branch))
+                throw new UserError($"{info.Branch} is named twice.", null, "Name each branch of the stack once, bottom first.");
+            named.Add(info);
+        }
+        for (var i = 1; i < named.Count; i++)
+            if (!git.IsAncestor(named[i - 1].Sha, named[i].Sha))
+                throw new UserError(
+                    $"{named[i].Label} is not on top of {named[i - 1].Label}: {named[i - 1].Label} is not in its history.",
+                    null,
+                    git.IsAncestor(named[i].Sha, named[i - 1].Sha)
+                        ? $"Name the branches bottom first: `{Cli.Name} {string.Join(' ', Enumerable.Reverse(named).Select(n => n.Label))}`."
+                        : "Name the branches of one stack, bottom first, each on top of the one before -- or only the top one, with `--stack`, to have the others found.");
+
+        var top = named[^1];
+        var topPushed = FindPushed(git, top.Branch!);
+        var @base = ResolveBase(git, s.Base, topPushed?.RemoteName, topPushed?.Label);
+        var found = named.Count == 1;
+        if (found) status($"Finding the branches between {@base.Label} and {top.Label}…");
+        var layers = found
+            ? Discover(git, top, topPushed, @base)
+            : named.Select(n => new Layer(n, FindPushed(git, n.Branch!))).ToList();
+        if (layers.All(l => l.Remote is null))
+            throw found
+                ? new UserError(
+                    $"Found no branch with a pushed version between {@base.Label} and {top.Label}, and {top.Label} was never pushed either: a push would overwrite nothing.",
+                    null,
+                    "Is the stack on another branch? Name it: `--base <ref>`.",
+                    "Never pushed? Then a plain `git push` publishes it.")
+                : new UserError("None of these branches was pushed, so a push would overwrite nothing.", null,
+                    "A plain `git push` publishes them.");
+        return new StackInfo(@base, layers, found);
+    }
+
+    // The merge requests below the top: the local branches on its first-parent
+    // line above --base that have a pushed version. A backup of a branch the
+    // rebase only added to is on that line too, but was never pushed.
+    static List<Layer> Discover(Git git, RefInfo top, RefInfo? topPushed, RefInfo @base)
+    {
+        var line = git.Run("rev-list", "--first-parent", top.Sha, "--not", @base.Sha).Out
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (line.Length == 0)
+            throw new UserError(
+                $"{top.Label} is already in {@base.Label}, so there is no stack between them.",
+                null,
+                "Name the branch the bottom merge request targets: `--base <ref>`.");
+        var height = line.Select((sha, i) => (sha, i)).ToDictionary(x => x.sha, x => line.Length - x.i);
+        var below = new List<Layer>();
+        foreach (var record in git.Run("for-each-ref", "--format=%(objectname) %(refname:lstrip=2)", "refs/heads/").Out
+                     .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            var fields = record.Split(' ', 2);
+            var (sha, branch) = (fields[0], fields[1]);
+            if (sha == top.Sha || !height.ContainsKey(sha)) continue;
+            if (FindPushed(git, branch) is { } pushed)
+                below.Add(new Layer(new RefInfo(branch, sha, Branch: branch), pushed));
+        }
+        if (below.GroupBy(l => l.Local.Sha).FirstOrDefault(g => g.Count() > 1) is { } twins)
+            throw new UserError(
+                $"{string.Join(" and ", twins.Select(l => l.Local.Label))} are the same commit, {Ui.Short(twins.Key)}, so it is unclear which merge request is which.",
+                null,
+                $"Name the stack's branches, bottom first: `{Cli.Name} <bottom> … {top.Label}`.");
+        return [.. below.OrderBy(l => height[l.Local.Sha]), new Layer(top, topPushed)];
+    }
+
+    // A branch of the stack: the bottom one forks from --base, as a branch
+    // alone does; every other one is a merge request on the branch below it.
+    static Analysis AnalyzeLayer(Git git, StackInfo stack, int i, Settings s, Dictionary<RefInfo, RemoteCheck>? asked, Action<string> status)
+    {
+        var (local, remote) = (stack.Layers[i].Local, stack.Layers[i].Remote!);
+        Analysis a;
+        if (i == 0)
+        {
+            a = new Analysis { Git = git, Local = local, Remote = remote, Onto = stack.Base };
+            a.OldBase = MergeBase(git, remote, stack.Base, null);
+            a.NewBase = MergeBase(git, local, stack.Base, null);
+        }
+        else
+        {
+            var below = stack.Layers[i - 1];
+            a = new Analysis { Git = git, Local = local, Remote = remote, Onto = below.Local with { Why = "the merge request below" }, Stacked = true };
+            a.NewBase = below.Local.Sha;
+            a.OldBase = ForkPoint(git, below, remote) ?? throw new UserError(
+                $"Could not tell which version of {below.Local.Label} the pushed {local.Label} was built on.",
+                (below.Remote is null
+                    ? $"{below.Local.Label}'s reflog does not have it"
+                    : $"Neither {below.Remote.Label}'s reflog nor {below.Local.Label}'s has it")
+                    + " -- as in a fresh clone, or once the reflog expired.",
+                $"Check {local.Label} alone, from that version: `{Cli.Name} {local.Label} --old-base <commit> --new-base {below.Local.Label}`, "
+                    + $"with a backup of the old {below.Local.Label}, or its id from the merge request's history.");
+        }
+        if (asked is not null) a.RemoteCheck = asked[remote];
+        Compare(git, a, s, status);
         return a;
+    }
+
+    // The version of the branch below that the pushed one was built on: the
+    // newest one the pushed one contains, as the reflogs of that branch and of
+    // its remote-tracking ref remember them -- so it is found even once that
+    // branch was rebased, and force-pushed.
+    static string? ForkPoint(Git git, Layer below, RefInfo pushed)
+    {
+        string[] refs = below.Remote is null
+            ? [$"refs/heads/{below.Local.Branch}"]
+            : [$"refs/remotes/{below.Remote.Label}", $"refs/heads/{below.Local.Branch}"];
+        var points = refs
+            .Select(r => git.Try("merge-base", "--fork-point", r, pushed.Sha))
+            .Where(r => r.ExitCode == 0)
+            .Select(r => r.Out.Trim())
+            .Distinct()
+            .ToList();
+        return points.Count < 2 ? points.FirstOrDefault()
+            : git.IsAncestor(points[0], points[1]) ? points[1] : points[0];
+    }
+
+    // Where the remote has these branches now, asked once per remote.
+    static Dictionary<RefInfo, RemoteCheck> AskRemote(Git git, IEnumerable<RefInfo> pushed, Action<string> status)
+    {
+        var checks = new Dictionary<RefInfo, RemoteCheck>();
+        foreach (var group in pushed.GroupBy(r => r.RemoteName!))
+        {
+            var branches = group.Select(r => r.RemoteBranch!).Distinct().ToList();
+            var which = branches.Count == 1 ? $"{branches[0]} is" : $"{branches.Count} branches are";
+            status($"Asking {group.Key} where {which}…");
+            var answer = git.Try(["ls-remote", group.Key, .. branches.Select(b => $"refs/heads/{b}")], TimeSpan.FromSeconds(30));
+            if (answer.ExitCode != 0)
+                throw new UserError(
+                    $"Could not ask {group.Key} where {which}.",
+                    answer.Err,
+                    "Check the network, VPN and credentials, or leave `--check-remote` out to verify against your last fetch.");
+            var heads = answer.Out.Split('\n', StringSplitOptions.RemoveEmptyEntries)
+                .Select(l => l.Split('\t'))
+                .Where(f => f.Length == 2)
+                .DistinctBy(f => f[1].Trim())
+                .ToDictionary(f => f[1].Trim(), f => f[0].Trim());
+            foreach (var r in group) checks[r] = new RemoteCheck(heads.GetValueOrDefault($"refs/heads/{r.RemoteBranch}"));
+        }
+        return checks;
     }
 
     // The tree the rebase would make with no hand on it: the pushed changes,
@@ -1175,6 +1441,18 @@ static class Verifier
                 "or the pushed version itself: `--remote origin/<branch>`.");
 
         var branch = local.Branch;
+        return FindPushed(git, branch) ?? throw new UserError(
+            $"Found no pushed version of {branch}: it has no push destination or upstream, and there is no origin/{branch}.",
+            null,
+            "Pushed under another name? Pass it: `--remote <remote>/<branch>`.",
+            "Pushed, but not fetched here? `git fetch`, then run this again.",
+            "Never pushed? Then nothing would be overwritten: a plain `git push` publishes it.");
+    }
+
+    // The pushed version of a branch: where `git push` sends it, else origin's
+    // branch of its name, else its upstream if that has its name; null if none.
+    static RefInfo? FindPushed(Git git, string branch)
+    {
         foreach (var (rev, why) in new[]
         {
             ($"{branch}@{{push}}", $"where `git push` sends {branch}"),
@@ -1190,12 +1468,7 @@ static class Verifier
             if (rev.EndsWith("@{upstream}") && info.RemoteBranch != branch) continue;
             return info;
         }
-        throw new UserError(
-            $"Found no pushed version of {branch}: it has no push destination or upstream, and there is no origin/{branch}.",
-            null,
-            "Pushed under another name? Pass it: `--remote <remote>/<branch>`.",
-            "Pushed, but not fetched here? `git fetch`, then run this again.",
-            "Never pushed? Then nothing would be overwritten: a plain `git push` publishes it.");
+        return null;
     }
 
     // The ref with its remote and branch, when it is a remote-tracking one.
@@ -1212,19 +1485,20 @@ static class Verifier
             : new RefInfo(label, sha, why, RemoteName: remote, RemoteBranch: full[$"refs/remotes/{remote}/".Length..]);
     }
 
-    static RefInfo ResolveBase(Git git, string? spec, RefInfo remote)
+    // --base, else the remote's default branch, other than the pushed branch itself.
+    static RefInfo ResolveBase(Git git, string? spec, string? remoteName, string? pushed)
     {
         if (spec is not null)
             return new RefInfo(spec, Require(git, spec, "--base",
                 "Name the branch you rebased onto, e.g. `--base origin/main`; `git branch -a` lists them."), "--base");
 
-        var name = remote.RemoteName ?? "origin";
+        var name = remoteName ?? "origin";
         var head = git.Try("symbolic-ref", "--quiet", "--short", $"refs/remotes/{name}/HEAD");
         var candidates = new List<(string Rev, string Why)>();
         if (head.ExitCode == 0) candidates.Add((head.Out.Trim(), $"{name}'s default branch"));
         candidates.AddRange([($"{name}/main", "found by name"), ($"{name}/master", "found by name"), ("main", "found by name"), ("master", "found by name")]);
         foreach (var (rev, why) in candidates)
-            if (rev != remote.Label && git.Commit(rev) is { } sha)
+            if (rev != pushed && git.Commit(rev) is { } sha)
                 return new RefInfo(rev, sha, why);
         throw new UserError(
             $"Could not tell which branch this was rebased onto: there is no {name}/HEAD, {name}/main or {name}/master.",
@@ -1233,7 +1507,8 @@ static class Verifier
             $"Or have git record {name}'s default branch: `git remote set-head {name} --auto`.");
     }
 
-    static string MergeBase(Git git, RefInfo tip, RefInfo @base, string option)
+    // The option is the one that could name the fork point instead; none in a stack.
+    static string MergeBase(Git git, RefInfo tip, RefInfo @base, string? option)
     {
         var result = git.Try("merge-base", tip.Sha, @base.Sha);
         return result.ExitCode == 0
@@ -1241,7 +1516,9 @@ static class Verifier
             : throw new UserError(
                 $"{tip.Label} and {@base.Label} share no history, so there is no fork point to compare from.",
                 null,
-                $"Pass the commit it starts from with `{option} <commit>`, or another branch with `--base <ref>`.");
+                option is null
+                    ? "Name the branch the bottom merge request targets: `--base <ref>`."
+                    : $"Pass the commit it starts from with `{option} <commit>`, or another branch with `--base <ref>`.");
     }
 }
 
@@ -1254,26 +1531,25 @@ static class Report
         var c = Ui.Out;
         c.WriteLine();
         c.Write(new Rule("[bold deepskyblue1]verify rebase[/]").LeftJustified().RuleStyle(new Style(Color.Grey)));
+        var outcome = Body(c, a, s);
+        if (outcome.PushPrefix is { } prefix && PushCommand(a) is { } push)
+            Offer(c, prefix, "the version checked here", [push]);
+        return outcome.ExitCode;
+    }
+
+    // A branch's refs, commits, content and diffs, and the verdict on them.
+    static Outcome Body(IAnsiConsole c, Analysis a, Settings s)
+    {
         Refs(c, a, s);
-
-        if (a.RemoteMoved)
-            return Verdict(c, a, Color.Red, "✘ the remote moved", ExitCodes.Differs,
-                a.RemoteCheck!.Sha is null
-                    ? $"{a.Remote.RemoteName} no longer has {a.Remote.RemoteBranch}; this check was against your last fetch."
-                    : $"Someone pushed {a.Remote.RemoteBranch} since your last fetch, so this check was against an old version, and --force-with-lease would be rejected.",
-                $"`git fetch {a.Remote.RemoteName}`, bring the new commits into {a.Local.Label}, and verify again.");
-        if (a.Relation == Relation.Same)
-            return Verdict(c, a, Color.Green, "✔ nothing to force-push", ExitCodes.Same,
-                $"{a.Local.Label} and {a.Remote.Label} are the same commit: the rebase changed nothing, and there is nothing to push.");
-        if (a.Relation == Relation.Ahead)
-            return Verdict(c, a, Color.Green, "✔ nothing was rewritten", ExitCodes.Same,
-                $"{a.Local.Label} contains {a.Remote.Label} and adds {Plural(a.Distance, "commit")} to it, so no history was rewritten.",
-                "No force needed: a plain `git push` publishes them.");
-
-        Commits(c, a);
-        Content(c, a);
-        if (s.Diff) Diffs(c, a, s.Context);
-        return Conclude(c, a, s);
+        if (!a.RemoteMoved && a.Relation is Relation.Behind or Relation.Diverged)
+        {
+            Commits(c, a);
+            Content(c, a);
+            if (s.Diff) Diffs(c, a, s.Context);
+        }
+        var outcome = Judge(a, s);
+        Box(c, outcome);
+        return outcome;
     }
 
     static void Refs(IAnsiConsole c, Analysis a, Settings s)
@@ -1282,11 +1558,10 @@ static class Report
         grid.AddColumn(new GridColumn().NoWrap().PadLeft(1).PadRight(2));
         grid.AddColumn(new GridColumn());
         void Row(string label, string value) => grid.AddRow(new Markup($"[grey]{label}[/]"), new Markup(value));
-        string Ref(RefInfo r) => $"[bold]{Ui.E(r.Label)}[/]  [deepskyblue1]{Ui.Short(r.Sha)}[/]{(r.Why is null ? "" : $"  [grey]{Ui.Code(r.Why)}[/]")}";
 
         Row("rebased", Ref(a.Local));
         Row("pushed", Ref(a.Remote));
-        Row("onto", Ref(a.Base));
+        Row("onto", Ref(a.Onto));
         Row("fork point", a.OldBase == a.NewBase
             ? $"[deepskyblue1]{Ui.Short(a.OldBase)}[/]  [grey]unchanged[/]"
             : $"[deepskyblue1]{Ui.Short(a.OldBase)}[/] → [deepskyblue1]{Ui.Short(a.NewBase)}[/]  [grey]{Moved(a)}[/]");
@@ -1307,11 +1582,15 @@ static class Report
         c.Write(new Padder(grid, new Padding(0, 1, 0, 1)));
     }
 
+    static string Ref(RefInfo r) =>
+        $"[bold]{Ui.E(r.Label)}[/]  [deepskyblue1]{Ui.Short(r.Sha)}[/]{(r.Why is null ? "" : $"  [grey]{Ui.Code(r.Why)}[/]")}";
+
     static string Moved(Analysis a) =>
         (a.UpstreamAhead, a.UpstreamBehind) switch
         {
-            (var ahead, 0) => $"{Plural(ahead, "new commit")} from {Ui.E(a.Base.Label)} underneath",
-            (0, var behind) => $"moved back {Plural(behind, "commit")} on {Ui.E(a.Base.Label)}",
+            (var ahead, 0) => $"{Plural(ahead, "new commit")} from {Ui.E(a.Onto.Label)} underneath",
+            (0, var behind) => $"moved back {Plural(behind, "commit")} on {Ui.E(a.Onto.Label)}",
+            var (ahead, behind) when a.Stacked => $"{Ui.E(a.Onto.Label)} was rewritten underneath: {ahead} commits gained, {behind} lost",
             var (ahead, behind) => $"{ahead} commits gained and {behind} lost underneath -- onto another line of history",
         };
 
@@ -1527,8 +1806,26 @@ static class Report
         return text.Append(Ui.E(plain.ToString())).ToString();
     }
 
-    static int Conclude(IAnsiConsole c, Analysis a, Settings s)
+    static Outcome Judge(Analysis a, Settings s)
     {
+        if (a.RemoteMoved)
+            return new(Color.Red, "✘ the remote moved", ExitCodes.Differs,
+            [
+                a.RemoteCheck!.Sha is null
+                    ? $"{a.Remote.RemoteName} no longer has {a.Remote.RemoteBranch}; this check was against your last fetch."
+                    : $"Someone pushed {a.Remote.RemoteBranch} since your last fetch, so this check was against an old version, and --force-with-lease would be rejected.",
+                $"`git fetch {a.Remote.RemoteName}`, bring the new commits into {a.Local.Label}, and verify again.",
+            ]);
+        if (a.Relation == Relation.Same)
+            return new(Color.Green, "✔ nothing to force-push", ExitCodes.Same,
+                [$"{a.Local.Label} and {a.Remote.Label} are the same commit: the rebase changed nothing, and there is nothing to push."]);
+        if (a.Relation == Relation.Ahead)
+            return new(Color.Green, "✔ nothing was rewritten", ExitCodes.Same,
+            [
+                $"{a.Local.Label} contains {a.Remote.Label} and adds {Plural(a.Distance, "commit")} to it, so no history was rewritten.",
+                "No force needed: a plain `git push` publishes them.",
+            ]);
+
         var rangeDiff = $"`git range-diff {Ui.Short(a.OldBase)}..{a.Remote.Label} {Ui.Short(a.NewBase)}..{a.Local.Label}` compares them commit by commit.";
         var seeDiff = s.Diff ? rangeDiff : "Run again with `--diff` to see what differs; " + rangeDiff;
         var conflictsOnly = a.Content.Count > 0 && a.Content.All(f => f.Conflict && !f.Patch.HasConflictMarkers);
@@ -1537,31 +1834,31 @@ static class Report
             : Array.Empty<string>();
 
         if (!a.ContentSame && conflictsOnly)
-            return Verdict(c, a, Color.Yellow, "⚠ review the conflict resolutions", ExitCodes.Differs,
+            return new(Color.Yellow, "⚠ review the conflict resolutions", ExitCodes.Differs,
                 [.. behind,
                 $"Only {Plural(a.Content.Count, "file")} where the rebase had conflicts differ{(a.Content.Count == 1 ? "s" : "")} from a clean replay. "
                     + "Make sure each resolution keeps both sides' intent.",
-                seeDiff,
-                .. Push(a, "Once they are right, ")]);
+                seeDiff],
+                "Once they are right, ");
         if (!a.ContentSame)
-            return Verdict(c, a, Color.Red, a.Relation == Relation.Behind ? "✘ a force-push would drop commits" : "✘ the rebase changed the content", ExitCodes.Differs,
+            return new(Color.Red, a.Relation == Relation.Behind ? "✘ a force-push would drop commits" : "✘ the rebase changed the content", ExitCodes.Differs,
                 [.. behind,
                 $"{Plural(a.Content.Count, "file")} of {a.Local.Label} differ{(a.Content.Count == 1 ? "s" : "")} from what replaying {a.Remote.Label} onto the new base gives.",
-                seeDiff,
-                .. Push(a, "Only if every difference is intended, ")]);
+                seeDiff],
+                "Only if every difference is intended, ");
         if (!a.CommitsSame)
-            return Verdict(c, a, s.Strict ? Color.Red : Color.Yellow,
+            return new(s.Strict ? Color.Red : Color.Yellow,
                 s.Strict ? "✘ the commits differ" : "⚠ same content, other commits",
                 s.Strict ? ExitCodes.Differs : ExitCodes.Same,
                 [$"Every file is as before, but the commits were {Reshaped(a)}.",
-                "Fine if that was the point of the rebase (squash, split, reorder); otherwise " + (s.Diff ? rangeDiff : "see `--diff`."),
-                .. Push(a, "If so, ")]);
-        return Verdict(c, a, Color.Green, "✔ safe to force-push", ExitCodes.Same,
+                "Fine if that was the point of the rebase (squash, split, reorder); otherwise " + (s.Diff ? rangeDiff : "see `--diff`.")],
+                "If so, ");
+        return new(Color.Green, "✔ safe to force-push", ExitCodes.Same,
             [a.OldBase == a.NewBase
                 ? "Same content, same commits: the rebase changed nothing but the commit ids."
                 : $"Same content, same commits: the rebase only moved {a.Local.Label} onto {Ui.Short(a.NewBase)}.",
-            .. a.Rows.Any(r => r.Status == RowStatus.Reworded) ? ["Some commit messages were reworded."] : Array.Empty<string>(),
-            .. Push(a, "")]);
+            .. a.Rows.Any(r => r.Status == RowStatus.Reworded) ? ["Some commit messages were reworded."] : Array.Empty<string>()],
+            "");
     }
 
     static string Reshaped(Analysis a)
@@ -1582,18 +1879,183 @@ static class Report
     }
 
     // The push that overwrites exactly the verified version, and nothing newer.
-    static IEnumerable<string> Push(Analysis a, string prefix)
+    static string? PushCommand(Analysis a)
     {
-        if (a.Local.Branch is null || a.Remote.RemoteName is null) yield break;
+        if (a.Local.Branch is null || a.Remote.RemoteName is null) return null;
         var target = a.Local.Branch == a.Remote.RemoteBranch ? a.Local.Branch : $"{a.Local.Branch}:{a.Remote.RemoteBranch}";
-        yield return $"{(prefix.Length == 0 ? "This" : prefix + "this")} push overwrites exactly the version checked here, and nothing pushed since:";
-        yield return $"  `git push --force-with-lease={a.Remote.RemoteBranch}:{a.Remote.Sha} {a.Remote.RemoteName} {target}`";
+        return $"git push --force-with-lease={a.Remote.RemoteBranch}:{a.Remote.Sha} {a.Remote.RemoteName} {target}";
     }
 
-    static int Verdict(IAnsiConsole c, Analysis a, Color color, string title, int exitCode, params IEnumerable<string> lines)
+    // The pushes, below the verdict rather than in its box, so that each copies whole.
+    static void Offer(IAnsiConsole c, string prefix, string what, IReadOnlyList<string> pushes)
     {
-        c.Write(Ui.Box(title, color, lines.Select(l => new Markup(Ui.Code(l)))));
-        return exitCode;
+        var verb = pushes.Count == 1 ? "this push overwrites" : "these pushes overwrite";
+        var lead = prefix.Length == 0 ? char.ToUpperInvariant(verb[0]) + verb[1..] : prefix + verb;
+        c.MarkupLine($" {Ui.Code($"{lead} exactly {what}, and nothing pushed since:")}");
+        foreach (var push in pushes) Ui.Command(c, push);
+    }
+
+    static void Box(IAnsiConsole c, Outcome outcome) =>
+        c.Write(Ui.Box(outcome.Title, outcome.Color, outcome.Lines.Select(l => new Markup(Ui.Code(l)))));
+
+    // ─── stacks
+
+    public static void Intro(StackInfo stack)
+    {
+        var c = Ui.Out;
+        var n = stack.Layers.Count;
+        c.WriteLine();
+        c.Write(new Rule($"[bold deepskyblue1]verify rebase[/] [grey]·[/] [bold]a stack of {n} branch{(n == 1 ? "" : "es")}[/]")
+            .LeftJustified().RuleStyle(new Style(Color.Grey)));
+        var grid = new Grid();
+        grid.AddColumn(new GridColumn().NoWrap().PadLeft(1).PadRight(2));
+        grid.AddColumn(new GridColumn());
+        grid.AddRow(new Markup("[grey]onto[/]"), new Markup(Ref(stack.Base)));
+        for (var i = 0; i < n; i++)
+        {
+            var layer = stack.Layers[i];
+            grid.AddRow(new Markup($"[grey]{i + 1}[/]"),
+                new Markup(Ref(layer.Local with { Why = layer.Remote is null ? "never pushed" : $"pushed as {layer.Remote.Label}" })));
+        }
+        c.Write(new Padder(grid, new Padding(0, 1, 0, 1)));
+        if (stack.Found)
+            c.MarkupLine($"[grey] Found as the branches with a pushed version on the first-parent line from {Ui.E(stack.Base.Label)} "
+                + $"to {Ui.E(stack.Layers[^1].Local.Label)}; name the branches, bottom first, to check others.[/]");
+    }
+
+    // One branch of the stack, under a header that says which.
+    public static Outcome RenderLayer(StackInfo stack, int i, Settings s)
+    {
+        var c = Ui.Out;
+        var layer = stack.Layers[i];
+        c.WriteLine();
+        c.Write(new Rule($"[bold deepskyblue1]{i + 1}/{stack.Layers.Count}[/] [bold]{Ui.E(layer.Local.Label)}[/]")
+            .LeftJustified().RuleStyle(new Style(Color.Grey)));
+        if (layer.Analysis is { } a) return Body(c, a, s);
+        c.WriteLine();
+        if (layer.Error is { } error)
+        {
+            c.Write(Ui.ErrorBox(error));
+            return new(Color.Red, "✘ cannot verify", ExitCodes.Error, [error.Message]);
+        }
+        var below = i == 0 ? stack.Base : stack.Layers[i - 1].Local;
+        var outcome = new Outcome(Color.Grey, "○ never pushed", ExitCodes.Same,
+        [
+            $"{layer.Local.Label} has no pushed version, so there is nothing to compare, and a push overwrites nothing.",
+            $"Review it as its merge request shows it: `git diff {below.Label}...{layer.Local.Label}`.",
+        ]);
+        Box(c, outcome);
+        return outcome;
+    }
+
+    // The stack at a glance, the verdict on all of it, and one push for all of it.
+    public static int Summary(StackInfo stack, Settings s)
+    {
+        var c = Ui.Out;
+        c.WriteLine();
+        c.Write(new Rule("[bold]the stack[/]").LeftJustified().RuleStyle(new Style(Color.Grey)));
+        var table = new Table().Border(TableBorder.Rounded).BorderColor(Color.Grey);
+        table.AddColumn(new TableColumn("[grey]#[/]").RightAligned().NoWrap());
+        table.AddColumn(new TableColumn("[grey]branch[/]"));
+        table.AddColumn(new TableColumn("[grey]commits[/]").NoWrap());
+        table.AddColumn(new TableColumn("[grey]files[/]").NoWrap());
+        table.AddColumn(new TableColumn("[grey]verdict[/]"));
+        for (var i = 0; i < stack.Layers.Count; i++)
+        {
+            var layer = stack.Layers[i];
+            table.AddRow(
+                new Markup($"[grey]{i + 1}[/]"),
+                new Markup($"[bold]{Ui.E(layer.Local.Label)}[/]"),
+                new Markup(CommitCell(layer.Analysis)),
+                new Markup(FileCell(layer.Analysis)),
+                new Markup($"[{layer.Outcome!.Color.ToMarkup()}]{Ui.E(layer.Outcome.Title)}[/]"));
+        }
+        c.Write(table);
+        c.WriteLine();
+
+        var verdict = StackVerdict(stack, s);
+        Box(c, verdict);
+        if (verdict.PushPrefix is { } prefix && StackPushes(stack) is { Count: > 0 } pushes)
+        {
+            Offer(c, prefix, "the versions checked here, all or none", pushes);
+            var fresh = stack.Layers.Where(l => l.Remote is null).Select(l => l.Local.Label).ToList();
+            if (fresh.Count > 0)
+                c.MarkupLine($"[grey] {(pushes.Count == 1 ? "It" : "They")} also publish{(pushes.Count == 1 ? "es" : "")} {Ui.E(string.Join(", ", fresh))}, "
+                    + $"never pushed so far; leave {(fresh.Count == 1 ? "it" : "them")} out to keep {(fresh.Count == 1 ? "it" : "them")} local.[/]");
+        }
+        return verdict.ExitCode;
+    }
+
+    static string CommitCell(Analysis? a) => a switch
+    {
+        null => "[grey]—[/]",
+        { Relation: Relation.Same } => "[grey]the same[/]",
+        { Relation: Relation.Ahead } => $"[grey]{a.Distance} added[/]",
+        _ => $"{a.OldCommits.Count} → {a.NewCommits.Count}",
+    };
+
+    static string FileCell(Analysis? a)
+    {
+        if (a is null || a.Relation is Relation.Same or Relation.Ahead) return "[grey]—[/]";
+        if (a.ContentSame) return "[green]all the same[/]";
+        var conflicts = a.Content.Count(f => f.Conflict);
+        return $"[red]{a.Content.Count} differ{(a.Content.Count == 1 ? "s" : "")}[/]"
+            + (conflicts > 0 ? $"[grey],[/] [yellow]{conflicts} after a conflict[/]" : "");
+    }
+
+    static Outcome StackVerdict(StackInfo stack, Settings s)
+    {
+        var layers = stack.Layers;
+        var n = layers.Count;
+        static string Names(IEnumerable<Layer> which) => string.Join(", ", which.Select(l => l.Local.Label));
+        static string Their(int count, string what) => count == 1 ? $"its section says {what}" : $"their sections say {what}";
+
+        var failed = layers.Where(l => l.Outcome!.ExitCode == ExitCodes.Error).ToList();
+        if (failed.Count > 0)
+            return new(Color.Red, $"✘ could not check {failed.Count} of {n}", ExitCodes.Error,
+                [$"{Names(failed)}: {Their(failed.Count, "why")}, above.", "Fix that, and run this again before you push any of them."]);
+
+        var differ = layers.Where(l => l.Outcome!.ExitCode == ExitCodes.Differs).ToList();
+        if (differ.Count > 0)
+        {
+            var red = differ.Any(l => l.Outcome!.Color == Color.Red);
+            var moved = differ.Where(l => l.Analysis?.RemoteMoved == true).ToList();
+            var changed = differ.Except(moved).ToList();
+            return new(red ? Color.Red : Color.Yellow,
+                moved.Count == differ.Count ? $"✘ the remote moved for {moved.Count} of {n}"
+                    : red ? $"✘ {differ.Count} of {n} branches differ"
+                    : $"⚠ review the conflict resolutions in {differ.Count} of {n}",
+                ExitCodes.Differs,
+                [.. changed.Count > 0 ? [$"{Names(changed)}: {Their(changed.Count, "what differs")}, above{(s.Diff ? "" : "; `--diff` shows it line by line")}."] : Array.Empty<string>(),
+                .. moved.Count > 0 ? [$"The remote moved for {Names(moved)} since your last fetch: fetch, and verify again before you push."] : Array.Empty<string>()],
+                moved.Count > 0 ? null : red ? "Only if every difference is intended, " : "Once they are right, ");
+        }
+
+        var reshaped = layers.Where(l => l.Outcome!.Color == Color.Yellow).ToList();
+        if (reshaped.Count > 0)
+            return new(Color.Yellow, "⚠ same content, other commits", ExitCodes.Same,
+                [$"Every file is as before, but {Names(reshaped)} {(reshaped.Count == 1 ? "has" : "have")} other commits: fine if that was the point of the rebase."],
+                "If so, ");
+        if (layers.All(l => l.Analysis is { Relation: Relation.Same }))
+            return new(Color.Green, "✔ nothing to force-push", ExitCodes.Same, ["Every branch is where it was pushed."]);
+        return new(Color.Green, "✔ safe to force-push", ExitCodes.Same, ["The rebase altered no merge request's changes."], "");
+    }
+
+    // One push per remote, atomic: each branch leased to the version checked,
+    // and one never pushed to there being none yet.
+    static List<string> StackPushes(StackInfo stack)
+    {
+        var fallback = stack.Layers.LastOrDefault(l => l.Remote?.RemoteName is not null)?.Remote!.RemoteName ?? "origin";
+        var refs = new List<(string Remote, string Lease, string Target)>();
+        foreach (var layer in stack.Layers)
+            if (layer.Analysis is { Relation: not Relation.Same } a && a.Local.Branch is { } branch && a.Remote.RemoteName is { } remote)
+                refs.Add((remote, $"--force-with-lease={a.Remote.RemoteBranch}:{a.Remote.Sha}",
+                    branch == a.Remote.RemoteBranch ? branch : $"{branch}:{a.Remote.RemoteBranch}"));
+            else if (layer.Remote is null && layer.Error is null)
+                refs.Add((fallback, $"--force-with-lease={layer.Local.Branch}:", layer.Local.Branch!));
+        return refs.GroupBy(r => r.Remote)
+            .Select(g => $"git push{(g.Count() > 1 ? " --atomic" : "")} {string.Join(' ', g.Select(r => r.Lease))} {g.Key} {string.Join(' ', g.Select(r => r.Target))}")
+            .ToList();
     }
 
     static string Plural(int n, string noun) => n == 1 ? $"1 {noun}" : $"{n} {noun}s";

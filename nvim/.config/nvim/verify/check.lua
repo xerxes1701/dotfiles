@@ -68,7 +68,7 @@ local function wait_for_parsers(langs)
 		return true
 	end, 500)
 end
-wait_for_parsers({ "rust", "c_sharp", "fsharp", "typst", "lua", "markdown" })
+wait_for_parsers({ "rust", "c_sharp", "fsharp", "xml", "typst", "lua", "markdown" })
 
 -- rustaceanvim names its client "rust-analyzer"; mason-started servers
 -- use "rust_analyzer". Accept either spelling.
@@ -252,6 +252,77 @@ local function check_fsharp()
 	))
 end
 check_fsharp()
+
+-- XAML: its own filetype (defaults.lua), highlighted by the xml parser. With
+-- lemminx on PATH -- it comes from mason, which the sandbox does not install --
+-- the server must attach and report a broken tag as an error. And a save must
+-- leave the file as typed: XAML has no conform formatter, and lsp_fallback
+-- would otherwise let lemminx rewrite it whole. That half runs on a copy in a
+-- temporary directory, since it writes; it holds without lemminx too, but only
+-- proves anything with it. Avalonia's .axaml is mapped to the same filetype
+-- and runs the same probe.
+local function check_xaml(name)
+	local xaml_lsp = vim.fn.executable("lemminx") == 1 and "lemminx" or nil
+	local fixture = config .. "/verify/fixture-xaml/" .. name
+	open(fixture, "xaml", xaml_lsp)
+	if vim.bo.filetype ~= "xaml" then
+		return
+	end
+	local buf = vim.api.nvim_get_current_buf()
+	local results = {}
+
+	if have_ts_cli then
+		results.highlight = vim.treesitter.highlighter.active[buf] and "on" or "off"
+		if results.highlight == "off" then
+			table.insert(errs, name .. ": treesitter highlighting did not start")
+		end
+	end
+
+	local client = xaml_lsp and vim.lsp.get_clients({ bufnr = buf, name = xaml_lsp })[1]
+	if client then
+		-- An end tag that closes the wrong element. Thrown away afterwards with
+		-- `edit!`; nothing is written.
+		local last = vim.api.nvim_buf_line_count(buf)
+		vim.api.nvim_buf_set_lines(buf, last - 1, last, false, { "</Grid>" })
+		local ns = vim.lsp.diagnostic.get_namespace(client.id)
+		local found = vim.wait(30000, function()
+			return #vim.diagnostic.get(buf, { namespace = ns, severity = vim.diagnostic.severity.ERROR }) > 0
+		end, 200)
+		results.diagnostic = found and "ok" or "none"
+		if not found then
+			table.insert(errs, name .. ": lemminx reported no error for a mismatched end tag")
+		end
+		vim.cmd("edit!")
+	end
+
+	local dir = vim.fn.tempname()
+	vim.fn.mkdir(dir, "p")
+	local copy = dir .. "/" .. name
+	vim.fn.writefile(vim.fn.readfile(fixture), copy)
+	open(copy, "xaml", xaml_lsp)
+	local odd = [[            <Button   Content="Cancel"   Width="80"/>]]
+	vim.api.nvim_buf_set_lines(0, -3, -3, false, { odd })
+	local want = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+	local wrote, write_err = pcall(vim.cmd, "silent write")
+	local got = vim.fn.readfile(copy)
+	results.save = wrote and vim.deep_equal(got, want) and "kept" or "changed"
+	if not wrote then
+		table.insert(errs, (name .. ": :write threw: %s"):format(tostring(write_err):gsub("\n.*", "")))
+	elseif results.save ~= "kept" then
+		table.insert(errs, name .. ": saving reformatted the file")
+	end
+	vim.api.nvim_buf_delete(0, { force = true })
+	vim.fn.delete(dir, "rf")
+
+	io.stderr:write(("  %-18s highlight=%s diagnostic=%s save=%s\n"):format(
+		name,
+		results.highlight or "-",
+		results.diagnostic or "-",
+		results.save
+	))
+end
+check_xaml("MainWindow.xaml")
+check_xaml("MainWindow.axaml")
 
 -- Typst: the fixture project. Its `typst.toml` is the root marker both
 -- tinymist and typst-preview.nvim look for, and main.typ imports chapter.typ,

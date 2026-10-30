@@ -75,12 +75,12 @@ opt.swapfile = false
 opt.shell = "fish"
 
 -- filetypes
--- Neovim detects no filetype for WPF's .xaml. It gets its own rather than
--- plain `xml`, which would hand it to conform's `xml = { "prettier" }` and
--- rewrite the whole file on every save. Highlighting, indent and folds come
+-- Neovim detects no filetype for WPF's .xaml or Avalonia's .axaml. Both get
+-- the same one of their own rather than plain `xml`, which would hand them to
+-- conform's `xml = { "prettier" }` and rewrite the whole file on every save. Highlighting, indent and folds come
 -- from the xml treesitter parser; the rest -- 'commentstring', matchit's tag
 -- pairs -- from xml's ftplugin, sourced the way the runtime's own xsd.vim does.
-vim.filetype.add({ extension = { xaml = "xaml" } })
+vim.filetype.add({ extension = { xaml = "xaml", axaml = "xaml" } })
 vim.treesitter.language.register("xml", "xaml")
 api.nvim_create_autocmd("FileType", {
 	pattern = "xaml",

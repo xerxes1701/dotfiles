@@ -31,6 +31,7 @@ return {
 				"rust_analyzer", -- rust
 				"tinymist", -- typst
 				"fsautocomplete", -- f#
+				"lemminx", -- xml, xaml
 			},
 			-- rustaceanvim owns the rust-analyzer client (clippy-on-save, debugging,
 			-- code lens, macro expand) and roslyn.nvim owns the C# client. Excluding

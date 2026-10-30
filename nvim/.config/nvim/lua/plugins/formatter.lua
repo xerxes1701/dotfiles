@@ -27,11 +27,15 @@ return {
 				-- dotnet tool; calling mason's directly does not depend on that lookup.
 				fsharp = { "fantomas" },
 			},
-			format_on_save = {
-				lsp_fallback = true,
-				async = false,
-				timeout_ms = 1000,
-			},
+			-- XAML has no formatter here, so `lsp_fallback` would hand every save to
+			-- lemminx, which rewrites the whole file -- what defaults.lua gave XAML a
+			-- filetype of its own to avoid. <leader>cf still reaches lemminx.
+			format_on_save = function(bufnr)
+				if vim.bo[bufnr].filetype == "xaml" then
+					return nil
+				end
+				return { lsp_fallback = true, async = false, timeout_ms = 1000 }
+			end,
 		})
 
 		vim.keymap.set({ "n", "v" }, "<leader>cf", function()

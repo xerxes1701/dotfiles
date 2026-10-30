@@ -48,6 +48,18 @@ return {
 			vim.lsp.enable("fsautocomplete")
 		end
 
+		-- lemminx (XML). XAML is XML to it: well-formedness errors and completion
+		-- of the tags a file already uses, but no knowledge of controls or
+		-- bindings. Its filetype list lacks the `xaml` one defaults.lua sets, and
+		-- XAML ships no schema, so the "no grammar" hint would sit on every file.
+		vim.lsp.config("lemminx", {
+			filetypes = { "xml", "xsd", "xsl", "xslt", "svg", "xaml" },
+			settings = { xml = { validation = { noGrammar = "ignore" } } },
+		})
+		if vim.fn.executable("lemminx") == 1 then
+			vim.lsp.enable("lemminx")
+		end
+
 		-- define keybinding that will be avaiable if a LSP Server is attached to the current buffer
 		vim.api.nvim_create_autocmd("LspAttach", {
 			group = vim.api.nvim_create_augroup("UserLspConfig", {}),

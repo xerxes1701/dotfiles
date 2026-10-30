@@ -1,0 +1,11 @@
+<!-- Fixture for verify.sh. Exercises the XAML path: the xaml filetype, the
+     xml treesitter parser, lemminx's diagnostics, and no format on save. -->
+<Window x:Class="Fixture.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Fixture" Height="200" Width="300">
+    <StackPanel Margin="8">
+        <TextBlock Text="hello, world" />
+        <Button Content="OK" Width="80" />
+    </StackPanel>
+</Window>

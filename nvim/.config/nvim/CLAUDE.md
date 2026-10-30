@@ -117,6 +117,10 @@ one, and so rust-analyzer has a `Cargo.toml` to attach to.
 probe goes further than an attach: it requires treesitter highlighting to be
 active, hover on `greet` to return its type (proof that the project loaded
 and type-checked), and conform to restore a mangled line through Fantomas.
+`verify/fixture-xaml/` holds a WPF window and its Avalonia `.axaml` twin;
+the probe runs on each and requires the `xaml` filetype, xml highlighting, a
+lemminx error for a mismatched end tag, and a save of a copy that leaves the
+file as typed, because format-on-save skips XAML.
 `check.lua` also opens a Typst file it creates on the spot: empty, in a
 temporary directory with no `typst.toml`, which is how a new file is met in
 practice and the case that first showed the missing-parser error.
@@ -132,9 +136,10 @@ through `git.exe`: the status line's git band, gitsigns, oil-git-status,
 neogit's status and diffview, plus a commit whose editor is a WSL command,
 which must fall back to Linux's git. Elsewhere it reports itself skipped.
 
-`check.lua` requires rust-analyzer, roslyn, tinymist and fsautocomplete to
-attach, and Fantomas to format, only when they are on `PATH`. The Lua probes expect no client, because the servers
-come from mason and the sandbox does not install them.
+`check.lua` requires rust-analyzer, roslyn, tinymist, fsautocomplete and
+lemminx to attach, and Fantomas to format, only when they are on `PATH`. The
+Lua probes expect no client, because the servers come from mason and the
+sandbox does not install them.
 
 `verify.sh` restores `lazy-lock.json` after every run and says so when it
 had to. The sandbox bootstraps its own lazy.nvim and resolves branch
@@ -250,6 +255,7 @@ Tags: `entry` `options` `keymaps` `plugin-spec` `generated` `inventory`
 | `verify/fixture/`                  | Committed Rust crate the check opens, so rust-analyzer and the Rust parser get exercised.         | script         |
 | `verify/fixture-cs/`               | Committed .NET project the check opens, so roslyn and the C# parser get exercised.                | script         |
 | `verify/fixture-fs/`               | Committed .NET project the check opens, so fsautocomplete, Fantomas and the F# parser get exercised. | script |
+| `verify/fixture-xaml/`             | Committed WPF and Avalonia windows the check opens, so lemminx, the xml parser and the XAML save rule get exercised. | script |
 | `verify/fixture-typst/`            | Committed Typst project the check opens, so tinymist and the Typst parser get exercised.          | script         |
 | `verify/fixture-md/`               | Committed markdown file the check runs `g=` over, so mini.operators' evaluate is exercised.       | script         |
 | `lua/defaults.lua`                 | Core options, leader keys and the statuscolumn setup.                                             | options        |

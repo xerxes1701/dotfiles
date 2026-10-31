@@ -153,3 +153,5 @@
 	auto = 0
 [http "https://gitlab.klafka-hinz.de/"]
 	sslCAInfo = /usr/local/share/ca-certificates/klafka-hinz-ca-bundle.crt
+[init]
+	defaultBranch = main

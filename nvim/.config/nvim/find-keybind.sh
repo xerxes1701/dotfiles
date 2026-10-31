@@ -17,6 +17,7 @@
 #   * plugin   -p/--plugin    repeatable; exact (case-insensitive) plugin
 #   * group    -g/--group     repeatable; exact (case-insensitive) group
 #   * file     -f/--file      repeatable; GLOB against the `file` field
+#   * desc     -d/--description repeatable; substring of the `description`
 # Repeating an option ORs its values; different options AND together.
 #
 # REGEX MATCHING (opt-in)
@@ -27,7 +28,7 @@
 #
 #   * -r/--regex           treat the positional `key` as a regex.
 #   * \re\  (backslashes)  wrap ANY free-text value (key, --plugin, --group,
-#                          --file) in backslashes to make just that value a
+#                          --file, --description) in backslashes to make just that value a
 #                          regex. Backslash delimiters are used because `/` is
 #                          itself a key and pervades file paths; no real key has
 #                          the form \...\, so this never collides.
@@ -84,11 +85,16 @@ Options:
   -f, --file <glob>     Restrict to a source file matched by a shell-style glob
                         (e.g. "lua/plugins/*.lua"), or a \\re\\ regex.
                         Repeatable (any-of).
+  -d, --description <text>
+                        Restrict to entries whose description contains <text>
+                        (substring, case-insensitive unless -c), or matches a
+                        \\re\\ regex. Repeatable (any-of).
   -r, --regex           Treat the positional <key> as a regex (unanchored,
                         case-insensitive). Same effect as wrapping it in \\re\\.
-  -c, --case-sensitive  Make key matching case-sensitive, literal and regex
-                        alike (default: insensitive). Needed to tell hydra
-                        heads apart -- \`i\` and \`I\` are different bindings.
+  -c, --case-sensitive  Make key, description and \\re\\ matching case-sensitive,
+                        literal and regex alike (default: insensitive).
+                        Needed to tell hydra heads apart -- \`i\` and \`I\`
+                        are different bindings.
       --input <path>    keybindings YAML file to read
                         (default: ${YAML_FILE}).
   -h, --help            Show this help and exit.
@@ -96,10 +102,11 @@ Options:
 Regex:
   Regex is opt-in because literal keybindings contain regex metacharacters.
   Enable it with -r/--regex (key only) or by wrapping ANY free-text value in
-  backslashes: \\PATTERN\\ (works for key, --plugin, --group, --file). Regex is
-  UNANCHORED (add ^...\$ for a whole-value match) and case-insensitive unless
-  -c. '< > -' are not special; escape { } [ ] ( ) . ^ \$ * + ? | \\ to match
-  them literally; double a literal backslash inside \\re\\.
+  backslashes: \\PATTERN\\ (works for key, --plugin, --group, --file,
+  --description). Regex is UNANCHORED (add ^...\$ for a whole-value match) and
+  case-insensitive unless -c. '< > -' are not special; escape { } [ ] ( ) . ^
+  \$ * + ? | \\ to match them literally; double a literal backslash inside
+  \\re\\.
 
 Examples:
   ${SCRIPT_NAME} '<C-S>'
@@ -108,6 +115,8 @@ Examples:
   ${SCRIPT_NAME} -p flash.nvim                # everything from one plugin
   ${SCRIPT_NAME} -g Editing --type explicit   # explicit editing maps
   ${SCRIPT_NAME} -f 'lua/plugins/*.lua'       # maps defined under lua/plugins
+  ${SCRIPT_NAME} -d rename                    # description contains "rename"
+  ${SCRIPT_NAME} -d '\\^(next|prev)\\'          # description regex
   ${SCRIPT_NAME} -r '<C-[a-p]>'               # key regex: any <C-letter>
   ${SCRIPT_NAME} '\\<leader>t.\\'               # inline key regex (\\re\\ form)
   ${SCRIPT_NAME} -p '\\.*cmp\\'                 # plugin regex: any *cmp* plugin
@@ -192,7 +201,7 @@ regex_cond() {
 
 main() {
   local key="" have_key=0
-  local -a modes=() types=() plugins=() groups=() fileglobs=()
+  local -a modes=() types=() plugins=() groups=() fileglobs=() descs=()
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -234,6 +243,13 @@ main() {
       --file=*)
         [[ -n "${1#*=}" ]] || die "option '--file' requires a non-empty value"
         fileglobs+=("${1#*=}"); shift ;;
+      -d|--description)
+        [[ $# -ge 2 ]] || die "option '$1' requires an argument"
+        [[ -n "$2" ]] || die "option '$1' requires a non-empty value"
+        descs+=("$2"); shift 2 ;;
+      --description=*)
+        [[ -n "${1#*=}" ]] || die "option '--description' requires a non-empty value"
+        descs+=("${1#*=}"); shift ;;
       --input)
         [[ $# -ge 2 ]] || die "option '$1' requires an argument"
         YAML_FILE="$2"; shift 2 ;;
@@ -324,6 +340,22 @@ main() {
       else
         re="$(jq_escape "$(glob_to_regex "${fg}")")"
         c+="(.file | test(\"${re}\"))"
+      fi
+    done
+    conds+=("(${c})")
+  fi
+
+  if [[ ${#descs[@]} -gt 0 ]]; then
+    local c="" d pat
+    for d in "${descs[@]}"; do
+      [[ -n "${c}" ]] && c+=" or "
+      if is_regex_value "${d}"; then
+        pat="$(strip_delims "${d}")"; [[ -n "${pat}" ]] || die "empty description regex"
+        c+="(.description // \"\" | test(\"$(regex_prefix)$(jq_escape "${pat}")\"))"
+      elif [[ ${CASE_SENSITIVE} -eq 1 ]]; then
+        c+="(.description // \"\" | contains(\"$(jq_escape "${d}")\"))"
+      else
+        c+="(.description // \"\" | ascii_downcase | contains(\"$(jq_escape "$(lower "${d}")")\"))"
       fi
     done
     conds+=("(${c})")

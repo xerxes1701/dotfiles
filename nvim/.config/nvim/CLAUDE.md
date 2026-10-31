@@ -190,14 +190,15 @@ Do not read them fully. Both options below return only the matching entries.
 
 ### Option A: find-keybind.sh
 
-`find-keybind.sh` searches the inventory by key, mode, type, plugin, group
-or file. Run `./find-keybind.sh --help` for the options. Do not read the
+`find-keybind.sh` searches the inventory by key, mode, type, plugin, group,
+file or description. Run `./find-keybind.sh --help` for the options. Do not read the
 script. The output is a JSON array. Exit code 1 means no match.
 
 ```sh
 ./find-keybind.sh '<C-S>'                        # one key, all modes
 ./find-keybind.sh -p flash.nvim                  # all bindings of one plugin
 ./find-keybind.sh -c i -m 'hydra(diagnostics)'   # one hydra head
+./find-keybind.sh -d rename                      # description contains "rename"
 ```
 
 ### Option B: yq and jq

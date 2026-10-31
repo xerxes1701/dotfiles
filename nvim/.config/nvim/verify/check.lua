@@ -87,8 +87,8 @@ local function open(path, filetype, want_lsp)
 
 	-- Wait for the wanted client, not for any client: a buffer can get more
 	-- than one, and they do not arrive together. easy-dotnet's in-process
-	-- client attaches to a C# buffer at once, roslyn a moment later, so a wait
-	-- for the first client read the names before roslyn was there.
+	-- client attaches to a C# buffer at once, its Roslyn a moment later, so a
+	-- wait for the first client read the names before Roslyn was there.
 	vim.wait(10000, function()
 		for _, client in ipairs(vim.lsp.get_clients({ bufnr = 0 })) do
 			if not want_lsp or same_lsp(client.name, want_lsp) then
@@ -157,13 +157,105 @@ local config = vim.fn.stdpath("config")
 local rust_lsp = vim.fn.executable("rust-analyzer") == 1 and "rust_analyzer" or nil
 open(config .. "/verify/fixture/src/main.rs", "rust", rust_lsp)
 
--- C#: the fixture project. roslyn.nvim names its client "roslyn", not
--- "roslyn_ls" as nvim-lspconfig does, and the name comparison in `open` only
--- folds - and _, so the spelling here has to be the plugin's. Required only
--- when the server is on PATH; it comes from mason, which the sandbox does not
--- install, so normally this probe checks the filetype and the parser.
-local cs_lsp = vim.fn.executable("roslyn-language-server") == 1 and "roslyn" or nil
-open(config .. "/verify/fixture-cs/Program.cs", "cs", cs_lsp)
+-- The diagnostics of `buf` that another one already reports: same range, same
+-- code, same message. Two language servers on one buffer -- once roslyn.nvim's
+-- and easy-dotnet's Roslyn, side by side -- each publish under their own
+-- namespace, and vim.diagnostic shows both. Returns one line per duplicate,
+-- naming the namespaces, so the finding says who the second source is.
+local function duplicate_diagnostics(buf)
+	local seen, dups = {}, {}
+	for _, d in ipairs(vim.diagnostic.get(buf)) do
+		local key = table.concat({ d.lnum, d.col, d.end_lnum or "", d.end_col or "", tostring(d.code or ""), d.message }, "\0")
+		local ns = vim.diagnostic.get_namespace(d.namespace).name
+		if seen[key] then
+			table.insert(dups, ("%d:%d %s twice (%s, %s)"):format(d.lnum + 1, d.col + 1, tostring(d.code or d.message:sub(1, 40)), seen[key], ns))
+		else
+			seen[key] = ns
+		end
+	end
+	return dups
+end
+
+-- C#: the fixture project. easy-dotnet names its Roslyn client "easy_dotnet"
+-- and starts it through `dotnet-easydotnet`, a dotnet global tool the sandbox
+-- does not install, so the client is required only when that is on PATH;
+-- without it this probe checks the filetype and the parser.
+--
+-- Run from inside the fixture: easy-dotnet looks for a project only up to the
+-- cwd, and from verify.sh's cwd -- the Rust fixture -- it finds none and never
+-- starts its Roslyn. That once hid a second Roslyn client from this probe while
+-- every real session, opened in its project, had two.
+--
+-- With a client attached, a type error is typed into the buffer and Roslyn
+-- must report it -- once. A second publisher of the same error is the
+-- duplicate-diagnostics finding. The second server can start well after the
+-- first has answered, so the probe keeps looking for a while before it calls
+-- the error single. The edit is thrown away with `edit!`; nothing is written.
+local function check_csharp()
+	local cs_lsp = vim.fn.executable("dotnet-easydotnet") == 1 and "easy_dotnet" or nil
+	local dir = config .. "/verify/fixture-cs"
+	local cwd = vim.fn.getcwd()
+	vim.cmd("cd " .. vim.fn.fnameescape(dir))
+	open(dir .. "/Program.cs", "cs", cs_lsp)
+	local buf = vim.api.nvim_get_current_buf()
+	local results = {}
+
+	local client = cs_lsp and vim.lsp.get_clients({ bufnr = buf, name = cs_lsp })[1]
+	local row
+	for i, line in ipairs(vim.api.nvim_buf_get_lines(buf, 0, -1, false)) do
+		if line:find("var msg = Greet", 1, true) then
+			row = i
+		end
+	end
+	if client and row then
+		vim.api.nvim_buf_set_lines(buf, row, row, false, { [[        int bad = "not an int";]] })
+		local function reported()
+			for _, d in ipairs(vim.diagnostic.get(buf, { lnum = row })) do
+				if d.code == "CS0029" then
+					return true
+				end
+			end
+			return false
+		end
+		-- The first load runs a design-time build of the fixture, slow on a
+		-- cold machine.
+		local found = vim.wait(120000, reported, 200)
+		local dups = {}
+		if found then
+			vim.wait(30000, function()
+				dups = duplicate_diagnostics(buf)
+				return #dups > 0
+			end, 500)
+		end
+		results.diagnostic = found and "ok" or "none"
+		results.duplicates = #dups
+		if not found then
+			table.insert(errs, "Program.cs: Roslyn reported no CS0029 for a string assigned to an int")
+		end
+		for _, dup in ipairs(dups) do
+			table.insert(errs, "Program.cs: duplicate diagnostic " .. dup)
+		end
+	end
+
+	-- Read before `edit!`, which detaches the clients and lets them come back
+	-- one by one.
+	local names = {}
+	for _, c in ipairs(vim.lsp.get_clients({ bufnr = buf })) do
+		table.insert(names, c.name)
+	end
+	if client and row then
+		vim.cmd("edit!")
+	end
+	vim.cmd("cd " .. vim.fn.fnameescape(cwd))
+
+	io.stderr:write(("  %-18s diagnostic=%s duplicates=%s lsp=%s\n"):format(
+		"Program.cs",
+		results.diagnostic or "-",
+		results.duplicates or "-",
+		table.concat(names, ",")
+	))
+end
+check_csharp()
 
 -- F#: the fixture project, so fsautocomplete has a `.fsproj` to load. `.fs`
 -- is also Forth, and Neovim picks between the two by content, so the filetype

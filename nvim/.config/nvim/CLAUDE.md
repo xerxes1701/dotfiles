@@ -111,12 +111,16 @@ autocmd, which calls `vim.treesitter.start` without a pcall.
 
 `verify/fixture/` is a real crate, committed so that no one has to build
 one, and so rust-analyzer has a `Cargo.toml` to attach to.
-`verify/fixture-cs/` is the same idea for C#, so roslyn has a `.csproj`,
+`verify/fixture-cs/` is the same idea for C#, so easy-dotnet's Roslyn has a `.csproj`,
 `verify/fixture-fs/` for F#, so fsautocomplete has a `.fsproj`, and
 `verify/fixture-typst/` for Typst, so tinymist has a `typst.toml`. The F#
 probe goes further than an attach: it requires treesitter highlighting to be
 active, hover on `greet` to return its type (proof that the project loaded
 and type-checked), and conform to restore a mangled line through Fantomas.
+The C# probe runs from inside its fixture, because easy-dotnet looks for a
+project only up to the cwd. It types a type error into `Program.cs` and
+requires Roslyn to report it exactly once: the same diagnostic from a second
+namespace -- a second language server -- is a finding.
 `verify/fixture-xaml/` holds a WPF window and its Avalonia `.axaml` twin;
 the probe runs on each and requires the `xaml` filetype, xml highlighting, a
 lemminx error for a mismatched end tag, and a save of a copy that leaves the
@@ -136,7 +140,7 @@ through `git.exe`: the status line's git band, gitsigns, oil-git-status,
 neogit's status and diffview, plus a commit whose editor is a WSL command,
 which must fall back to Linux's git. Elsewhere it reports itself skipped.
 
-`check.lua` requires rust-analyzer, roslyn, tinymist, fsautocomplete and
+`check.lua` requires rust-analyzer, easy-dotnet's Roslyn, tinymist, fsautocomplete and
 lemminx to attach, and Fantomas to format, only when they are on `PATH`. The
 Lua probes expect no client, because the servers come from mason and the
 sandbox does not install them.
@@ -253,7 +257,7 @@ Tags: `entry` `options` `keymaps` `plugin-spec` `generated` `inventory`
 | `verify/verify.sh`                 | Sandbox check of the whole config. Run it after any change. Exits non-zero on a finding.          | script         |
 | `verify/check.lua`                 | The checks `verify.sh` runs inside the sandbox profile.                                           | script         |
 | `verify/fixture/`                  | Committed Rust crate the check opens, so rust-analyzer and the Rust parser get exercised.         | script         |
-| `verify/fixture-cs/`               | Committed .NET project the check opens, so roslyn and the C# parser get exercised.                | script         |
+| `verify/fixture-cs/`               | Committed .NET project the check opens, so Roslyn, the C# parser and the duplicate-diagnostics probe get exercised.| script         |
 | `verify/fixture-fs/`               | Committed .NET project the check opens, so fsautocomplete, Fantomas and the F# parser get exercised. | script |
 | `verify/fixture-xaml/`             | Committed WPF and Avalonia windows the check opens, so lemminx, the xml parser and the XAML save rule get exercised. | script |
 | `verify/fixture-typst/`            | Committed Typst project the check opens, so tinymist and the Typst parser get exercised.          | script         |

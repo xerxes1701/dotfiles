@@ -16,6 +16,11 @@ return {
 			-- dotnet global tool, which easy-dotnet installs when it is missing;
 			-- update it with `dotnet-easydotnet roslyn update`.
 			lsp = {
+				-- When on, easy-dotnet calls vim.lsp.codelens.enable(true) on every
+				-- BufEnter, CursorHold and InsertLeave, which undoes the hydra's
+				-- codelens toggle. Neovim 0.12 refreshes enabled lenses on its own,
+				-- and lspconfig.lua's LspAttach handler enables them.
+				auto_refresh_codelens = false,
 				config = {
 					-- Deep-merged over easy-dotnet's own defaults. Roslyn emits no
 					-- inlay hints and no reference code lens unless they are switched

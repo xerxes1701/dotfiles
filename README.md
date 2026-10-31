@@ -80,6 +80,12 @@ tool, and whether it belongs on linux, windows or both, is
 `scripts/.local/lib/dotfiles/tools.conf`. a tool with no package for a manager
 is listed there as `-`, and the sections below say how to install it by hand.
 
+what a tool needs after its packages -- rustup's toolchain and rust-analyzer,
+ubuntu's `batcat` and `fdfind` linked as `bat` and `fd` -- is a hook in
+`scripts/.local/lib/dotfiles/setup.d/`, named after the tool. it runs for
+every tool picked, installed now or before, and only where its step is still
+to do. `--setup` runs the hooks alone, for a machine whose tools are there.
+
 ## gnu stow
 
 [gnu stow github page](https://github.com/aspiers/stow)

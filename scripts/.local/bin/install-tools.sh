@@ -16,6 +16,18 @@
 # things it has yet to install. Both offer "all", which means every tool for
 # this platform that has a package; a tool without one is listed as one to
 # install by hand.
+#
+# Installing a package is not always the whole of it: rustup installs no
+# toolchain, and ubuntu ships bat as batcat. setup.d/<label>.sh, next to
+# tools.conf, does what a tool needs after its packages, and runs for every
+# tool picked, installed now or before. A hook is sourced in a subshell with
+# run, as_root, warn, manager and platform in scope, and defines two functions:
+#
+#   setup_needed  succeeds when the step is still to do. It asks the machine,
+#                 not the manager: bat.sh links only where bat is missing and
+#                 batcat is there, so it does nothing on arch or windows, and
+#                 nothing the second time.
+#   setup_apply   does the step, every command through run, so -n prints it.
 
 set -uo pipefail
 
@@ -27,6 +39,7 @@ self=$(basename -- "$0")
 root=$(cd -- "$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")/../../.." && pwd) \
     || exit 1
 conf=$root/scripts/.local/lib/dotfiles/tools.conf
+setup_dir=$root/scripts/.local/lib/dotfiles/setup.d
 
 # Same rule as the other scripts here: colors for a terminal only, and never
 # against NO_COLOR (https://no-color.org) or TERM=dumb.
@@ -46,6 +59,14 @@ die() {
 }
 warn() { printf '%s%s: warning:%s %s\n' "$c_warn" "$self" "$c_off" "$1" >&2; }
 
+run() {
+    printf '%s$ %s%s\n' "$c_dim" "$*" "$c_off"
+    [ "$dry" = 1 ] || "$@"
+}
+
+# A container is usually root and often has no sudo.
+as_root() { if [ "$(id -u)" = 0 ]; then run "$@"; else run sudo "$@"; fi; }
+
 usage() {
     cat <<EOF
 usage: $self [options] [tool...]
@@ -57,6 +78,7 @@ that belong on this platform, picked from a list.
   -l, --list           list the tools for this platform, and exit.
   -m, --manager NAME   pacman, apt or winget instead of the detected one.
   -n, --dry-run        print the commands, run nothing.
+  -s, --setup          only the setup steps of the tools here, install nothing.
   -y, --yes            do not ask before installing.
   -h, --help           this.
 
@@ -65,7 +87,7 @@ EOF
     exit 0
 }
 
-all=0 list=0 dry=0 yes=0 manager=''
+all=0 list=0 dry=0 yes=0 setup_only=0 manager=''
 while [ $# -gt 0 ]; do
     case $1 in
         -a | --all)     all=1; shift ;;
@@ -74,6 +96,7 @@ while [ $# -gt 0 ]; do
                         manager=$2; shift 2 ;;
         --manager=*)    manager=${1#*=}; shift ;;
         -n | --dry-run) dry=1; shift ;;
+        -s | --setup)   setup_only=1; shift ;;
         -y | --yes)     yes=1; shift ;;
         -h | --help)    usage ;;
         --)             shift; break ;;
@@ -113,17 +136,19 @@ case $manager in
     winget) platform=windows col=5 ;;
     *)      die "unknown manager $manager" 'pacman, apt or winget' ;;
 esac
-[ "$list" = 1 ] || [ "$dry" = 1 ] || command -v "$manager" >/dev/null 2>&1 \
+[ "$list" = 1 ] || [ "$dry" = 1 ] || [ "$setup_only" = 1 ] || command -v "$manager" >/dev/null 2>&1 \
     || die "$manager is not on PATH"
 
 # --- tools.conf ------------------------------------------------------------
 
 # t_* are parallel arrays of the tools that have a package here; manual holds
-# the labels of those that belong on this platform but have none.
-t_label=() t_pkgs=() t_desc=() manual=()
+# the labels of those that belong on this platform but have none, and labels
+# every tool for this platform, in the file's order, for the setup steps.
+t_label=() t_pkgs=() t_desc=() manual=() labels=()
 while read -r label os c3 c4 c5 desc; do
     case $label in '' | '#'*) continue ;; esac
     case ,$os, in *,$platform,*) ;; *) continue ;; esac
+    labels+=("$label")
     case $col in 3) pkgs=$c3 ;; 4) pkgs=$c4 ;; 5) pkgs=$c5 ;; esac
     if [ "$pkgs" = - ]; then
         manual+=("$label")
@@ -133,6 +158,44 @@ while read -r label os c3 c4 c5 desc; do
 done <"$conf"
 
 [ ${#t_label[@]} -gt 0 ] || die "tools.conf lists nothing for $manager"
+
+# --- setup steps -----------------------------------------------------------
+
+# For the hooks that only give a binary the name the configs call it by.
+# Needed when the name is missing, the other one is there, and no link was
+# made before -- one in a ~/.local/bin that is not on PATH yet included.
+link_needed() {
+    ! command -v "$1" >/dev/null 2>&1 && command -v "$2" >/dev/null 2>&1 \
+        && [ ! -e "$HOME/.local/bin/$1" ]
+}
+link_apply() {
+    run mkdir -p "$HOME/.local/bin" && run ln -s "$(command -v "$2")" "$HOME/.local/bin/$1"
+}
+
+# Runs the hooks of the labels given, in tools.conf's order, and records the
+# ones that failed in setup_failed.
+setup_failed=()
+run_setup() {
+    local label hook
+    for label in "${labels[@]}"; do
+        case " $* " in *" $label "*) ;; *) continue ;; esac
+        hook=$setup_dir/$label.sh
+        [ -r "$hook" ] || continue
+        ( . "$hook" && setup_needed ) || continue
+        printf '%ssetting up %s%s\n' "$c_bold" "$label" "$c_off"
+        ( . "$hook" && setup_apply ) || setup_failed+=("$label")
+    done
+}
+
+if [ "$setup_only" = 1 ]; then
+    for label in "${wanted[@]}"; do
+        case " ${labels[*]} " in *" $label "*) ;; *) die "no $label for $platform in tools.conf" ;; esac
+    done
+    if [ ${#wanted[@]} -gt 0 ]; then run_setup "${wanted[@]}"; else run_setup "${labels[@]}"; fi
+    [ ${#setup_failed[@]} -eq 0 ] || die "setup failed: ${setup_failed[*]}"
+    printf '%sdone.%s\n' "$c_ok" "$c_off"
+    exit 0
+fi
 
 # --- installed or not ------------------------------------------------------
 
@@ -260,67 +323,69 @@ for i in "${picked[@]}"; do
     done
 done
 [ ${#skipped[@]} -eq 0 ] || printf '%salready installed: %s%s\n' "$c_dim" "${skipped[*]}" "$c_off"
-[ $(( ${#repo[@]} + ${#aur[@]} )) -gt 0 ] || { echo 'nothing to install.'; exit 0; }
-
-if [ "$manager" = pacman ] && [ ${#aur[@]} -gt 0 ] && [ "$dry" = 0 ] \
-    && ! command -v paru >/dev/null 2>&1; then
-    die "paru is not on PATH, and ${aur[*]} come from the aur" \
-        'install paru first: sudo pacman -S paru'
-fi
-
-printf '%sto install:%s %s\n' "$c_bold" "$c_off" "${repo[*]}${aur[*]:+ ${aur[*]}}"
-if [ "$dry" = 0 ] && [ "$yes" = 0 ]; then
-    read -rp 'go ahead? [y/N] ' answer || exit 1
-    case $answer in y | Y | yes) ;; *) echo 'nothing installed.'; exit 0 ;; esac
-fi
-
-run() {
-    printf '%s$ %s%s\n' "$c_dim" "$*" "$c_off"
-    [ "$dry" = 1 ] || "$@"
-}
-
-# A container is usually root and often has no sudo.
-as_root() { if [ "$(id -u)" = 0 ]; then run "$@"; else run sudo "$@"; fi; }
 
 failed=()
-case $manager in
-    pacman)
-        if [ ${#repo[@]} -gt 0 ]; then
-            as_root pacman -S --needed -- "${repo[@]}" || failed+=("${repo[@]}")
-        fi
-        if [ ${#aur[@]} -gt 0 ]; then
-            run paru -S --needed -- "${aur[@]}" || failed+=("${aur[@]}")
-        fi
-        ;;
-    apt)
-        as_root apt-get update || die 'apt-get update failed'
-        # Asked after the update: a package the release does not have makes
-        # apt refuse the whole install, so it is left out with a warning.
-        have=()
-        for p in "${repo[@]}"; do
-            cand=$(apt-cache policy "$p" 2>/dev/null | awk '/Candidate:/ {print $2}')
-            if [ "$dry" = 0 ] && { [ -z "$cand" ] || [ "$cand" = '(none)' ]; }; then
-                warn "this release has no $p package, install it by hand"
-                failed+=("$p")
-            else
-                have+=("$p")
+if [ $(( ${#repo[@]} + ${#aur[@]} )) -eq 0 ]; then
+    echo 'nothing to install.'
+else
+    if [ "$manager" = pacman ] && [ ${#aur[@]} -gt 0 ] && [ "$dry" = 0 ] \
+        && ! command -v paru >/dev/null 2>&1; then
+        die "paru is not on PATH, and ${aur[*]} come from the aur" \
+            'install paru first: sudo pacman -S paru'
+    fi
+
+    printf '%sto install:%s %s\n' "$c_bold" "$c_off" "${repo[*]}${aur[*]:+ ${aur[*]}}"
+    if [ "$dry" = 0 ] && [ "$yes" = 0 ]; then
+        read -rp 'go ahead? [y/N] ' answer || exit 1
+        case $answer in y | Y | yes) ;; *) echo 'nothing installed.'; exit 0 ;; esac
+    fi
+
+    case $manager in
+        pacman)
+            if [ ${#repo[@]} -gt 0 ]; then
+                as_root pacman -S --needed -- "${repo[@]}" || failed+=("${repo[@]}")
             fi
-        done
-        if [ ${#have[@]} -gt 0 ]; then
-            as_root apt-get install -y -- "${have[@]}" || failed+=("${have[@]}")
-        fi
-        ;;
-    winget)
-        for id in "${repo[@]}"; do
-            run winget install --exact --id "$id" \
-                --accept-package-agreements --accept-source-agreements \
-                || failed+=("$id")
-        done
-        ;;
-esac
+            if [ ${#aur[@]} -gt 0 ]; then
+                run paru -S --needed -- "${aur[@]}" || failed+=("${aur[@]}")
+            fi
+            ;;
+        apt)
+            as_root apt-get update || die 'apt-get update failed'
+            # Asked after the update: a package the release does not have makes
+            # apt refuse the whole install, so it is left out with a warning.
+            have=()
+            for p in "${repo[@]}"; do
+                cand=$(apt-cache policy "$p" 2>/dev/null | awk '/Candidate:/ {print $2}')
+                if [ "$dry" = 0 ] && { [ -z "$cand" ] || [ "$cand" = '(none)' ]; }; then
+                    warn "this release has no $p package, install it by hand"
+                    failed+=("$p")
+                else
+                    have+=("$p")
+                fi
+            done
+            if [ ${#have[@]} -gt 0 ]; then
+                as_root apt-get install -y -- "${have[@]}" || failed+=("${have[@]}")
+            fi
+            ;;
+        winget)
+            for id in "${repo[@]}"; do
+                run winget install --exact --id "$id" \
+                    --accept-package-agreements --accept-source-agreements \
+                    || failed+=("$id")
+            done
+            ;;
+    esac
+fi
+
+# Every tool picked, the ones there already included: a machine that had
+# rustup before this script knew to set it up gets its toolchain now. A hook
+# whose tool failed to install finds nothing to do.
+picked_labels=()
+for i in "${picked[@]}"; do picked_labels+=("${t_label[i]}"); done
+run_setup "${picked_labels[@]}"
 
 [ "$dry" = 1 ] && exit 0
-if [ ${#failed[@]} -gt 0 ]; then
-    die "not installed: ${failed[*]}"
-fi
+[ ${#failed[@]} -eq 0 ] || die "not installed: ${failed[*]}" \
+    ${setup_failed[@]:+"setup failed: ${setup_failed[*]}"}
+[ ${#setup_failed[@]} -eq 0 ] || die "setup failed: ${setup_failed[*]}"
 printf '%sdone.%s\n' "$c_ok" "$c_off"

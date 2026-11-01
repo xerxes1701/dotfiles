@@ -12,11 +12,13 @@
 local CAP_LEFT, ARROW_RIGHT = "\u{e0b6}", "\u{e0b0}"
 local ARROW_LEFT, CAP_RIGHT = "\u{e0b2}", "\u{e0b4}"
 
--- One coloured band per mode; visual's purple is derived like the others.
+-- One coloured band per mode. normal, insert, visual and replace are the vim
+-- band's colours in the prompt and Claude Code's status line; none of them is
+-- the blue of the directory band there.
 local MODES = {
-	normal = { bg = "#485C6D", fg = "#C1D5E7" }, -- blue
-	insert = { bg = "#486040", fg = "#B5DEA7" }, -- green
-	visual = { bg = "#6D4E76", fg = "#E3C9EA" }, -- purple
+	normal = { bg = "#655179", fg = "#DCCCEC" }, -- purple
+	insert = { bg = "#406058", fg = "#A7DED0" }, -- teal
+	visual = { bg = "#6A5547", fg = "#E6CDBC" }, -- orange
 	replace = { bg = "#764F54", fg = "#EBCACF" }, -- red
 	command = { bg = "#605940", fg = "#DED2A8" }, -- yellow
 	terminal = { bg = "#415E62", fg = "#ABDADF" }, -- cyan

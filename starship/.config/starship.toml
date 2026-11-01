@@ -28,6 +28,13 @@
 # and to pull. env_var adds no style: the counters end in a reset, and starship
 # sets the band's colour again for its last space only if the style before it
 # was a different one.
+#
+# fish's vim mode leads the second line as a short strip of its own, in the
+# status line's colours: grey "vim off", Normal on purple, Insert on teal,
+# Visual on orange and Replace on red. fish hands it over in one of the
+# STARSHIP_VIM_* variables (see conf.d/starship-vim-mode.fish), which the
+# other shells never set, so for them the line starts with the prompt
+# character as before.
 
 palette = 'one_half_dark'
 
@@ -38,6 +45,8 @@ format = """
 [](fg:surface bg:deep)($shell$package$c$docker_context$dotnet$golang$lua$nodejs$python$rust$typst$cmd_duration[ ](bg:deep))\
 [](fg:deep)( $all)\
 $line_break\
+${env_var.STARSHIP_VIM_OFF}${env_var.STARSHIP_VIM_NORMAL}${env_var.STARSHIP_VIM_INSERT}\
+${env_var.STARSHIP_VIM_VISUAL}${env_var.STARSHIP_VIM_REPLACE}\
 $jobs$character"""
 
 [git_status]
@@ -45,6 +54,23 @@ disabled = true
 
 [env_var.STARSHIP_GIT_STATUS]
 format = '$env_value'   # empty when clean, hidden when unset
+
+# One band per vim mode; fish sets at most one of the variables, its value the
+# label. The icon is Nerd Font's vim logo (U+E7C5), the status line's vim icon.
+[env_var.STARSHIP_VIM_OFF]
+format = '[](fg:grey_band)[  $env_value ](bg:grey_band fg:grey_band_text)[](fg:grey_band) '
+
+[env_var.STARSHIP_VIM_NORMAL]
+format = '[](fg:purple_band)[  $env_value ](bg:purple_band fg:purple_band_text bold)[](fg:purple_band) '
+
+[env_var.STARSHIP_VIM_INSERT]
+format = '[](fg:teal_band)[  $env_value ](bg:teal_band fg:teal_band_text bold)[](fg:teal_band) '
+
+[env_var.STARSHIP_VIM_VISUAL]
+format = '[](fg:orange_band)[  $env_value ](bg:orange_band fg:orange_band_text bold)[](fg:orange_band) '
+
+[env_var.STARSHIP_VIM_REPLACE]
+format = '[](fg:red_band)[  $env_value ](bg:red_band fg:red_band_text bold)[](fg:red_band) '
 
 [username]
 format = '[  $user]($style)'
@@ -177,6 +203,14 @@ red_band = '#764F54'
 red_band_text = '#EBCACF'
 blue_band = '#485C6D'
 blue_band_text = '#C1D5E7'
+purple_band = '#655179'
+purple_band_text = '#DCCCEC'
+orange_band = '#6A5547'
+orange_band_text = '#E6CDBC'
+grey_band = '#565A61'
+grey_band_text = '#D0D3D7'
+teal_band = '#406058'
+teal_band_text = '#A7DED0'
 surface = '#3E4451'
 deep = '#353A45'
 subtext = '#AFB3BB'

@@ -62,6 +62,7 @@ $bands = @{
     cyan = @{ bg = @(65, 94, 98); text = @(171, 218, 223) }
     grey = @{ bg = @(86, 90, 97); text = @(208, 211, 215) }
     purple = @{ bg = @(101, 81, 121); text = @(220, 204, 236) }
+    teal = @{ bg = @(64, 96, 88); text = @(167, 222, 208) }
 }
 $colors = @{
     surface = @(62, 68, 81); deep = @(53, 58, 69); overlay = @(90, 99, 116)
@@ -200,7 +201,7 @@ function Num($Value) {
 # switches it: keybindings.json has no action for the editor mode, so it is
 # /config or the band's vim menu.
 $vimModes = @{
-    'NORMAL' = @('Normal', 'purple'); 'INSERT' = @('Insert', 'blue')
+    'NORMAL' = @('Normal', 'purple'); 'INSERT' = @('Insert', 'teal')
     'VISUAL' = @('Visual', 'orange'); 'VISUAL LINE' = @('Visual Line', 'orange')
 }
 

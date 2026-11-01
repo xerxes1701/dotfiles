@@ -17,6 +17,7 @@ export const BANDS = {
   cyan: { bg: [65, 94, 98], text: [171, 218, 223] },
   grey: { bg: [86, 90, 97], text: [208, 211, 215] },
   purple: { bg: [101, 81, 121], text: [220, 204, 236] },
+  teal: { bg: [64, 96, 88], text: [167, 222, 208] },
 } as const satisfies Record<string, { bg: Rgb; text: Rgb }>
 export type BandName = keyof typeof BANDS
 
@@ -66,7 +67,7 @@ export const NO_EFFORT_ICON = cp(0xf0a9e)
 export const DASH = '–'
 
 export const VIM_MODES: Record<string, [string, BandName]> = {
-  NORMAL: ['Normal', 'purple'], INSERT: ['Insert', 'blue'],
+  NORMAL: ['Normal', 'purple'], INSERT: ['Insert', 'teal'],
   VISUAL: ['Visual', 'orange'], 'VISUAL LINE': ['Visual Line', 'orange'],
 }
 

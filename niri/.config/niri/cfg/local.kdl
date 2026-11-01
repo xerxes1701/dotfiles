@@ -20,6 +20,7 @@ input {
 binds {
     Mod+Return                          hotkey-overlay-title="Open Terminal: Ghostty" { spawn "ghostty"; }
     Mod+Space                           hotkey-overlay-title="Open App Launcher: noctalia launcher" { spawn-sh "noctalia msg panel-toggle launcher"; }
+    Mod+V                               hotkey-overlay-title="Clipboard History: noctalia" { spawn-sh "noctalia msg panel-toggle clipboard"; }
 
     // The h/l twins of the monitor arrow binds, like Mod+H and Mod+CTRL+H for columns
     Mod+Shift+H                         { focus-monitor-left; }

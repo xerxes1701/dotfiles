@@ -77,6 +77,16 @@ type = "plugin_action"
 command = "herdr-machines.pick"
 description = "start or restart a devcontainer machine"
 
+# The code-fence mod's code block (claude/mods/code-fence): a mod cannot bind
+# a key of its own, so Claude Code takes it as ctrl+x c (~/.claude/
+# keybindings.json) and this forwards the prefix key to that chord. Only to a
+# Claude pane: anywhere else ctrl+x c means something else, or nothing.
+[[keys.command]]
+key = "prefix+shift+v"
+type = "shell"
+command = '''h=${HERDR_BIN_PATH:-herdr}; p=$HERDR_ACTIVE_PANE_ID; "$h" agent get "$p" 2>/dev/null | grep -q '"agent":"claude"' && exec "$h" agent send-keys "$p" ctrl+x c'''
+description = "code block in the Claude prompt (code-fence mod)"
+
 # --- unified navigation scheme ---------------------------------------------
 # The prefix picks the level, the letter picks the action. No prefix reaches
 # the pane grid (layer 0), the prefix reaches panes and tabs (layer 1), the

@@ -9,7 +9,8 @@
 // app:toggleDiffNoiseFilter has one only in the diff panel, so ctrl+x c is
 // bound to it in the Global context (~/.claude/keybindings.json). A chord,
 // as Claude Code's own ctrl+x keys are: every terminal and keyboard layout
-// sends it, where ctrl+` is a dead key on a German one.
+// sends it, where ctrl+` is a dead key on a German one. In herdr, prefix+shift+v
+// sends this chord to a Claude pane (herdr/.config/herdr/config.toml).
 import type { EngineInterface, Register } from 'claude-code'
 
 const ACTION = 'app:toggleDiffNoiseFilter'

@@ -395,6 +395,21 @@ on windows
 
 > winget install --exact --id OpenJS.NodeJS.LTS
 
+## grim, slurp, satty
+
+the screenshot chain behind niri's mod+shift+s, see
+[taking a screenshot](#taking-a-screenshot).
+[grim](https://gitlab.freedesktop.org/emersion/grim)
+[slurp](https://github.com/emersion/slurp)
+[satty github page](https://github.com/gabm/Satty)
+
+install
+
+> sudo pacman -S grim slurp satty
+
+ubuntu has grim and slurp but no satty package; build it as satty's readme
+describes, or take a binary from its releases page.
+
 ## shells
 
 fish, nushell, zsh and bash are configured to behave the same way. each
@@ -750,6 +765,20 @@ where the text goes:
     x11        xclip, or xsel
     otherwise  osc 52, asking the terminal to set it -- over ssh or in a
                devcontainer. a terminal that ignores it gives no sign
+
+# taking a screenshot
+
+on niri, mod+shift+s is the linux side of win+shift+s: slurp draws a selection
+over the live screen, grim captures the region, and satty opens it to mark
+up. in satty, ctrl+c copies the image to the clipboard and ctrl+s saves it.
+esc during the selection cancels without opening satty. a window rule opens
+satty floating, not tiled.
+
+    mod+shift+s     region, through satty
+    ctrl+shift+2    whole screen, niri's own, straight to the clipboard
+    ctrl+shift+3    focused window, niri's own, straight to the clipboard
+
+noctalia's settings, which mod+shift+s used to open, are on mod+ctrl+s.
 
 # archives
 

@@ -18,6 +18,12 @@
         default-window-height { fixed 920; }
     }
 
+    // Satty screenshot editor floats like a snipping tool.
+    window-rule {
+        match app-id="com.gabm.satty"
+        open-floating true
+    }
+
     // if you use steam you will probably like these
     window-rule {
         match app-id="steam"

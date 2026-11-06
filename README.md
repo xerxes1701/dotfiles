@@ -86,6 +86,10 @@ ubuntu's `batcat` and `fdfind` linked as `bat` and `fd` -- is a hook in
 every tool picked, installed now or before, and only where its step is still
 to do. `--setup` runs the hooks alone, for a machine whose tools are there.
 
+`--conf FILE` reads another list in the same format, with its hooks in the
+`setup.d` next to it: a project outside this repository lists its own tools
+and installs them through this script.
+
 ## gnu stow
 
 [gnu stow github page](https://github.com/aspiers/stow)

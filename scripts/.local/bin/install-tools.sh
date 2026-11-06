@@ -28,6 +28,10 @@
 #                 batcat is there, so it does nothing on arch or windows, and
 #                 nothing the second time.
 #   setup_apply   does the step, every command through run, so -n prints it.
+#
+# --conf reads another tools.conf, and the hooks from the setup.d next to it:
+# a project outside this repository lists its own tools in this format and
+# installs them with this script, the way ~/code/tts does.
 
 set -uo pipefail
 
@@ -39,7 +43,6 @@ self=$(basename -- "$0")
 root=$(cd -- "$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")/../../.." && pwd) \
     || exit 1
 conf=$root/scripts/.local/lib/dotfiles/tools.conf
-setup_dir=$root/scripts/.local/lib/dotfiles/setup.d
 
 # Same rule as the other scripts here: colors for a terminal only, and never
 # against NO_COLOR (https://no-color.org) or TERM=dumb.
@@ -75,6 +78,7 @@ Install the tools listed in $conf
 that belong on this platform, picked from a list.
 
   -a, --all            every tool for this platform, without asking which.
+  -c, --conf FILE      another tools.conf; its hooks are in setup.d next to it.
   -l, --list           list the tools for this platform, and exit.
   -m, --manager NAME   pacman, apt or winget instead of the detected one.
   -n, --dry-run        print the commands, run nothing.
@@ -91,6 +95,9 @@ all=0 list=0 dry=0 yes=0 setup_only=0 manager=''
 while [ $# -gt 0 ]; do
     case $1 in
         -a | --all)     all=1; shift ;;
+        -c | --conf)    [ -n "${2:-}" ] || die "$1 needs a value" 'a tools.conf'
+                        conf=$2; shift 2 ;;
+        --conf=*)       conf=${1#*=}; shift ;;
         -l | --list)    list=1; shift ;;
         -m | --manager) [ -n "${2:-}" ] || die "$1 needs a value" 'pacman, apt or winget'
                         manager=$2; shift 2 ;;
@@ -107,6 +114,7 @@ done
 wanted=("$@")
 
 [ -r "$conf" ] || die "cannot read $conf"
+setup_dir=$(dirname -- "$conf")/setup.d
 
 # --- platform --------------------------------------------------------------
 

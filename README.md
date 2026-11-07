@@ -414,6 +414,22 @@ install
 ubuntu has grim and slurp but no satty package; build it as satty's readme
 describes, or take a binary from its releases page.
 
+## heroic
+
+the launcher for gog games, which has no linux client of its own; it also
+runs the epic and amazon stores, and plays windows builds through wine or
+proton.
+[heroic github page](https://github.com/Heroic-Games-Launcher/HeroicGamesLauncher)
+
+install
+
+> sudo pacman -S heroic-games-launcher
+
+ubuntu has no package; take the .deb from heroic's releases page, or the
+flatpak
+
+> flatpak install flathub com.heroicgameslauncher.hgl
+
 ## shells
 
 fish, nushell, zsh and bash are configured to behave the same way. each

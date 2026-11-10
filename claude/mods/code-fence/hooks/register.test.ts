@@ -11,10 +11,22 @@ const USAGE = { input_tokens: 1, output_tokens: 1, cache_read_input_tokens: 0, c
 
 type Box = { text: string; cursor: number }
 
-// Beneath the mod: an empty band, a prompt box, the mouse selection and
-// Haiku's answer.
-function engine(on: On, box: Box, marked: { text: string; requestId?: string } | undefined, answer = 'python') {
+// Beneath the mod: an empty band, a prompt box, the mouse selection, the
+// clipboard (wl-paste's exit 1: nothing copied) and Haiku's answer.
+function engine(
+  on: On,
+  box: Box,
+  marked: { text: string; requestId?: string } | undefined,
+  answer = 'python',
+  copied?: string,
+) {
   const asked: string[] = []
+  on('process.run', (_$, e) => {
+    expect(e.argv).toEqual(['wl-paste', '--type', 'text'])
+    const run = { stderr: '', isStdoutTruncated: false, isStderrTruncated: false }
+
+    return { value: copied === undefined ? { ...run, exitCode: 1, stdout: '' } : { ...run, exitCode: 0, stdout: copied } }
+  })
   on('ui.render', { component: 'AbovePrompt' }, ($, e) => h($.ui.resolve(e).Box, {}) as RenderElement)
   on('ui.selection', () => ({ value: marked }))
   on('prompt.read', () => ({ value: { ...box } }))
@@ -40,7 +52,7 @@ function engine(on: On, box: Box, marked: { text: string; requestId?: string } |
 
 // The next key landing inside the empty block is the prompt.edit hook's, which
 // no test can raise: it is checked live.
-test('nothing marked: an empty block on lines of its own', async ($, on) => {
+test('nothing marked or copied: an empty block on lines of its own', async ($, on) => {
   const box = { text: 'see', cursor: 3 }
   const asked = engine(on, box, undefined)
   const ui = await $.ui.mount(BAND)
@@ -87,4 +99,36 @@ test('backticks in the code lengthen the fence; an answer that is no language le
   await ui.press({ key: 'code-fence' })
 
   expect(box.text).toBe('````\nuse ```js``` here\n````')
+})
+
+test('nothing marked: the clipboard text goes in a block at the cursor, its language named', async ($, on) => {
+  const box = { text: 'fix this\nplease', cursor: 8 }
+  const asked = engine(on, box, undefined, 'ts', 'const a = 1\r\nconst b = 2\r\n')
+  const ui = await $.ui.mount(BAND)
+  await ui.press({ key: 'code-fence' })
+
+  expect(box.text).toBe('fix this\n```ts\nconst a = 1\nconst b = 2\n```\nplease')
+  expect(asked[0]).toContain('const a = 1')
+})
+
+test('a marked text comes before the clipboard, which the next press takes', async ($, on) => {
+  const box = { text: '', cursor: 0 }
+  engine(on, box, { text: 'a = 1', requestId: 'row-1' }, 'python', 'b = 2')
+  const ui = await $.ui.mount(BAND)
+  await ui.press({ key: 'code-fence' })
+  await ui.press({ key: 'code-fence' })
+  await ui.press({ key: 'code-fence' })
+
+  expect(box.text).toBe('```python\na = 1\n```\n```python\nb = 2\n```\n```\n\n```')
+})
+
+test('a copy of the marked text, trailing blanks aside, counts as nothing copied', async ($, on) => {
+  const box = { text: '', cursor: 0 }
+  const asked = engine(on, box, { text: 'a = 1', requestId: 'row-1' }, 'python', 'a = 1\n\n')
+  const ui = await $.ui.mount(BAND)
+  await ui.press({ key: 'code-fence' })
+  await ui.press({ key: 'code-fence' })
+
+  expect(box.text).toBe('```python\na = 1\n```\n```\n\n```')
+  expect(asked).toHaveLength(1)
 })

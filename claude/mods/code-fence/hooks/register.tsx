@@ -1,8 +1,9 @@
 // ctrl+x c puts a fenced code block in the prompt. With a text marked by the
 // mouse (fullscreen only), the block holds that text and Haiku, at low effort,
 // names its language for the fence; marked inside the prompt, the text is
-// wrapped where it stands. Without one, the block is empty and the next key
-// typed lands inside it.
+// wrapped where it stands. With nothing marked, the clipboard's text (wl-paste)
+// goes in the block the same way, at the cursor. With neither, the block is
+// empty and the next key typed lands inside it.
 //
 // A mod cannot bind a key of its own. A Button can take an engine action's
 // chord instead, while no engine handler of that action is mounted:
@@ -55,6 +56,18 @@ function framed(text: string, start: number, end: number, block: string): string
   return before + block + after
 }
 
+// The clipboard's text; '' where it holds none (nothing copied, an image only),
+// where wl-paste is missing (Windows) or the clipboard's owner does not answer.
+async function clipboard($: EngineInterface): Promise<string> {
+  try {
+    const run = await $.process.run(['wl-paste', '--type', 'text'], { timeoutMs: 2000 })
+
+    return run.exitCode === 0 ? run.stdout.replace(/\r\n/g, '\n') : ''
+  } catch {
+    return ''
+  }
+}
+
 // Where the marked text stands in the draft, the place nearest the cursor.
 function locate(draft: string, marked: string, cursor: number): number {
   let best = -1
@@ -68,18 +81,29 @@ function locate(draft: string, marked: string, cursor: number): number {
 type Memo = {
   // The engine answers the last mouse selection until the next prompt runs,
   // long after its highlight is gone, so a text already put in a block counts
-  // as nothing marked.
-  used?: string
+  // as nothing marked, and a clipboard's as nothing copied: a second press
+  // gives the next source, or an empty block. Kept without trailing blanks, as
+  // the block holds them, since a copy of a marked text may differ just there.
+  used: Set<string>
   // After an empty block the cursor stands past its closing fence: the next
   // text typed right there goes to `target`, the block's empty line.
   caret?: { at: number; target: number }
 }
 
 async function insert($: EngineInterface, memo: Memo): Promise<void> {
+  const isFresh = (code: string) => code.trim() !== '' && !memo.used.has(code)
+  // A marked text first, else the clipboard's, else an empty block.
   const marked = await $.ui.selection()
-  const code = marked?.text.replace(/\s+$/, '') ?? ''
+  let taken: { text: string; code: string; isInPrompt: boolean } | undefined
+  if (marked !== undefined && isFresh(marked.text.replace(/\s+$/, ''))) {
+    taken = { text: marked.text, code: marked.text.replace(/\s+$/, ''), isInPrompt: marked.requestId === undefined }
+  } else {
+    const copied = await clipboard($)
+    const code = copied.replace(/\s+$/, '')
+    if (isFresh(code)) taken = { text: copied, code, isInPrompt: false }
+  }
 
-  if (marked === undefined || code.trim() === '' || marked.text === memo.used) {
+  if (taken === undefined) {
     const box = await $.prompt.read()
     const text = framed(box.text, box.cursor, box.cursor, '```\n\n```')
     const filled = await $.prompt.fill({ text, mode: 'insert' })
@@ -89,28 +113,29 @@ async function insert($: EngineInterface, memo: Memo): Promise<void> {
     return
   }
 
+  const { text: source, code } = taken
   $.ui.status('code-fence: naming the language...')
   const name = await language($, code).finally(() => $.ui.status(undefined))
   const block = `${ticks(code)}${name}\n${code}\n${ticks(code)}`
   const box = await $.prompt.read()
-  const at = marked.requestId === undefined ? locate(box.text, marked.text, box.cursor) : -1
+  const at = taken.isInPrompt ? locate(box.text, source, box.cursor) : -1
   const filled =
     at === -1
       ? await $.prompt.fill({ text: framed(box.text, box.cursor, box.cursor, block), mode: 'insert' })
       : await $.prompt.fill({
           text:
             box.text.slice(0, at) +
-            framed(box.text, at, at + marked.text.length, block) +
-            box.text.slice(at + marked.text.length),
+            framed(box.text, at, at + source.length, block) +
+            box.text.slice(at + source.length),
         })
-  if (filled.isFilled) memo.used = marked.text
+  if (filled.isFilled) memo.used.add(code)
 }
 
 export const register: Register = on => {
-  const memo: Memo = {}
+  const memo: Memo = { used: new Set() }
 
   on('prompt.submit', ($, e, next) => {
-    memo.used = undefined
+    memo.used.clear()
     memo.caret = undefined
 
     return next(e)

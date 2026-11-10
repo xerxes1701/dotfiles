@@ -198,39 +198,6 @@ type = "plugin_action"
 command = "smart-splits.nvim.right"
 description = "goto right pane/split"
 
-# Layer 0, resizing. That plugin ships no resize actions, and herdr's own
-# resize_pane_* would take the keys before an nvim pane could resize its own
-# splits, so this makes the same nvim-or-not decision first.
-#
-# Called by bare name: the scripts package stows its executables into
-# ~/.local/bin, and herdr runs these through /bin/sh -lc -- a login shell, so
-# ~/.profile has put that directory on PATH by the time the command runs. The
-# name holds wherever the repository is checked out, on a host and in a
-# container alike.
-[[keys.command]]
-key = "ctrl+left"
-type = "shell"
-command = "herdr-resize-pane.sh left"
-description = "resize pane/split left"
-
-[[keys.command]]
-key = "ctrl+down"
-type = "shell"
-command = "herdr-resize-pane.sh down"
-description = "resize pane/split down"
-
-[[keys.command]]
-key = "ctrl+up"
-type = "shell"
-command = "herdr-resize-pane.sh up"
-description = "resize pane/split up"
-
-[[keys.command]]
-key = "ctrl+right"
-type = "shell"
-command = "herdr-resize-pane.sh right"
-description = "resize pane/split right"
-
 # Tab means tab at every level: <leader><Tab> in nvim, C-a Tab in tmux.
 [[keys.command]]
 key = "prefix+tab"

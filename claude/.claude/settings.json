@@ -2,10 +2,19 @@
   "agentPushNotifEnabled": true,
   "editorMode": "vim",
   "enabledPlugins": {
+    "nerd-glyphs@local-mods": true,
     "typescript-lsp@claude-plugins-official": true
   },
   "env": {
     "CLAUDE_CODE_PLUGIN_DIRS": "~/dotfiles/claude/mods/paste-image:~/dotfiles/claude/mods/status-band:~/dotfiles/claude/mods/cls:~/dotfiles/claude/mods/code-fence:~/dotfiles/claude/mods/mermaid"
+  },
+  "extraKnownMarketplaces": {
+    "local-mods": {
+      "source": {
+        "path": "/home/xerxes/.claude/local-marketplace",
+        "source": "directory"
+      }
+    }
   },
   "feedbackSurveyRate": 0,
   "hooks": {

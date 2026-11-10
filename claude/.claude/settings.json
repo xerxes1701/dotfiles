@@ -5,7 +5,7 @@
     "typescript-lsp@claude-plugins-official": true
   },
   "env": {
-    "CLAUDE_CODE_PLUGIN_DIRS": "~/dotfiles/claude/mods/paste-image:~/dotfiles/claude/mods/status-band:~/dotfiles/claude/mods/cls:~/dotfiles/claude/mods/code-fence"
+    "CLAUDE_CODE_PLUGIN_DIRS": "~/dotfiles/claude/mods/paste-image:~/dotfiles/claude/mods/status-band:~/dotfiles/claude/mods/cls:~/dotfiles/claude/mods/code-fence:~/dotfiles/claude/mods/mermaid"
   },
   "feedbackSurveyRate": 0,
   "hooks": {

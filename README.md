@@ -1129,6 +1129,23 @@ band (`mod`, the default), the statusline alone (`band`), or neither (`off`).
 it writes `~/.claude/status-band/mode`, which both statusline scripts read;
 bare, it moves on to the next of the three.
 
+## mermaid
+
+> claude/mods/mermaid
+
+a mod that draws the ```` ```mermaid ```` blocks of claude's replies as
+pictures. `mmdc` (`mermaid-cli`; on ubuntu `npm i -g @mermaid-js/mermaid-cli`)
+renders each block once, in the dark theme, to
+`~/.cache/claude-mermaid/<hash>.png`, and the reply's row shows it over the
+kitty graphics protocol. only the drawing changes: ctrl+o still shows the
+source. a block mmdc refuses keeps its code, with mmdc's error under it.
+
+pictures need a terminal claude code draws images in: ghostty or kitty on
+their own. inside herdr there are none -- its panes answer the terminal probe
+as `libghostty`, which claude code draws no images for -- so the mod finds
+that out on the first diagram and leaves the blocks as code. it loads from
+`CLAUDE_CODE_PLUGIN_DIRS`, like [status band](#status-band).
+
 ## plugins, once per machine
 
 > claude-bootstrap.sh

@@ -1,0 +1,5 @@
+{
+  "name": "mermaid",
+  "version": "0.1.0",
+  "description": "Draws the mermaid code blocks of Claude's replies as images (mmdc, kitty graphics), where the terminal shows images"
+}

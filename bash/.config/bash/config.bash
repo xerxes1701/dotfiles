@@ -56,7 +56,7 @@ fi
 
 # Each entry only when it is not there yet, so a nested shell or a re-source
 # never grows PATH. Prepended last-first, so ~/.local/bin ends up in front.
-for dir in "$BUN_INSTALL/bin" "$HOME/.dotnet/tools" "$HOME/.cargo/bin" "$HOME/.local/bin"; do
+for dir in "$BUN_INSTALL/bin" "$HOME/.dotnetup" "$HOME/.dotnet/tools" "$HOME/.cargo/bin" "$HOME/.local/bin"; do
   case ":$PATH:" in
     *":$dir:"*) ;;
     *) PATH="$dir:$PATH" ;;

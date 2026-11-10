@@ -65,7 +65,7 @@ end
 # fish_add_path skips entries already in $PATH, so this is idempotent -- unlike
 # the `set -gx PATH $PATH ...` appends it replaces, which re-added on every
 # nested shell and collided with CachyOS's universal fish_user_paths.
-fish_add_path -g $HOME/.local/bin $HOME/.cargo/bin $HOME/.dotnet/tools $BUN_INSTALL/bin
+fish_add_path -g $HOME/.local/bin $HOME/.cargo/bin $HOME/.dotnet/tools $HOME/.dotnetup $BUN_INSTALL/bin
 
 # ===== tool init =====
 

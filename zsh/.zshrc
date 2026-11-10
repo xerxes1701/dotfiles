@@ -53,7 +53,7 @@ fi
 
 # `typeset -U` keeps $path deduplicated, so re-sourcing never grows it.
 typeset -U path
-path=("$HOME/.local/bin" "$HOME/.cargo/bin" "$HOME/.dotnet/tools" "$BUN_INSTALL/bin" $path)
+path=("$HOME/.local/bin" "$HOME/.cargo/bin" "$HOME/.dotnet/tools" "$HOME/.dotnetup" "$BUN_INSTALL/bin" $path)
 
 # ===== tool init =====
 

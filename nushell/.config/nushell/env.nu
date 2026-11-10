@@ -67,6 +67,7 @@ $env.PATH = (
         ($nu.home-dir | path join ".local" "bin")
         ($nu.home-dir | path join ".cargo" "bin")
         ($nu.home-dir | path join ".dotnet" "tools")
+        ($nu.home-dir | path join ".dotnetup")
         ($env.BUN_INSTALL | path join "bin")
     ]
     | uniq

@@ -26,6 +26,8 @@ sd_extra=()
 # Folded, a package's ~/.config/<name> is a symlink into this repository, and
 # whatever the tool writes there shows up as a change to the working tree:
 #   fish   fisher and `fish_config theme save` write into ~/.config/fish
+#   ghostty config.local, a machine's own settings, sits next to the shared
+#          config, and on WSL comes from the other repository
 #   herdr  its socket, its logs and session.json live in ~/.config/herdr
 #   scripts ~/.local/lib does not exist on a fresh machine, and folded it would
 #          become a link into this repository for anything else to write into
@@ -35,7 +37,7 @@ sd_extra=()
 #          and ~/.config/systemd/user is where `systemctl --user enable` writes
 # nvim and nushell stay folded on purpose -- what they generate in there is
 # either tracked (lazy-lock.json) or listed in .gitignore.
-sd_unfolded=(claude fish herdr scripts ssh)
+sd_unfolded=(claude fish ghostty herdr scripts ssh)
 sd_examples=(
     "$self"
     "$self -n"

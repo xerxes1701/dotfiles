@@ -17,3 +17,10 @@ confirm-close-surface = false
 # precision multiplier brings it back in line; discrete stays at Ghostty's
 # default of 3, which already matches Alacritty.
 mouse-scroll-multiplier = precision:0.05,discrete:1
+
+# Settings that belong to one machine only go in config.local next to this
+# file. It is optional, and loaded after this file, so its values win. WSL's
+# overrides the scroll multiplier above: under WSLg the wheel reaches Ghostty
+# as precision scrolling too, but in steps so small that 0.05 needs many
+# notches per line.
+config-file = ?config.local

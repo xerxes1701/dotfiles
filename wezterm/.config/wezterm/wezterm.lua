@@ -53,6 +53,9 @@ local dimmer = { brightness = 0.05 }
 cfg.enable_scroll_bar = true
 cfg.min_scroll_bar_height = "2cell"
 cfg.canonicalize_pasted_newlines = "CarriageReturn"
+-- kitty graphics protocol, off in wezterm by default: the claude mermaid mod
+-- draws its diagrams as images with it
+cfg.enable_kitty_graphics = true
 
 -- cfg.background = {
 -- 	{

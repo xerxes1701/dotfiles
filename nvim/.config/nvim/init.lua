@@ -8,6 +8,7 @@ if vim.env.WSL_DISTRO_NAME and vim.fn.executable(wsl_git .. "/git") == 1 then
 end
 
 require("defaults")
+require("file_line").setup()
 require("keymap_registry").setup()
 require("config.lazy")
 require("keymaps")

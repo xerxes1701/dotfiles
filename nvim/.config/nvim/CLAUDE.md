@@ -249,7 +249,7 @@ Tags: `entry` `options` `keymaps` `plugin-spec` `generated` `inventory`
 
 | Path                               | Description                                                                                       | Tags           |
 | ---------------------------------- | ------------------------------------------------------------------------------------------------- | -------------- |
-| `init.lua`                         | Entry point. On WSL puts `~/.local/lib/wsl-git` first on PATH, then loads defaults, the keymap registry, lazy.nvim and the keymaps. | entry |
+| `init.lua`                         | Entry point. On WSL puts `~/.local/lib/wsl-git` first on PATH, then loads defaults, the `path:line` opener, the keymap registry, lazy.nvim and the keymaps. | entry |
 | `lazy-lock.json`                   | Installed commit of each plugin. Commit it together with spec changes.                            | lockfile       |
 | `keybindings.yaml`                 | The keybinding inventory. Edit this file, not the reference.                                      | inventory      |
 | `keybindings.md`                   | Reference generated from the inventory. Do not edit.                                              | generated      |
@@ -271,6 +271,7 @@ Tags: `entry` `options` `keymaps` `plugin-spec` `generated` `inventory`
 | `lua/statusline_git.lua`           | The status line's git band: what the prompt's git badge shows, from a background `git status`.    | ui             |
 | `lua/oil_status.lua`               | Modified-buffer indicator column for oil.nvim.                                                    | ui             |
 | `lua/session_guard.lua`            | Names a stale auto-session session before it is restored and offers to delete it.                 | ui             |
+| `lua/file_line.lua`                | Opens `path:line`, `path:line:col` and `path:first-last` names at that line; a range is selected. | ui             |
 | `lua/plugins.lua`                  | Specs for the two shared libraries nvim-web-devicons and plenary.nvim.                            | plugin-spec    |
 | `lua/config/lazy.lua`              | lazy.nvim bootstrap and setup. Imports `lua/plugins/`.                                            | plugin-spec    |
 | `lua/config/hydra-codenav.lua`     | Treesitter code-navigation hydra. Body key `S`.                                                   | hydra, keymaps |

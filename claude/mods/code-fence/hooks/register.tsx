@@ -1,17 +1,20 @@
-// ctrl+x c puts a fenced code block in the prompt. With a text marked by the
-// mouse (fullscreen only), the block holds that text and Haiku, at low effort,
-// names its language for the fence; marked inside the prompt, the text is
-// wrapped where it stands. With nothing marked, the clipboard's text (wl-paste)
-// goes in the block the same way, at the cursor. With neither, the block is
-// empty and the next key typed lands inside it.
+// ctrl+a shift+v puts a fenced code block in the prompt. With a text marked
+// by the mouse (fullscreen only), the block holds that text and Haiku, at low
+// effort, names its language for the fence; marked inside the prompt, the text
+// is wrapped where it stands. With nothing marked, the clipboard's text
+// (wl-paste) goes in the block the same way, at the cursor. With neither, the
+// block is empty and the next key typed lands inside it.
 //
 // A mod cannot bind a key of its own. A Button can take an engine action's
 // chord instead, while no engine handler of that action is mounted:
-// app:toggleDiffNoiseFilter has one only in the diff panel, so ctrl+x c is
-// bound to it in the Global context (~/.claude/keybindings.json). A chord,
-// as Claude Code's own ctrl+x keys are: every terminal and keyboard layout
-// sends it, where ctrl+` is a dead key on a German one. In herdr, prefix+shift+v
-// sends this chord to a Claude pane (herdr/.config/herdr/config.toml).
+// app:toggleDiffNoiseFilter has one only in the diff panel, so ctrl+a shift+v
+// is bound to it in the Global context (~/.claude/keybindings.json). A chord:
+// every terminal and keyboard layout sends it, where ctrl+` is a dead key on a
+// German one. Its keys are herdr's prefix+shift+v, which sends this chord on
+// to a Claude pane (herdr/.config/herdr/config.toml), so the same keys work
+// with herdr and without. The cost is Claude Code's own ctrl+a (start of
+// line): it now waits up to 3 s for a second key and drops any but shift+v.
+// Home still goes to the start of the line.
 import type { EngineInterface, Register } from 'claude-code'
 
 const ACTION = 'app:toggleDiffNoiseFilter'

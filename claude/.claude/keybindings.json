@@ -5,7 +5,7 @@
     {
       "context": "Global",
       "bindings": {
-        "ctrl+x c": "app:toggleDiffNoiseFilter"
+        "ctrl+a shift+v": "app:toggleDiffNoiseFilter"
       }
     }
   ]

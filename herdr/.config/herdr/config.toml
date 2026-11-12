@@ -78,13 +78,15 @@ command = "herdr-machines.pick"
 description = "start or restart a devcontainer machine"
 
 # The code-fence mod's code block (claude/mods/code-fence): a mod cannot bind
-# a key of its own, so Claude Code takes it as ctrl+x c (~/.claude/
-# keybindings.json) and this forwards the prefix key to that chord. Only to a
-# Claude pane: anywhere else ctrl+x c means something else, or nothing.
+# a key of its own, so Claude Code takes it as the chord ctrl+a shift+v
+# (~/.claude/keybindings.json), the very keys of this binding. herdr keeps them
+# for itself and sends them on, so the same keys work in Claude with herdr and
+# without. Only to a Claude pane: anywhere else they mean something else, or
+# nothing.
 [[keys.command]]
 key = "prefix+shift+v"
 type = "shell"
-command = '''h=${HERDR_BIN_PATH:-herdr}; p=$HERDR_ACTIVE_PANE_ID; "$h" agent get "$p" 2>/dev/null | grep -q '"agent":"claude"' && exec "$h" agent send-keys "$p" ctrl+x c'''
+command = '''h=${HERDR_BIN_PATH:-herdr}; p=$HERDR_ACTIVE_PANE_ID; "$h" agent get "$p" 2>/dev/null | grep -q '"agent":"claude"' && exec "$h" agent send-keys "$p" ctrl+a shift+v'''
 description = "code block in the Claude prompt (code-fence mod)"
 
 # --- unified navigation scheme ---------------------------------------------

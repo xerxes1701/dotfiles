@@ -1,5 +1,5 @@
 {
   "name": "code-fence",
   "version": "0.1.0",
-  "description": "ctrl+x c (herdr: prefix+shift+v) puts a fenced code block in the prompt; a marked text, else the clipboard's, goes inside it, its language named by Haiku"
+  "description": "ctrl+a shift+v (in herdr prefix+shift+v, the same keys) puts a fenced code block in the prompt; a marked text, else the clipboard's, goes inside it, its language named by Haiku"
 }

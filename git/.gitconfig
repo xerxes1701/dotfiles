@@ -111,6 +111,11 @@
 	mc  = merge --continue
 	ma  = merge --abort
 	mm  = "!f() { m=$(git main-branch); git fetch && git merge \"$m\" --message \"Merge branch '${m#origin/}' into $(git bn)\"; }; f"
+	# Merge only by fast-forward; fails instead of creating a merge commit.
+	# mmff brings the branch up to its last-fetched upstream that way, and
+	# fails when the branch has commits of its own.
+	mff  = merge --ff-only
+	mmff = mff @{u}
 	rb  = rebase
 	rbc = rebase --continue
 	rba = rebase --abort

@@ -4,15 +4,15 @@
 #
 #   git df   the working tree: one line per changed file -- staged, not
 #            staged and untracked, not the ignored ones.
-#   git sh   the history, drawn as git lg draws it. Enter on a commit lists
+#   git sw   the history, drawn as git lg draws it. Enter on a commit lists
 #            its files in a second fzf; esc there goes back to the history,
 #            where it was, and ctrl-c ends both. Given one commit and
-#            nothing else -- a hash, HEAD, a branch, HEAD~2 -- git sh lists
+#            nothing else -- a hash, HEAD, a branch, HEAD~2 -- git sw lists
 #            that commit's files straight away, and esc quits.
 #
 # Every list has the same preview: delta to begin with, difftastic or git's
 # own diff on a key, hunk jumps and scrolling. Enter on a file opens it in
-# nvim at the hunk on screen -- in git df the file itself, in git sh the
+# nvim at the hunk on screen -- in git df the file itself, in git sw the
 # file as that commit has it, read-only. fzf steps aside while nvim runs and
 # comes back when it quits, so nothing has to be sent to the background for
 # it. ctrl-z in nvim still stops everything, and `fg` brings it back.
@@ -57,13 +57,13 @@ err() { printf '%s: %s\n' "$self" "$*" >&2; }
 usage() {
     cat <<EOF
 usage: git df                      the working tree's changes
-       git sh [log options]        the history, then a commit's files
-       git sh <commit>             that commit's files
+       git sw [log options]        the history, then a commit's files
+       git sw <commit>             that commit's files
        $self [show [<commit> | log options]]
 
   enter               git df: open the file in nvim (or vim, where there
                       is no nvim) at the hunk on screen
-                      git sh: the commit's files; there, open the file as
+                      git sw: the commit's files; there, open the file as
                       the commit has it, read-only
   alt-d alt-t alt-g   the preview in delta, difftastic, git diff
   alt-n alt-p         next / previous hunk
@@ -73,9 +73,9 @@ usage: git df                      the working tree's changes
   esc                 quit; in a commit's files, back to the history
   ctrl-c              quit, from the files as well
 
-git sh hands its options to git log: \`git sh -- src/\`, \`git sh main..\`.
-one commit alone -- \`git sh HEAD\`, a hash, a branch, HEAD~2 -- opens its
-files, where esc quits; \`git sh main --\` is the history from it.
+git sw hands its options to git log: \`git sw -- src/\`, \`git sw main..\`.
+one commit alone -- \`git sw HEAD\`, a hash, a branch, HEAD~2 -- opens its
+files, where esc quits; \`git sw main --\` is the history from it.
 the mouse wheel scrolls too, but hunk jumps do not see where it went.
 EOF
 }
@@ -83,7 +83,7 @@ EOF
 # --- state -----------------------------------------------------------------
 # Every fzf has a directory of its own, $DF_STATE, which everything it starts
 # inherits, together with:
-#   DF_KIND    worktree (git df), commits or files (git sh)
+#   DF_KIND    worktree (git df), commits or files (git sw)
 #   DF_COMMIT  for files: the commit
 #   DF_PARENT  for files: the history's directory
 # In the directory:
@@ -533,7 +533,7 @@ main_worktree() {
 main_show() {
     setup commits
     # Options are read where the alias was run from -- GIT_PREFIX, below
-    # the top -- so `git sh -- file` means the file in that directory. The
+    # the top -- so `git sw -- file` means the file in that directory. The
     # check up front is for an unknown revision or a history without
     # commits, whose message fzf would cover.
     cd "${GIT_PREFIX:-.}" || exit 1
@@ -558,7 +558,7 @@ is_commit() {
     git rev-parse --verify --quiet "$1^{commit}" >/dev/null
 }
 
-# git sh <commit>: the commit's files, with no history before them. ctrl-c
+# git sw <commit>: the commit's files, with no history before them. ctrl-c
 # leaves its note for the history in this list's own directory, where
 # nothing reads it.
 main_commit() {
@@ -582,7 +582,7 @@ case ${1-} in
     -h|--help) usage ;;
     list|preview|scroll|hunk|focus|mode|edit|files|back)
         if [ -z "${DF_STATE-}" ]; then
-            err "$1 is called by fzf -- run git df or git sh"
+            err "$1 is called by fzf -- run git df or git sw"
             exit 2
         fi
         cmd=$1

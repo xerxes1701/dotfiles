@@ -59,6 +59,10 @@
 	# --- branch / commit ---
 	b    = branch
 	bn   = branch --show-current
+	# Newest first, each branch marked: current or in another worktree, ahead
+	# of or behind its upstream, upstream gone, merged into the main branch.
+	# A pattern narrows the list. See git-brl.sh.
+	brl  = !git-brl.sh
 	c    = commit
 	cm   = commit -m
 	ca   = commit --amend

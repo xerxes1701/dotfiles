@@ -552,6 +552,18 @@ part from the drive letter on and translate it with `wslpath`. wsl git cannot
 work inside those worktrees, so `gz` previews the log through the repository
 by commit id instead.
 
+> git brl [pattern]
+
+the local branches, newest commit first, each with what is left to do on it:
+`*` the current one and `+` one checked out in another worktree, `↑2 ↓5` or
+`=` against its upstream, `local` without one, `gone` when the remote deleted
+it -- usually after its merge request went in, though it may still have
+commits of its own -- and `merged` (name dimmed) when the main branch (`git
+main-branch`) has everything on it. squash and rebase merges are not seen as
+merged; `gone` covers those. options go to `git branch --list`, so `git brl
+'MiGa*'` narrows the list. it is `git-brl.sh`, a script because git's format
+cannot test whether `%(ahead-behind:...)` starts with 0.
+
 ## git status on a windows drive
 
 > scripts/.local/lib/wsl-git/git
@@ -611,8 +623,9 @@ one commit and nothing else -- a hash, `HEAD`, a branch, `HEAD~2`, whatever
 `git sh HEAD`. esc quits there. with `--` after it, it goes to `git log`
 again: `git sh main --` is main's history.
 
-both are `git-review.sh`; wsl and linux only for now, on windows the aliases
-say so.
+both are `git-review.sh`. on windows it runs in git for windows' sh, with
+the native `fzf.exe`, delta and difft; enter opens git for windows' own vim
+there when nvim is not installed.
 
     enter               git df: open the file in nvim at the hunk on screen
                         git sh: the commit's files; there, open the file as

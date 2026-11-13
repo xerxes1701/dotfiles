@@ -51,7 +51,9 @@
   "skipWorkflowUsageWarning": true,
   "spinnerVerbs": {
     "mode": "replace",
-    "verbs": ["Working"]
+    "verbs": [
+      "Working"
+    ]
   },
   "statusLine": {
     "command": "node \"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/status-band/statusline.mjs\"",
@@ -60,5 +62,10 @@
     "refreshInterval": 10,
     "type": "command"
   },
-  "theme": "custom:prompt-pop"
+  "theme": "custom:prompt-pop",
+  "voice": {
+    "enabled": true,
+    "mode": "hold"
+  },
+  "voiceEnabled": true
 }

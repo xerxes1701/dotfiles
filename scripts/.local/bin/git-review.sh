@@ -41,8 +41,10 @@
 #                       a file, so no path goes through fzf's quoting. Paths
 #                       with a newline or a tab in them are not supported.
 #
-# POSIX sh, like the other scripts here. Not on Windows yet: the aliases say
-# so there instead of failing on a missing script.
+# POSIX sh, like the other scripts here. On Windows it runs in Git for
+# Windows' sh, with the native fzf.exe, delta and difft; fzf starts its
+# commands with `sh -c` there as well. Enter opens vim where there is no
+# nvim: Git for Windows has one of its own.
 
 set -u
 
@@ -59,7 +61,8 @@ usage: git df                      the working tree's changes
        git sh <commit>             that commit's files
        $self [show [<commit> | log options]]
 
-  enter               git df: open the file in nvim at the hunk on screen
+  enter               git df: open the file in nvim (or vim, where there
+                      is no nvim) at the hunk on screen
                       git sh: the commit's files; there, open the file as
                       the commit has it, read-only
   alt-d alt-t alt-g   the preview in delta, difftastic, git diff
@@ -108,7 +111,9 @@ item() {
 
 # quotePath off for the same reason as status -z: in diff headers and
 # --name-only git would otherwise print the umlaut path as "Gr\303\266...".
-g() { git -c core.quotePath=false --no-pager "$@"; }
+# safecrlf off: with autocrlf, as on Windows, git warns about every file
+# with LF endings, and the preview shows stderr.
+g() { git -c core.quotePath=false -c core.safecrlf=false --no-pager "$@"; }
 
 merges=--diff-merges=first-parent
 
@@ -406,7 +411,7 @@ cmd_edit() {
             read -r _
             return 0
         fi
-        exec nvim "+$line" -- "$path"
+        exec "$DF_EDITOR" "+$line" -- "$path"
     fi
 
     # The file as the commit has it -- before it, for a deletion -- in a
@@ -416,7 +421,7 @@ cmd_edit() {
     if [ "$key" = D ]; then rev=$DF_COMMIT^ name="$short^:$path"
     else rev=$DF_COMMIT name="$short:$path"; fi
     g show "$rev:$path" |
-    DF_NAME=$name nvim -R \
+    DF_NAME=$name "$DF_EDITOR" -R \
         -c 'exe "file " . fnameescape($DF_NAME)' \
         -c 'setlocal buftype=nofile bufhidden=wipe noswapfile' \
         -c 'filetype detect' "+$line" -
@@ -448,7 +453,7 @@ cmd_back() { [ -f "$DF_STATE/quit" ] && echo abort; return 0; }
 pick_files() {
     title=$(git log -1 --format='%h %s' "$DF_COMMIT")
     list_files | pick "$title
-enter nvim, read-only · alt-d/t/g delta/difft/git · alt-n/p next/previous hunk
+enter $DF_EDITOR, read-only · alt-d/t/g delta/difft/git · alt-n/p next/previous hunk
 ctrl-d/u half page · ctrl-f/b page · shift-down/up line · $1" \
         --nth 2.. \
         --bind 'enter:execute("$DF_SELF" edit {n})' \
@@ -496,7 +501,9 @@ setup() {
     top=$(git rev-parse --show-toplevel) || exit 1
     DF_STATE=$(mktemp -d) || { err "cannot create a temporary directory"; exit 1; }
     DF_KIND=$1
-    export DF_SELF DF_STATE DF_KIND
+    DF_EDITOR=nvim
+    command -v nvim >/dev/null 2>&1 || DF_EDITOR=vim
+    export DF_SELF DF_STATE DF_KIND DF_EDITOR
     trap 'rm -rf -- "$DF_STATE"' EXIT
     trap 'exit 130' INT TERM HUP
     save delta 1 0
@@ -516,7 +523,7 @@ main_worktree() {
         echo "nothing to diff: the working tree is clean"
         exit 0
     fi
-    pick "enter nvim · $keys" \
+    pick "enter $DF_EDITOR · $keys" \
         --nth 2.. \
         --bind 'enter:execute("$DF_SELF" edit {n})+reload("$DF_SELF" list)' \
         <"$DF_STATE/list"

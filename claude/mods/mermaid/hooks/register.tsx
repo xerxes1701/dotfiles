@@ -7,14 +7,10 @@
 //
 // A block is drawn as the engine draws it, as code, until its picture is
 // ready, while the reply is still writing it (an unclosed fence), and for good
-// where no picture can be: a terminal that shows no images, no mmdc, a surface
-// other than the terminal. A block mmdc refuses keeps its code, with mmdc's
-// error under it.
-//
-// herdr passes kitty graphics through to its outer terminal, but its panes
-// answer XTVERSION as libghostty, which Claude Code draws no images for; the
-// shell configs set CLAUDE_CODE_FORCE_TERMINAL_IMAGES in herdr panes, which
-// turns them on.
+// where no picture can be: a terminal that shows no images (herdr, whose
+// panes answer as libghostty, which Claude Code draws no images for), no mmdc,
+// a surface other than the terminal. A block mmdc refuses keeps its code, with
+// mmdc's error under it.
 import type { EngineInterface, ImageSource, Register, RenderElement } from 'claude-code'
 
 const THEME = 'dark'

@@ -84,6 +84,13 @@ if status is-interactive
   zoxide init fish | source
   starship init fish | source
   fzf --fish | source
+  # atuin: shell history in a database, searched with ctrl-r and up. Its init
+  # binds no keys here: fish_user_key_bindings does, after fzf took ctrl-r and
+  # again after every toggle_vi_mode. `?` at an empty prompt opens Atuin AI,
+  # see atuin/.config/atuin/ai-server.toml.
+  if type -q atuin
+    atuin init fish --disable-ctrl-r --disable-up-arrow | source
+  end
 end
 
 # ===== aliases: listing =====

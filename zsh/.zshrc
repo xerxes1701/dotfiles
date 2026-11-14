@@ -239,6 +239,11 @@ __git_win_complete() {
 # when $PWD happened to be $HOME, so it failed on every other startup.
 [ -f "$HOME/.zshrc_fzf" ] && source "$HOME/.zshrc_fzf"
 
+# atuin: shell history in a database, searched with ctrl-r and up. After fzf,
+# whose ctrl-r it replaces. `?` at an empty prompt opens Atuin AI, see
+# atuin/.config/atuin/ai-server.toml.
+(( $+commands[atuin] )) && eval "$(atuin init zsh)"
+
 # zgen is optional: it is not installed everywhere, and sourcing it unguarded
 # printed "no such file or directory" on every startup.
 #

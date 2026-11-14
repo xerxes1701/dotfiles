@@ -1,0 +1,28 @@
+# atuin: shell history in a sqlite database, searched with ctrl-r and up in
+# fish, zsh and nushell (see the "tool init" section of each shell's config).
+# Every setting not named here keeps atuin's default; `atuin default-config`
+# prints them all. The history itself lives in ~/.local/share/atuin, not here.
+
+# pacman updates it; atuin need not ask its server.
+update_check = false
+
+# One line per entry, drawn below the prompt at the height fzf uses (40%)
+# rather than taking the whole screen.
+style = "compact"
+inline_height = 20
+
+# up shows this shell session's history, the way the shell's own up does;
+# ctrl-r searches everything. ctrl-r inside the search cycles the filter.
+filter_mode_shell_up_key_binding = "session"
+
+# Enter puts the command on the prompt to edit; tab does too. Run it with a
+# second enter.
+enter_accept = false
+
+# Atuin AI: `?` at an empty prompt (fish and zsh; atuin has no nushell
+# widget). It talks to the self-hosted server `atuin-ai-server.sh start` runs,
+# which uses an Anthropic API key from 1Password -- see ai-server.toml. Not
+# running, `?` reports the connection error and nothing else breaks.
+[ai]
+enabled = true
+endpoint = "http://127.0.0.1:8788"

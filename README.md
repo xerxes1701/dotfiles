@@ -806,7 +806,8 @@ where the text goes:
 
 on niri, mod+shift+s is the linux side of win+shift+s: slurp draws a selection
 over the live screen, grim captures the region, and satty opens it to mark
-up. in satty, ctrl+c copies the image to the clipboard and ctrl+s saves it.
+up. the capture lands on the clipboard before satty opens; in satty, ctrl+c
+replaces it with the marked-up image and ctrl+s saves it.
 esc during the selection cancels without opening satty. a window rule opens
 satty floating, not tiled.
 

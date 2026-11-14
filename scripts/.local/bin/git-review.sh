@@ -617,6 +617,8 @@ cmd_hunks() {
     DF_ORIG=$orig
     export DF_PARENT DF_STATE DF_KIND DF_PATH DF_ORIG
     trap 'rm -rf -- "$DF_STATE"' EXIT
+    # The hunks open in the mode the files were in.
+    read -r mode _ <"$DF_PARENT/state"
     save "$mode" 1 0
     # The side with something to stage first, else the staged one.
     if [ "${key#?}" != ' ' ]; then echo unstaged; else echo staged; fi >"$DF_STATE/side"
@@ -662,6 +664,8 @@ hunks_header() {
 # The marked hunks, through git apply: to the index, or out of it on the
 # staged side. --recount, as the hunks of an edit may not add up.
 cmd_apply() {
+    # An empty side: nothing to apply.
+    [ $# -gt 0 ] && [ -s "$DF_STATE/items" ] || return 0
     log=$DF_STATE/err
     p=$DF_STATE/patch
     cat -- "$DF_STATE/head" >"$p"

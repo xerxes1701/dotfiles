@@ -103,9 +103,20 @@ alias vim='nvim'
 alias vid='neovide'
 alias code='code --password-store="gnome-libsecret"'
 alias c='code'
-# yazi's header draws the starship prompt (starship.yazi), so the git counters of
-# this shell's directory must not reach it.
-alias y='env -u STARSHIP_GIT_STATUS yazi'
+# yazi, and on quitting with Q the shell changes to the directory yazi was in;
+# q quits and leaves the shell where it was (the two are swapped in
+# yazi/.config/yazi/keymap.toml). yazi writes that directory to --cwd-file only
+# on Q, and only the shell can `cd`. yazi's header draws the starship prompt
+# (starship.yazi), so the git counters of this shell's directory must not
+# reach it.
+y() {
+  local tmp cwd
+  tmp=$(mktemp -t yazi-cwd.XXXXXX)
+  env -u STARSHIP_GIT_STATUS yazi "$@" --cwd-file="$tmp"
+  IFS= read -r -d '' cwd <"$tmp"
+  [ -n "$cwd" ] && [ "$cwd" != "$PWD" ] && [ -d "$cwd" ] && builtin cd -- "$cwd"
+  command rm -f -- "$tmp"
+}
 alias f='fzf --preview "bat {} --force-colorization"'
 alias neogit='nvim -c :Neogit'
 alias conf='tmuxinator start conf'

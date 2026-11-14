@@ -71,9 +71,19 @@ alias vim = nvim
 alias vid = neovide
 alias code = ^code --password-store="gnome-libsecret"
 alias c = code
-# yazi's header draws the starship prompt (starship.yazi), so the git counters of
-# this shell's directory must not reach it.
-def --wrapped y [...args] { hide-env -i STARSHIP_GIT_STATUS; ^yazi ...$args }
+# yazi, and on quitting with Q the shell changes to the directory yazi was in;
+# q quits and leaves the shell where it was (the two are swapped in
+# yazi/.config/yazi/keymap.toml). yazi writes that directory to --cwd-file only
+# on Q, and only the shell can `cd` -- hence --env. yazi's header draws the starship prompt
+# (starship.yazi), so the git counters of this shell's directory must not
+# reach it.
+def --env --wrapped y [...args] {
+  let tmp = (mktemp -t yazi-cwd.XXXXXX)
+  ^env -u STARSHIP_GIT_STATUS yazi ...$args $"--cwd-file=($tmp)"
+  let cwd = (open --raw $tmp | str trim)
+  if $cwd != "" and $cwd != $env.PWD and ($cwd | path type) == "dir" { cd $cwd }
+  rm -f $tmp
+}
 # bat picks the theme up from $env.BAT_THEME, so the preview needs no --theme.
 alias f = fzf --preview "bat {} --force-colorization"
 alias neogit = nvim -c :Neogit

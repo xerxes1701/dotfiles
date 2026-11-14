@@ -1,0 +1,8 @@
+# q and Q swapped against yazi's defaults: plain q quits and leaves the shell
+# where it was, Q quits and has the `y` shell function cd to yazi's directory.
+# Without the `y` wrapper (plain `yazi`) both just quit.
+[mgr]
+prepend_keymap = [
+	{ on = "q", run = "quit --no-cwd-file", desc = "Quit, shell stays in its directory" },
+	{ on = "Q", run = "quit", desc = "Quit, shell changes to this directory" },
+]

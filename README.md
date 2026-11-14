@@ -312,9 +312,12 @@ plugins
 - [starship.yazi](https://github.com/Rolv-Apneseth/starship.yazi) draws the
   starship prompt in the header. `package.toml` pins it and its files are
   committed under `plugins/`, so no `ya pkg install` is needed after a clone;
-  `ya pkg upgrade` updates it. The `y` alias starts yazi without
+  `ya pkg upgrade` updates it. The `y` shell function starts yazi without
   `$STARSHIP_GIT_STATUS`, which would show the starting directory's git
   counters everywhere.
+- `y` also follows yazi on quit: `Q` quits and changes the shell to yazi's
+  directory, `q` quits and leaves it where it was. `keymap.toml` swaps the two
+  against yazi's defaults.
 - [piper.yazi](https://github.com/yazi-rs/plugins/tree/main/piper.yazi)
   previews markdown through [glow](https://github.com/charmbracelet/glow),
   which has to be on `PATH`. It stands in for glow.yazi (`Reledia/glow`),

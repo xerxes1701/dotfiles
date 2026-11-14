@@ -28,6 +28,17 @@ $env.FZF_DEFAULT_OPTS = "--height=40% --layout=reverse --preview-window=right:60
 # launched it -- so a `herdr server stop` and relaunch is what picks up a change.
 $env.SMART_SPLITS_HERDR_PASSTHROUGH_RE = '^fzf$'
 
+# Claude Code inside herdr: draw images (the mermaid mod's diagrams, pasted
+# screenshots). herdr passes the kitty graphics protocol through to an outer
+# terminal that has it (Ghostty here), but its panes answer XTVERSION as
+# "libghostty", which Claude Code does not count as able to show images. Set
+# only in herdr panes: an outer terminal without kitty graphics would show the
+# escape sequences as text, and `herdr --remote` does not forward the image
+# files Claude Code then sends by path.
+if ($env.TERM_PROGRAM? == 'herdr') {
+  $env.CLAUDE_CODE_FORCE_TERMINAL_IMAGES = '1'
+}
+
 # Ollama. Server-side settings: they apply to an `ollama serve` started from a
 # shell, not to the systemd unit, which needs its own drop-in. Quoted as strings
 # -- nushell only exports string-valued env vars to external commands, so a bare

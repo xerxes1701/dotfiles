@@ -31,6 +31,17 @@ set -gx FZF_DEFAULT_OPTS "--height=40% --layout=reverse --preview-window=right:6
 # launched it -- so a `herdr server stop` and relaunch is what picks up a change.
 set -gx SMART_SPLITS_HERDR_PASSTHROUGH_RE '^fzf$'
 
+# Claude Code inside herdr: draw images (the mermaid mod's diagrams, pasted
+# screenshots). herdr passes the kitty graphics protocol through to an outer
+# terminal that has it (Ghostty here), but its panes answer XTVERSION as
+# "libghostty", which Claude Code does not count as able to show images. Set
+# only in herdr panes: an outer terminal without kitty graphics would show the
+# escape sequences as text, and `herdr --remote` does not forward the image
+# files Claude Code then sends by path.
+if test "$TERM_PROGRAM" = herdr
+  set -gx CLAUDE_CODE_FORCE_TERMINAL_IMAGES 1
+end
+
 # Ollama. Read by the ollama *server*, not the client, so these apply only to an
 # `ollama serve` started from a shell -- the systemd unit needs the same values
 # in a `systemctl edit ollama` drop-in. Sized for the 8 GB RTX 4060: qwen3.5:9b

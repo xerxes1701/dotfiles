@@ -1,6 +1,6 @@
 [opener]
 edit = [
-  { run = 'ton "$@"', block = true },
+  { run = "${EDITOR:-vi} %s", block = true, desc = "$EDITOR" },
 ]
 
 # Markdown previewed through glow, run by piper.yazi. glow.yazi (Reledia/glow)

@@ -63,7 +63,7 @@
     "refreshInterval": 10,
     "type": "command"
   },
-  "theme": "custom:prompt-pop",
+  "theme": "custom:catppuccin-mocha",
   "voice": {
     "enabled": true,
     "mode": "hold"

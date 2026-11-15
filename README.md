@@ -1054,11 +1054,11 @@ drift that reading a config for named keys cannot see.
 
 `claude/` carries the files of `~/.claude` that are configuration rather
 than state -- `settings.json`, the `SessionStart` hook that reports the session
-to herdr, the `prompt-pop` theme and the status-band statusline:
+to herdr, the catppuccin mocha theme and the status-band statusline:
 
     claude/.claude/settings.json
     claude/.claude/hooks/herdr-agent-state.sh
-    claude/.claude/themes/prompt-pop.json
+    claude/.claude/themes/catppuccin-mocha.json
     claude/.claude/status-band/statusline.mjs
     claude/.claude/status-band/statusline.ps1
     claude/.claude/status-band/git-status.toml

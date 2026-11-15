@@ -1,0 +1,20 @@
+font_family = "JetBrainsMono Nerd Font"
+
+[padding]
+type = "centered"
+width = 1000
+
+# Catppuccin Mocha, matching the neovim colorscheme
+[theme]
+code_theme = "Catppuccin Mocha"
+header_color = "#cba6f7"      # mauve
+prefix_color = "#b4befe"      # lavender
+emphasis_color = "#f9e2af"    # yellow
+code_bg = "reset"             # no background, terminal default
+code_fg = "#fab387"           # peach
+link_bg = "#313244"           # surface0
+link_fg = "#89b4fa"           # blue
+hr_color = "#6c7086"          # overlay0
+table_border_color = "#6c7086"
+table_header_color = "#cdd6f4" # text
+blockquote_colors = ["#cba6f7", "#89b4fa", "#94e2d5", "#a6e3a1", "#f9e2af", "#fab387"]

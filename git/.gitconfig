@@ -57,7 +57,7 @@
 	main-branch = "!f() { d=$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null); if [ -z \"$d\" ]; then for b in main master; do git show-ref --verify --quiet refs/remotes/origin/$b && d=origin/$b && break; done; fi; echo \"$d\"; }; f"
 
 	# --- branch / commit ---
-  a    = add
+	a    = add
 	b    = branch
 	bn   = branch --show-current
 	# Newest first, each branch marked: current or in another worktree, ahead
@@ -155,7 +155,7 @@
 	# delta, difft or git's own, hunk jumps and enter for nvim. sw is the
 	# same for the history: pick a commit, then browse its files; esc goes
 	# back. sw <commit> opens that commit's files at once. Both are
-	# git-review.sh; on Windows it runs in Git for Windows' sh. ad is df's
+	# git-review.sh; on Windows it runs in Git for Windows' sh. af is df's
 	# list to stage from: whole files, or enter for the file's hunks, picked
 	# in a second fzf -- git add -p with every hunk in view.
 	df       = !git-review.sh

@@ -1,0 +1,3 @@
+# al aliases for git: [sub-command path...] <alias> = <expansion>
+w = worktree
+worktree l = list

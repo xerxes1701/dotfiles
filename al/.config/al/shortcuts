@@ -1,0 +1,5 @@
+# al shortcuts: <name> = <tool> -- the shell command <name> runs `al run <tool>`
+g = git
+G = git
+d = dotnet
+a = al

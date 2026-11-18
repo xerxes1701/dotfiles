@@ -1,5 +1,7 @@
 font_family = "JetBrainsMono Nerd Font"
-enable_mouse_capture = true  # mouse wheel scrolling (disables terminal text selection; hold Shift to select)
+#enable_mouse_capture = true  # mouse wheel scrolling (disables terminal text selection; hold Shift to select)
+enable_mouse_capture = false
+alternate_screen = true
 
 [padding]
 type = "centered"

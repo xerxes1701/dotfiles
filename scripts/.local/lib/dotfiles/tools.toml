@@ -1,0 +1,546 @@
+# The tools this repository needs, and how to install each one. Read by
+# install-tools.sh, which explains how it picks a way and orders the needs.
+#
+# One [table] per tool, named after the stow package its config lives in, or
+# for a tool a package needs rather than configures, after the tool:
+#
+#   desc         what it is, and what here uses it
+#   os           where it should be installed: linux, windows, or a single
+#                distribution, arch or debian, e.g. ["linux", "windows"]
+#
+# The ways it can be installed, any number of them:
+#
+#   pacman       cachyos/arch packages
+#   apt          ubuntu/debian packages
+#   winget       winget ids, installed with --exact
+#   paru         aur packages, on arch
+#   cargo        crates, installed with cargo install --locked
+#   npm          npm packages, installed with npm install -g
+#   flatpak      flathub app ids, on linux
+#   script       a bash script that installs it, run with set -euo pipefail
+#
+# The platform's manager -- pacman, apt or winget -- is tried first, and only
+# when it has every package listed: ubuntu's release decides what it has, and
+# cachyos's repositories have what arch's need the aur for. Then the others,
+# in the order the tool lists them. paru, cargo, npm and flatpak need the tool
+# that provides their command (see provides), and install-tools.sh proposes
+# to install that one first.
+#
+# And what else it takes:
+#
+#   needs        tools to install before this one
+#   provides     the commands it brings that a way above runs, when they are
+#                not named after the tool: rust provides cargo
+#   check        a command that succeeds when the tool is there. Without one,
+#                the manager of the way picked is asked, and for a script,
+#                whether a command named after the tool is on PATH
+#   setup        a script to run after its packages, whether they were
+#                installed now or before: rustup installs no toolchain
+#   setup_check  a command that succeeds when the setup is done. Without one,
+#                the setup runs every time, so it must be safe to
+#                repeat
+#   note         what to do by hand where none of the ways works
+#
+# Packages are a "string" or an [array] of them; a script, check or setup is
+# a string, or a '''multi-line string''' for more than one line. Scripts run
+# in this file's directory with bash, with as_root (sudo unless root),
+# link_needed and link_apply in scope, and $os, $distro and $manager set.
+#
+# Any key but desc and os can be narrowed to one platform with a suffix:
+# .linux or .windows, or the distribution, .arch or .debian; the narrowest
+# that matches wins. script.linux is a script for linux only, needs.debian
+# what only ubuntu needs, and an empty string switches a way off there.
+#
+# Only what the reader in install-tools.sh handles goes here: bare table
+# names and keys, strings without escapes other than \" \\ \n \t, arrays of
+# strings, comments. It says which line it cannot read.
+#
+# Not every package is a tool: gtk-3.0, images and xkb are plain config,
+# tmux-powerline is a tmux plugin that tpm installs, and scoop installs itself
+# from a script, so none of them is listed.
+#
+# ubuntu's archive was checked for 24.04 (noble): fastfetch and starship arrive
+# in 25.04, ghostty in 26.04.
+
+# --- what the others need first ---------------------------------------------
+
+[paru]
+desc = "aur helper, for the aur packages below"
+os = ["arch"]
+# cachyos has it in its own repository; arch builds it from the aur, which
+# makepkg refuses to do as root.
+pacman = "paru"
+script.arch = '''
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp"' EXIT
+git clone --depth 1 https://aur.archlinux.org/paru-bin.git "$tmp/paru-bin"
+cd "$tmp/paru-bin"
+makepkg -si --noconfirm
+'''
+needs.arch = ["git", "base-devel"]
+
+[base-devel]
+desc = "compilers and make: builds paru and what cargo installs"
+os = ["linux"]
+pacman = "base-devel"
+apt = "build-essential"
+
+[curl]
+desc = "downloads, for the install scripts here"
+os = ["linux"]
+pacman = "curl"
+apt = "curl"
+
+[flatpak]
+desc = "flatpak, with flathub: apps the distribution does not package"
+os = ["linux"]
+pacman = "flatpak"
+apt = "flatpak"
+setup_check = "flatpak remotes --columns=name | grep -qx flathub"
+setup = "as_root flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo"
+
+# --- languages and their package managers ------------------------------------
+
+# rustup installs no toolchain itself, and puts a rust-analyzer proxy on PATH
+# whether the component is there or not. rustaceanvim and nvim's verify.sh,
+# which has no mason, run that proxy, and it fails without the component.
+# winget's and the script's rustup land in ~/.cargo/bin, which install-tools.sh
+# puts on PATH for the tools after it.
+[rust]
+desc = "rust toolchain manager: cargo, for rustaceanvim"
+os = ["linux", "windows"]
+provides = ["cargo", "rustup"]
+pacman = "rustup"
+apt = "rustup"
+winget = "Rustlang.Rustup"
+script.linux = '''
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+    | sh -s -- -y --no-modify-path --default-toolchain none
+'''
+needs.linux = ["base-devel"]
+needs.debian = ["curl", "base-devel"]
+check = "command -v rustup"
+setup_check = '''
+rustup show active-toolchain && rustup component list --installed | grep -q '^rust-analyzer'
+'''
+setup = '''
+rustup show active-toolchain >/dev/null 2>&1 || rustup default stable
+rustup component add rust-analyzer
+'''
+
+# markdown-preview builds with corepack, which node stopped shipping with v25.
+[node]
+desc = "claude's statusline.mjs, mason's js tools, markdown-preview"
+os = ["linux", "windows"]
+provides = ["npm", "node"]
+pacman = ["nodejs", "npm", "corepack"]
+apt = ["nodejs", "npm"]
+winget = "OpenJS.NodeJS.LTS"
+
+[python]
+desc = "python 3, for herdr-machines"
+os = ["linux"]
+pacman = "python"
+apt = "python3"
+
+# Native AOT links against zlib, which arch has in its base and ubuntu needs
+# zlib1g-dev for. windows builds herdr-load-win with Visual Studio's C++ build
+# tools, which winget cannot pick a workload for, so clang is linux only.
+[clang]
+desc = "c compiler: herdr-load, and nvim's treesitter parsers"
+os = ["linux"]
+pacman = "clang"
+apt = ["clang", "zlib1g-dev"]
+
+[zig]
+desc = "c compiler for nvim's treesitter on windows"
+os = ["windows"]
+winget = "zig.zig"
+
+[dotnet]
+desc = ".NET 10 sdk: herdr-load, and nvim's roslyn and easy-dotnet"
+os = ["linux", "windows"]
+pacman = "dotnet-sdk-10.0"
+apt = "dotnet-sdk-10.0"
+winget = "Microsoft.DotNet.SDK.10"
+
+# --- shells -------------------------------------------------------------------
+
+[bash]
+desc = "bash shell"
+os = ["linux"]
+pacman = "bash"
+apt = "bash"
+
+[fish]
+desc = "fish shell"
+os = ["linux"]
+pacman = "fish"
+apt = "fish"
+
+# config.fish picks the theme itself, with fish_config theme choose.
+[fisher]
+desc = "fish plugin manager, and the catppuccin theme config.fish picks"
+os = ["linux"]
+needs = ["fish", "curl"]
+check = "fish -c 'functions -q fisher'"
+script = '''
+fish -c 'curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source
+         and fisher install jorgebucaran/fisher catppuccin/fish'
+'''
+
+[zsh]
+desc = "z shell"
+os = ["linux"]
+pacman = "zsh"
+apt = "zsh"
+
+[zgen]
+desc = "zsh plugin manager, which .zshrc loads when it is there"
+os = ["linux"]
+needs = ["git", "zsh"]
+check = "[ -f ~/.zgen/zgen.zsh ]"
+script = "git clone https://github.com/tarjoilija/zgen.git ~/.zgen"
+
+[nushell]
+desc = "structured shell"
+os = ["linux", "windows"]
+pacman = "nushell"
+winget = "Nushell.Nushell"
+
+[powershell]
+desc = "powershell 7"
+os = ["windows"]
+winget = "Microsoft.PowerShell"
+
+[starship]
+desc = "shell prompt"
+os = ["linux", "windows"]
+pacman = "starship"
+apt = "starship"
+winget = "Starship.Starship"
+script.debian = "curl -sS https://starship.rs/install.sh | sh -s -- -y -b ~/.local/bin"
+needs.debian = ["curl"]
+check = "command -v starship"
+
+[atuin]
+desc = "shell history search, for every shell"
+os = ["linux"]
+pacman = "atuin"
+
+[zoxide]
+desc = "cd that learns, for every shell"
+os = ["linux", "windows"]
+pacman = "zoxide"
+apt = "zoxide"
+winget = "ajeetdsouza.zoxide"
+
+# --- what the shells, git and neovim call -------------------------------------
+
+# debian and ubuntu ship the binary as batcat. The shells alias it, but an
+# alias does not reach fzf's previews or nvim, so it is linked under its own
+# name -- only where bat is missing and batcat is there.
+[bat]
+desc = "cat with syntax highlighting"
+os = ["linux", "windows"]
+pacman = "bat"
+apt = "bat"
+winget = "sharkdp.bat"
+setup_check = "! link_needed bat batcat"
+setup = "link_apply bat batcat"
+
+[eza]
+desc = "ls and tree, as the shells alias them"
+os = ["linux", "windows"]
+pacman = "eza"
+apt = "eza"
+winget = "eza-community.eza"
+
+# Same as bat: ubuntu calls it fdfind.
+[fd]
+desc = "find, for fzf in the shells and telescope"
+os = ["linux", "windows"]
+pacman = "fd"
+apt = "fd-find"
+winget = "sharkdp.fd"
+setup_check = "! link_needed fd fdfind"
+setup = "link_apply fd fdfind"
+
+[fzf]
+desc = "fuzzy finder: the shells, herdr-machines"
+os = ["linux", "windows"]
+pacman = "fzf"
+apt = "fzf"
+winget = "junegunn.fzf"
+
+[ripgrep]
+desc = "grep, for telescope and the powershell finders"
+os = ["linux", "windows"]
+pacman = "ripgrep"
+apt = "ripgrep"
+winget = "BurntSushi.ripgrep.MSVC"
+
+[delta]
+desc = "git's pager and diff filter, and the git aliases' previews"
+os = ["linux", "windows"]
+pacman = "git-delta"
+apt = "git-delta"
+winget = "dandavison.delta"
+
+[difftastic]
+desc = "structural diff, for nvim's difft"
+os = ["linux", "windows"]
+pacman = "difftastic"
+winget = "Wilfred.difftastic"
+cargo = "difftastic"
+
+[git]
+desc = "version control, and git bash on windows"
+os = ["linux", "windows"]
+pacman = "git"
+apt = "git"
+winget = "Git.Git"
+
+[gh]
+desc = "github cli: prs, issues and the api"
+os = ["linux", "windows"]
+pacman = "github-cli"
+apt = "gh"
+winget = "GitHub.cli"
+
+# nvim-treesitter builds every parser with this CLI, 0.26.1 or later; ubuntu
+# 24.04's is 0.20.8 and too old. npm's package brings a prebuilt binary.
+[tree-sitter]
+desc = "builds nvim's treesitter parsers"
+os = ["linux", "windows"]
+pacman = "tree-sitter-cli"
+npm = "tree-sitter-cli"
+check = "command -v tree-sitter"
+
+[unzip]
+desc = "mason unpacks its tools with it"
+os = ["linux"]
+pacman = "unzip"
+apt = "unzip"
+
+# Mike Farah's go yq; ubuntu's yq package is the python wrapper around jq.
+[yq]
+desc = "yaml processor, for nvim's keybinding inventory"
+os = ["linux", "windows"]
+pacman = "go-yq"
+winget = "MikeFarah.yq"
+script.debian = '''
+case $(uname -m) in
+    x86_64)  arch=amd64 ;;
+    aarch64) arch=arm64 ;;
+    *)       echo "no yq build for $(uname -m)" >&2; exit 1 ;;
+esac
+mkdir -p ~/.local/bin
+curl -fsSLo ~/.local/bin/yq "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_$arch"
+chmod +x ~/.local/bin/yq
+'''
+needs.debian = ["curl"]
+check = "yq --version 2>&1 | grep -q mikefarah"
+
+[jq]
+desc = "json processor, for herdr-machines"
+os = ["linux", "windows"]
+pacman = "jq"
+apt = "jq"
+winget = "jqlang.jq"
+
+[nvim]
+desc = "editor"
+os = ["linux", "windows"]
+pacman = "neovim"
+apt = "neovim"
+winget = "Neovim.Neovim"
+
+[vale]
+desc = "prose linter"
+os = ["linux", "windows"]
+pacman = "vale"
+winget = "errata-ai.Vale"
+
+# --- terminals and multiplexers -----------------------------------------------
+
+[ghostty]
+desc = "terminal emulator"
+os = ["linux"]
+pacman = "ghostty"
+apt = "ghostty"
+
+[wezterm]
+desc = "terminal emulator"
+os = ["linux", "windows"]
+pacman = "wezterm"
+winget = "wez.wezterm"
+
+[tmux]
+desc = "terminal multiplexer"
+os = ["linux"]
+pacman = "tmux"
+apt = "tmux"
+
+# The plugins tmux.conf lists install with prefix + I in a running tmux.
+[tpm]
+desc = "tmux plugin manager"
+os = ["linux"]
+needs = ["git", "tmux"]
+check = "[ -d ~/.tmux/plugins/tpm ]"
+script = "git clone --depth 1 https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm"
+
+[tmuxinator]
+desc = "tmux session layouts"
+os = ["linux"]
+paru = "tmuxinator"
+apt = "tmuxinator"
+
+[zellij]
+desc = "terminal multiplexer"
+os = ["linux"]
+pacman = "zellij"
+
+[herdr]
+desc = "terminal workspace and agent multiplexer"
+os = ["linux", "windows"]
+paru = "herdr-bin"
+winget = "Herdr.Herdr"
+
+[yazi]
+desc = "terminal file manager"
+os = ["linux", "windows"]
+pacman = "yazi"
+winget = "sxyazi.yazi"
+cargo = ["yazi-fm", "yazi-cli"]
+check = "command -v yazi"
+
+[mdfried]
+desc = "markdown viewer, the shells' md"
+os = ["linux"]
+pacman = "mdfried"
+
+[fastfetch]
+desc = "system info at a glance"
+os = ["linux", "windows"]
+pacman = "fastfetch"
+apt = "fastfetch"
+winget = "Fastfetch-cli.Fastfetch"
+
+# --- desktop --------------------------------------------------------------------
+
+[niri]
+desc = "scrollable tiling wayland compositor"
+os = ["linux"]
+pacman = "niri"
+
+# niri's mod+shift+s picks a region with slurp, captures it with grim and opens
+# it in satty to mark up and copy.
+[grim]
+desc = "wayland screenshots, for niri's mod+shift+s"
+os = ["linux"]
+pacman = "grim"
+apt = "grim"
+
+[slurp]
+desc = "picks a screen region, for niri's mod+shift+s"
+os = ["linux"]
+pacman = "slurp"
+apt = "slurp"
+
+[satty]
+desc = "screenshot annotation, for niri's mod+shift+s"
+os = ["linux"]
+pacman = "satty"
+note.debian = "build it as satty's readme describes, or take a binary from its releases page"
+
+[wl-clipboard]
+desc = "wayland clipboard, for nvim, the shells and the claude code-fence mod"
+os = ["linux"]
+pacman = "wl-clipboard"
+apt = "wl-clipboard"
+
+[wl-clip-persist]
+desc = "keeps the clipboard after the app copied from closes, for niri"
+os = ["linux"]
+pacman = "wl-clip-persist"
+
+[kmonad]
+desc = "keyboard remapping, the home-row mods"
+os = ["linux", "windows"]
+pacman = "kmonad"
+
+[komorebi]
+desc = "tiling window manager"
+os = ["windows"]
+winget = "LGUG2Z.komorebi"
+
+[whkd]
+desc = "hotkey daemon for komorebi"
+os = ["windows"]
+winget = "LGUG2Z.whkd"
+
+# heroic is the gog launcher, which has no linux client of its own; cachyos
+# builds it in its own repository.
+[heroic]
+desc = "gog, epic and amazon games launcher"
+os = ["linux"]
+pacman = "heroic-games-launcher"
+flatpak = "com.heroicgameslauncher.hgl"
+
+# --- containers ---------------------------------------------------------------
+
+[docker]
+desc = "containers, for herdr-machines"
+os = ["linux"]
+pacman = ["docker", "docker-compose"]
+apt = ["docker.io", "docker-compose-v2"]
+
+[devcontainer]
+desc = "devcontainer cli, for herdr-machines"
+os = ["linux"]
+paru = "devcontainer-cli"
+npm = "@devcontainers/cli"
+check = "command -v devcontainer"
+
+[podman]
+desc = "containers, for atuin-ai-server.sh"
+os = ["linux"]
+pacman = "podman"
+apt = "podman"
+
+# --- the rest -----------------------------------------------------------------
+
+[claude]
+desc = "claude code cli"
+os = ["linux", "windows"]
+pacman = "claude-code"
+winget = "Anthropic.ClaudeCode"
+script.linux = "curl -fsSL https://claude.ai/install.sh | bash"
+needs.linux = ["curl"]
+check = "command -v claude"
+
+[mermaid-cli]
+desc = "mermaid diagrams as images, for the claude mermaid mod"
+os = ["linux"]
+pacman = "mermaid-cli"
+npm = "@mermaid-js/mermaid-cli"
+check = "command -v mmdc"
+
+[op]
+desc = "1password cli, for the README's xfreerdp login"
+os = ["linux", "windows"]
+paru = "1password-cli"
+winget = "AgileBits.1Password.CLI"
+
+[ssh]
+desc = "ssh client and agent"
+os = ["linux"]
+pacman = "openssh"
+apt = "openssh-client"
+
+[stow]
+desc = "deploys this repository's packages"
+os = ["linux"]
+pacman = "stow"
+apt = "stow"

@@ -70,25 +70,36 @@ the tools the packages configure install from a list:
 
 > install-tools.sh
 
-it finds the machine's package manager -- pacman (paru for the aur) on
-cachyos, apt on ubuntu, winget from git bash on windows -- lists the tools that
-belong on this platform, marks the installed ones, and installs what is picked,
-or `all` of them. it picks with fzf where fzf is there and from a numbered
-menu where it is not yet. `-n` prints the commands, `--list` the tools, and
-naming tools installs those without asking. which package each manager calls a
-tool, and whether it belongs on linux, windows or both, is
-`scripts/.local/lib/dotfiles/tools.conf`. a tool with no package for a manager
-is listed there as `-`, and the sections below say how to install it by hand.
+it finds the machine's package manager -- pacman on cachyos and arch, apt on
+ubuntu, winget from git bash on windows -- lists the tools that belong on this
+platform, marks the installed ones, and installs what is picked, or `all` of
+them. it picks with fzf where fzf is there and from a numbered menu where it is
+not yet: it needs only bash and awk, so it runs on a fresh machine.
+
+`scripts/.local/lib/dotfiles/tools.toml` says, per tool, where it belongs and
+the ways it can be installed: the platform's manager, an alternate one -- paru,
+cargo, npm, flatpak -- or a script of its own. the platform's manager goes
+first when it has the package, the others in the order the tool lists them. a
+tool also names what it `needs`, and a tool that goes through paru, cargo or
+npm needs the tool providing that command. what is missing of those is
+proposed along with what was picked and installed first: on a plain arch,
+picking `devcontainer` installs git, base-devel and paru before it. its header
+explains the format.
 
 what a tool needs after its packages -- rustup's toolchain and rust-analyzer,
-ubuntu's `batcat` and `fdfind` linked as `bat` and `fd` -- is a hook in
-`scripts/.local/lib/dotfiles/setup.d/`, named after the tool. it runs for
-every tool picked, installed now or before, and only where its step is still
-to do. `--setup` runs the hooks alone, for a machine whose tools are there.
+ubuntu's `batcat` and `fdfind` linked as `bat` and `fd` -- is its `setup`. it
+runs for every tool picked, installed now or before, and only where its
+`setup_check` says it is still to do. `--setup` runs those alone, for a
+machine whose tools are there.
 
-`--conf FILE` reads another list in the same format, with its hooks in the
-`setup.d` next to it: a project outside this repository lists its own tools
-and installs them through this script.
+`-n` prints the commands and scripts and runs none, `--list` shows the tools,
+how each would be installed and what it needs, and naming tools installs those
+without the list. a tool with no way to install it on this platform is listed
+as one to install by hand, with its `note`.
+
+`--conf FILE` reads another `tools.toml`: a project outside this repository
+lists its own tools and installs them through this script, its scripts running
+in that file's directory.
 
 ## gnu stow
 

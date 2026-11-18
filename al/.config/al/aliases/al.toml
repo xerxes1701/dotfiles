@@ -1,0 +1,22 @@
+# al aliases for al -- the format: `al help alias`
+r = "run"
+s = "alias set"
+a = "alias"
+sc = "shortcut"
+c = "completion"
+h = "help"
+sh = "show"
+
+[alias]
+l = "list"
+g = "get"
+s = "set"
+
+[shortcut]
+l = "list"
+s = "set"
+
+[completion]
+i = "install"
+u = "uninstall"
+s = "script"

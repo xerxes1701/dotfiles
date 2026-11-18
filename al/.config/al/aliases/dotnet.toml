@@ -1,0 +1,113 @@
+# al aliases for dotnet -- the format: `al help alias`
+t = "tool"
+b = "build"
+r = "run"
+rm = "remove"
+re = "restore"
+c = "clean"
+te = "test"
+p = "publish"
+pk = "pack"
+n = "new"
+f = "format"
+w = "watch"
+pa = "package"
+rf = "reference"
+sln = "solution"
+wl = "workload"
+nu = "nuget"
+us = "user-secrets"
+dc = "dev-certs"
+bs = "build-server"
+sd = "sdk"
+
+[dev-certs]
+h = "https"
+
+[user-secrets]
+s = "set"
+l = "list"
+rm = "remove"
+i = "init"
+c = "clear"
+
+[nuget.update]
+s = "source"
+
+[nuget.remove]
+s = "source"
+
+[nuget.add]
+s = "source"
+
+[nuget.list]
+s = "source"
+
+[nuget]
+p = "push"
+w = "why"
+l = "list"
+lo = "locals"
+a = "add"
+rm = "remove"
+u = "update"
+
+[workload]
+i = "install"
+u = "update"
+l = "list"
+s = "search"
+re = "restore"
+rp = "repair"
+un = "uninstall"
+
+[format]
+w = "whitespace"
+s = "style"
+a = "analyzers"
+
+[watch]
+t = "test"
+b = "build"
+
+[new]
+l = "list"
+s = "search"
+i = "install"
+u = "update"
+un = "uninstall"
+d = "details"
+
+[solution]
+a = "add"
+l = "list"
+rm = "remove"
+m = "migrate"
+
+[reference]
+a = "add"
+l = "list"
+rm = "remove"
+
+[package]
+a = "add"
+l = "list"
+rm = "remove"
+u = "update"
+s = "search"
+
+[tool]
+r = "restore"
+i = "install"
+u = "update"
+un = "uninstall"
+l = "list"
+s = "search"
+x = "run"
+e = "exec"
+
+[build-server]
+s = "shutdown"
+
+[sdk]
+c = "check"

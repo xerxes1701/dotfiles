@@ -1,0 +1,114 @@
+# al aliases for git -- the format: `al help alias`
+# One word per (sub-)command. Options are typed out: g c --amend, g ph --force-with-lease.
+
+# files
+a = "add"
+s = "status"
+d = "diff"
+rt = "restore"
+rs = "reset"
+cn = "clean"
+gr = "grep"
+bl = "blame"
+
+# commits
+c = "commit"
+l = "log"
+sho = "show"
+rl = "reflog"
+t = "tag"
+rv = "revert"
+cp = "cherry-pick"
+
+# branches
+b = "branch"
+sh = "switch"
+co = "checkout"
+m = "merge"
+rb = "rebase"
+mb = "merge-base"
+bi = "bisect"
+
+# remotes
+cl = "clone"
+f = "fetch"
+pl = "pull"
+ph = "push"
+r = "remote"
+
+# everything else
+st = "stash"
+w = "worktree"
+sm = "submodule"
+cf = "config"
+rp = "rev-parse"
+
+[stash]
+a = "apply"
+b = "branch"
+c = "clear"
+d = "drop"
+l = "list"
+p = "pop"
+ps = "push"
+s = "show"
+
+[worktree]
+a = "add"
+l = "list"
+lk = "lock"
+m = "move"
+p = "prune"
+rm = "remove"
+rp = "repair"
+u = "unlock"
+
+[remote]
+a = "add"
+gu = "get-url"
+p = "prune"
+rm = "remove"
+rn = "rename"
+s = "show"
+sb = "set-branches"
+sh = "set-head"
+su = "set-url"
+u = "update"
+
+[submodule]
+a = "add"
+ab = "absorbgitdirs"
+d = "deinit"
+f = "foreach"
+i = "init"
+s = "status"
+su = "summary"
+sy = "sync"
+u = "update"
+
+[bisect]
+b = "bad"
+g = "good"
+l = "log"
+n = "new"
+o = "old"
+r = "reset"
+rp = "replay"
+ru = "run"
+s = "start"
+sk = "skip"
+t = "terms"
+v = "visualize"
+
+[reflog]
+d = "delete"
+e = "exists"
+s = "show"
+x = "expire"
+
+[config]
+e = "edit"
+g = "get"
+l = "list"
+s = "set"
+u = "unset"

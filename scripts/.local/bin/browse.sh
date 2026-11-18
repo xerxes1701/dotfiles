@@ -93,7 +93,11 @@ open_it() {
         "$explorer" "$1" >/dev/null 2>&1
         return 0
     fi
-    xdg-open "$1" >/dev/null 2>&1
+    # xdg-open can stay in the foreground for as long as the program it started,
+    # so it gets a session of its own: the shell is free at once, and closing
+    # the terminal does not take the program with it. The price is its exit
+    # status, which setsid -f does not pass on.
+    setsid -f xdg-open "$1" >/dev/null 2>&1 </dev/null
 }
 
 # --- one target ------------------------------------------------------------

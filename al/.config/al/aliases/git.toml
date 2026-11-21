@@ -36,6 +36,9 @@ pl = "pull"
 ph = "push"
 r = "remote"
 
+# commands of our own (shell aliases below)
+del = "delete"
+
 # everything else
 st = "stash"
 w = "worktree"
@@ -112,3 +115,41 @@ g = "get"
 l = "list"
 s = "set"
 u = "unset"
+
+# A sub-command of al's own (the description says so): completion offers it,
+# and below it does not ask git, which knows no `git delete`.
+[delete]
+description = "pick things with fzf and delete them"
+b = "branch"
+
+# g delete branch [-r|--remote] [<pattern>...]: pick branches from brl (or,
+# with -r, the remote-tracking ones from brlr) with fzf -- Tab marks several --
+# and delete them: local ones with -d, remote ones on their remote. The preview
+# shows what a branch has that the main branch lacks; a pattern narrows the list.
+[delete.branch]
+description = "pick branches with fzf and delete them; -r: remote ones"
+complete = "git branch"
+options = { "-r --remote" = "remote-tracking branches, deleted on their remote" }
+sh = '''
+remote=false
+for a do
+    shift
+    case $a in
+        -r|--remote) remote=true ;;
+        *) set -- "$@" "$a" ;;
+    esac
+done
+if $remote; then list=brlr; else list=brl; fi
+main=$(git main-branch) || exit
+picked=$(git -c color.branch=always $list "$@" |
+    fzf --multi --ansi --accept-nth=-1 \
+        --preview "git ls --color=always -20 $main..{-1}") || exit 0
+if ! $remote; then
+    exec git branch -d $picked
+fi
+status=0
+for b in $picked; do
+    git push "${b%%/*}" --delete "${b#*/}" || status=$?
+done
+exit $status
+'''

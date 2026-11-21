@@ -70,6 +70,10 @@
 	# Pick branches from brl / brlr with fzf (Tab marks several) and delete
 	# them: local ones with -d, remote ones on origin. The preview shows what
 	# a branch has that the main branch lacks. A pattern narrows the list.
+	# al's own commands (al/.config/al/aliases/git.toml), so plain git runs
+	# and completes them too: git delete branch -r, git del b.
+	delete = !al run git delete
+	del    = !al run git del
 	brdf  = "!f() { m=$(git main-branch); b=$(git -c color.branch=always brl \"$@\" | fzf --multi --ansi --preview \"git ls --color=always -20 $m..{-1}\" --accept-nth=-1); [ -n \"$b\" ] && git branch -d $b; }; f"
 	brdfr = "!f() { m=$(git main-branch); b=$(git -c color.branch=always brlr \"$@\" | fzf --multi --ansi --preview \"git ls --color=always -20 $m..{-1}\" --accept-nth=-1 | sed 's|^origin/||'); [ -n \"$b\" ] && git push origin --delete $b; }; f"
 	c    = commit

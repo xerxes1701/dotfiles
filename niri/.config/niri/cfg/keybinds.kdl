@@ -146,7 +146,7 @@ binds {
     Mod+M                               { maximize-window-to-edges; }
 
     // ─── Screenshots ───
-    Mod+Shift+S                         hotkey-overlay-title="Screenshot region (satty)" { spawn-sh "g=$(slurp) && f=$(mktemp --suffix=.png) && grim -g \"$g\" \"$f\" && wl-copy -t image/png < \"$f\" && satty -f \"$f\"; rm -f \"$f\""; }
+    Mod+Shift+S                         hotkey-overlay-title="Screenshot region (satty)" { spawn "screenshot-region.sh"; }
     CTRL+Shift+2                        { screenshot-screen; }
     CTRL+Shift+3                        { screenshot-window; }
 

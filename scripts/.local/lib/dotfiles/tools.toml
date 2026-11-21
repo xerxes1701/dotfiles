@@ -434,8 +434,9 @@ desc = "scrollable tiling wayland compositor"
 os = ["linux"]
 pacman = "niri"
 
-# niri's mod+shift+s picks a region with slurp, captures it with grim and opens
-# it in satty to mark up and copy.
+# niri's mod+shift+s (screenshot-region.sh) freezes the screen with wayfreeze,
+# picks a region with slurp, captures it with grim and opens it in satty to
+# mark up and copy.
 [grim]
 desc = "wayland screenshots, for niri's mod+shift+s"
 os = ["linux"]
@@ -447,6 +448,13 @@ desc = "picks a screen region, for niri's mod+shift+s"
 os = ["linux"]
 pacman = "slurp"
 apt = "slurp"
+
+# Not on crates.io, so cargo install cannot fetch it by name.
+[wayfreeze]
+desc = "freezes the screen while slurp picks a region, for niri's mod+shift+s"
+os = ["linux"]
+paru = "wayfreeze"
+note.debian = "build it with cargo from github.com/Jappie3/wayfreeze"
 
 [satty]
 desc = "screenshot annotation, for niri's mod+shift+s"

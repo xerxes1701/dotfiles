@@ -413,20 +413,23 @@ on windows
 
 > winget install --exact --id OpenJS.NodeJS.LTS
 
-## grim, slurp, satty
+## grim, slurp, wayfreeze, satty
 
 the screenshot chain behind niri's mod+shift+s, see
 [taking a screenshot](#taking-a-screenshot).
 [grim](https://gitlab.freedesktop.org/emersion/grim)
 [slurp](https://github.com/emersion/slurp)
+[wayfreeze](https://github.com/Jappie3/wayfreeze)
 [satty github page](https://github.com/gabm/Satty)
 
 install
 
 > sudo pacman -S grim slurp satty
+> paru -S wayfreeze
 
 ubuntu has grim and slurp but no satty package; build it as satty's readme
-describes, or take a binary from its releases page.
+describes, or take a binary from its releases page. wayfreeze is in neither,
+build it with cargo from its repository.
 
 ## heroic
 
@@ -815,9 +818,10 @@ where the text goes:
 
 # taking a screenshot
 
-on niri, mod+shift+s is the linux side of win+shift+s: slurp draws a selection
-over the live screen, grim captures the region, and satty opens it to mark
-up. the capture lands on the clipboard before satty opens; in satty, ctrl+c
+on niri, mod+shift+s is the linux side of win+shift+s: wayfreeze freezes the
+screen on the keypress, so a playing video stands still and an open menu stays
+in the picture, slurp draws a selection over the still image, grim captures
+the region, and satty opens it to mark up (`screenshot-region.sh`). the capture lands on the clipboard before satty opens; in satty, ctrl+c
 replaces it with the marked-up image and ctrl+s saves it.
 esc during the selection cancels without opening satty. a window rule opens
 satty floating, not tiled.

@@ -50,8 +50,8 @@ c = "clear"
 d = "drop"
 l = "list"
 p = "pop"
-ps = "push"
 s = "show"
+ph = "push"
 
 [worktree]
 a = "add"

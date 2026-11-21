@@ -64,6 +64,14 @@
 	# of or behind its upstream, upstream gone, merged into the main branch.
 	# A pattern narrows the list. See git-brl.sh.
 	brl  = !git-brl.sh
+	# The same for the remote-tracking branches: the local branch ahead of
+	# or behind each, or none; merged into the main branch. See git-brlr.sh.
+	brlr = !git-brlr.sh
+	# Pick branches from brl / brlr with fzf (Tab marks several) and delete
+	# them: local ones with -d, remote ones on origin. The preview shows what
+	# a branch has that the main branch lacks. A pattern narrows the list.
+	brdf  = "!f() { m=$(git main-branch); b=$(git -c color.branch=always brl \"$@\" | fzf --multi --ansi --preview \"git ls --color=always -20 $m..{-1}\" --accept-nth=-1); [ -n \"$b\" ] && git branch -d $b; }; f"
+	brdfr = "!f() { m=$(git main-branch); b=$(git -c color.branch=always brlr \"$@\" | fzf --multi --ansi --preview \"git ls --color=always -20 $m..{-1}\" --accept-nth=-1 | sed 's|^origin/||'); [ -n \"$b\" ] && git push origin --delete $b; }; f"
 	c    = commit
 	cm   = commit -m
 	ca   = commit --amend

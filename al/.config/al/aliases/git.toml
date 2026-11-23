@@ -38,9 +38,12 @@ r = "remote"
 
 # commands of our own (below; .gitconfig hands `git <name>` to al, too)
 del = "delete"
+li = "list"
+mn = "main"
 re = "review"
 up = "upstream"
-dt = "difft"
+dt = "difftastic"
+zip = "zip-head"
 
 # everything else
 st = "stash"
@@ -204,13 +207,13 @@ rb = "rebase"
 [main.diff]
 description = "the diff since the branch left main; -t: with difftastic"
 complete = "git diff"
-options = { "-t --difft" = "with difftastic" }
+options = { "-t --difftastic" = "with difftastic" }
 sh = '''
 difft=false
 for a do
     shift
     case $a in
-        -t|--difft) difft=true ;;
+        -t|--difftastic) difft=true ;;
         *) set -- "$@" "$a" ;;
     esac
 done
@@ -276,13 +279,16 @@ git diff --name-only "$base" HEAD |
 description = "the upstream's commits this branch lacks"
 complete = "git log"
 sh = 'exec git ls "HEAD..@{u}" "$@"'
-m = "merge"
+m = "fast-forward"
+ff = "fast-forward"
+first = "first-incoming"
+can-ff = "can-fast-forward"
 
-[upstream.merge]
+[upstream.fast-forward]
 description = "fast-forward to the upstream; fails if the branch has commits of its own"
 sh = 'exec git merge --ff-only "@{u}" "$@"'
 
-[upstream.first]
+[upstream.first-incoming]
 description = "the first of the upstream's commits this branch lacks; --hash: its hash"
 options = { "--hash" = "only the abbreviated hash" }
 sh = '''
@@ -294,7 +300,7 @@ esac
 exec git log -1 --oneline --decorate "$first"
 '''
 
-[upstream.can-ff]
+[upstream.can-fast-forward]
 description = "whether a fast-forward to the upstream (or <commit>) works; the exit code says"
 complete = "git merge"
 sh = '''
@@ -304,30 +310,30 @@ exec git merge-base --is-ancestor HEAD "$target"
 '''
 
 # git diff, show and log with difftastic as the diff.
-[difft]
+[difftastic]
 description = "diff, show and log with difftastic"
 d = "diff"
 sho = "show"
 l = "log"
 
-[difft.diff]
+[difftastic.diff]
 description = "git diff, with difftastic"
 complete = "git diff"
 sh = 'exec git -c diff.external=difft diff "$@"'
 
-[difft.show]
+[difftastic.show]
 description = "git show, with difftastic"
 complete = "git show"
 sh = 'exec git -c diff.external=difft show --ext-diff "$@"'
 
-[difft.log]
+[difftastic.log]
 description = "git log, with difftastic (-p for the diffs)"
 complete = "git log"
 sh = 'exec git -c diff.external=difft log --ext-diff "$@"'
 
-# g zip: HEAD as <branch>@<hash>.zip in the current directory (a / in the
+# g zip-head (g zip): HEAD as <branch>@<hash>.zip in the current directory (a / in the
 # branch becomes -); prints the file's name.
-[zip]
+[zip-head]
 description = "HEAD as <branch>@<hash>.zip here"
 sh = '''
 b=$(git symbolic-ref --quiet --short HEAD 2>/dev/null || git rev-parse --short HEAD) || exit

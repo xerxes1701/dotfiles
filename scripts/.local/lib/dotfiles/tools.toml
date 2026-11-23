@@ -434,6 +434,11 @@ desc = "scrollable tiling wayland compositor"
 os = ["linux"]
 pacman = "niri"
 
+[noctalia]
+desc = "wayland desktop shell: bar, launcher, notifications; niri starts it"
+os = ["linux"]
+pacman = "noctalia"
+
 # niri's mod+shift+s (screenshot-region.sh) freezes the screen with wayfreeze,
 # picks a region with slurp, captures it with grim and opens it in satty to
 # mark up and copy.

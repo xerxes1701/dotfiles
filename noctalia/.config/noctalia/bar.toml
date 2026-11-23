@@ -1,0 +1,18 @@
+# Noctalia reads every *.toml in this directory. config.toml next to this one
+# comes from the cachyos skel and is not tracked here.
+#
+# Scrolling over the workspaces widget (top left) focuses the column to the
+# left or right, like Mod+H/L and Mod+wheel in niri's cfg/local.kdl. The bar
+# never has keyboard focus, so it cannot tell which modifiers are held; with
+# Mod down niri takes the wheel before the bar sees it, and the modifier
+# variants in local.kdl apply instead.
+#
+# "steps" runs the action once per wheel detent, as niri's Mod+wheel does.
+# Noctalia's own default runs an exec action an undocumented number of times.
+[widget.workspaces]
+type = "workspaces"
+scroll_repeat = "steps"
+
+    [widget.workspaces.actions]
+    scroll_up = "exec niri msg action focus-column-left"
+    scroll_down = "exec niri msg action focus-column-right"

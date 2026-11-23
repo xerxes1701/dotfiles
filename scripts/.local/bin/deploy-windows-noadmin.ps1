@@ -146,8 +146,8 @@ Set-StrictMode -Version 2.0
 #   claude   ~\.claude on Windows is a separate Claude Code install with its
 #            own settings.json and a PowerShell hook; the package's hook and
 #            status line are bash and bun.
-#   fish, zsh, tmux, tmux-powerline, tmuxinator, zellij, niri, xkb, gtk-3.0,
-#   ghostty, vale, images  -- Linux programs, or files only they read.
+#   fish, zsh, tmux, tmux-powerline, tmuxinator, zellij, niri, noctalia, xkb,
+#   gtk-3.0, ghostty, vale, images  -- Linux programs, or files only they read.
 $Packages = [ordered]@{
     nvim      = @{ Junction = '.config\nvim' }
     wezterm   = @{ Junction = '.config\wezterm' }

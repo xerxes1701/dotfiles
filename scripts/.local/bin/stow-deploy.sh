@@ -29,6 +29,8 @@ sd_extra=()
 #   ghostty config.local, a machine's own settings, sits next to the shared
 #          config, and on WSL comes from the other repository
 #   herdr  its socket, its logs and session.json live in ~/.config/herdr
+#   noctalia config.toml, which the cachyos skel puts in ~/.config/noctalia,
+#          is the machine's own and sits next to the tracked bar.toml
 #   scripts ~/.local/lib does not exist on a fresh machine, and folded it would
 #          become a link into this repository for anything else to write into
 #   claude ~/.claude holds this machine's sessions, history, projects and the
@@ -37,7 +39,7 @@ sd_extra=()
 #          and ~/.config/systemd/user is where `systemctl --user enable` writes
 # nvim and nushell stay folded on purpose -- what they generate in there is
 # either tracked (lazy-lock.json) or listed in .gitignore.
-sd_unfolded=(claude fish ghostty herdr scripts ssh)
+sd_unfolded=(claude fish ghostty herdr noctalia scripts ssh)
 sd_examples=(
     "$self"
     "$self -n"

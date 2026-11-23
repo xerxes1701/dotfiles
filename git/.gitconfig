@@ -53,13 +53,31 @@
 	updateRefs = true
 
 [alias]
+	# The short names (s, d, b, w l, ...) and the bigger commands are al's:
+	# al/.config/al/aliases/git.toml, run as `g`. What is left here is what
+	# scripts and al's commands build on, and options preset.
+
 	# --- default-branch helper: origin/HEAD, else origin/main, else origin/master ---
 	main-branch = "!f() { d=$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null); if [ -z \"$d\" ]; then for b in main master; do git show-ref --verify --quiet refs/remotes/origin/$b && d=origin/$b && break; done; fi; echo \"$d\"; }; f"
-
-	# --- branch / commit ---
-	a    = add
-	b    = branch
 	bn   = branch --show-current
+	root = rev-parse --show-toplevel
+
+	# --- commands of al's own, so plain git runs and completes them too:
+	# git del b -r, git main d, git review show. The fish completion is
+	# fish/.config/fish/conf.d/al-git.fish. ---
+	delete   = !al run git delete
+	del      = !al run git del
+	list     = !al run git list
+	main     = !al run git main
+	review   = !al run git review
+	re       = !al run git re
+	upstream = !al run git upstream
+	up       = !al run git up
+	difft    = !al run git difft
+	dt       = !al run git dt
+	zip      = !al run git zip
+
+	# --- branches ---
 	# Newest first, each branch marked: current or in another worktree, ahead
 	# of or behind its upstream, upstream gone, merged into the main branch.
 	# A pattern narrows the list. See git-brl.sh.
@@ -67,106 +85,34 @@
 	# The same for the remote-tracking branches: the local branch ahead of
 	# or behind each, or none; merged into the main branch. See git-brlr.sh.
 	brlr = !git-brlr.sh
-	# Pick branches from brl / brlr with fzf (Tab marks several) and delete
-	# them: local ones with -d, remote ones on origin. The preview shows what
-	# a branch has that the main branch lacks. A pattern narrows the list.
-	# al's own commands (al/.config/al/aliases/git.toml), so plain git runs
-	# and completes them too: git delete branch -r, git del b.
-	delete = !al run git delete
-	del    = !al run git del
-	brdf  = "!f() { m=$(git main-branch); b=$(git -c color.branch=always brl \"$@\" | fzf --multi --ansi --preview \"git ls --color=always -20 $m..{-1}\" --accept-nth=-1); [ -n \"$b\" ] && git branch -d $b; }; f"
-	brdfr = "!f() { m=$(git main-branch); b=$(git -c color.branch=always brlr \"$@\" | fzf --multi --ansi --preview \"git ls --color=always -20 $m..{-1}\" --accept-nth=-1 | sed 's|^origin/||'); [ -n \"$b\" ] && git push origin --delete $b; }; f"
-	c    = commit
-	cm   = commit -m
-	ca   = commit --amend
-	cam  = commit --amend -m
-	cl   = clone
-	co   = checkout
-	cp   = cherry-pick
-	sh   = switch
-	s    = status
-	root = rev-parse --show-toplevel
 
-	# --- diff ---
-	d     = diff
-	dw    = diff --ignore-all-space
-	ddiff = -c diff.external=difft diff
-	dshow = -c diff.external=difft show --ext-diff
-	dlog  = -c diff.external=difft log --ext-diff
-	dd    = ddiff
-	dt    = ddiff
-	ds    = dshow
-	dl    = dlog
-	dmm   = "!git d $(git merge-base $(git main-branch) HEAD) HEAD"
-	ddmm  = "!git dd $(git merge-base $(git main-branch) HEAD) HEAD"
-	# On Windows fzf.exe run from git's MSYS sh exits on the arrow keys
-	# (junegunn/fzf#3346), so there the body runs from pwsh instead.
-	dmmf  = "!f() { case \"$(uname -s)\" in MINGW*|MSYS*|CYGWIN*) exec pwsh -NoProfile -File \"$HOME/.local/bin/git-dmmf.ps1\";; esac; git dmm --name-only | fzf -m --with-shell 'sh -c' --preview 'git dmm -- {} | delta --width $FZF_PREVIEW_COLUMNS' --preview-window 'up,80%'; }; f"
-
-	# --- log ---
-	l   = log
+	# --- log formats ---
 	lg  = log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(auto)%d%C(reset)'
 	lga = lg --all
-	lgm = "!git lg $(git merge-base $(git main-branch) $(git bn))~1..$(git bn)"
 	ls  = log --decorate --date=format:'%Y-%m-%d %H:%M' --pretty=format:'%C(bold blue)%h%C(reset) %C(bold green)%cd%C(reset) %C(dim white)[%cn]%C(reset) %C(white)%s%C(reset)%C(auto)%d%C(reset)'
 	ll  = ls --numstat
-	lf  = "!f() { git ls --color=always | fzf --ansi --preview 'git show --name-only --color=always {1}'; }; f"
-	la  = "!git config -l | grep alias | cut -c 7- | sort | bat --color=always --language=ini"
 
-	# --- fetch / pull / push ---
-	f   = fetch
-	pl  = pull
-	ph  = push
+	# --- options preset ---
+	cm  = commit -m
+	ca  = commit --amend
+	cam = commit --amend -m
+	dw  = diff --ignore-all-space
 	phf = push --force-with-lease
-
-	# --- merge / rebase / reset ---
-	m   = merge
+	stm = stash push --message
+	# Merge only by fast-forward; fails instead of creating a merge commit.
+	# `g up m` does that with the upstream.
+	mff = merge --ff-only
 	mc  = merge --continue
 	ma  = merge --abort
-	mm  = "!f() { m=$(git main-branch); git fetch && git merge \"$m\" --message \"Merge branch '${m#origin/}' into $(git bn)\"; }; f"
-	# Merge only by fast-forward; fails instead of creating a merge commit.
-	# mffu brings the branch up to its last-fetched upstream that way, and
-	# fails when the branch has commits of its own.
-	mff  = merge --ff-only
-	mffu = mff @{u}
-	rb  = rebase
 	rbc = rebase --continue
 	rba = rebase --abort
-	rbm = "!git rebase $(git main-branch) -i"
+
 	# Before a force-push: does the rebased branch still make the changes its
 	# pushed version made? A .NET file-based app; see git-verify-rebase.cs.
 	# Run by its real path: dotnet run goes by the timestamp of the link stow
 	# put in ~/.local/bin, and would keep running a stale build.
 	verify-rebase = "!dotnet run --file \"$(readlink -f \"$HOME/.local/bin/git-verify-rebase.cs\")\" --"
 	rbv = verify-rebase
-	rs  = reset
-
-	# --- stash / worktree ---
-	st  = stash
-	stm = stash push --message
-	stp = stash pop
-	w   = worktree
-	wl  = worktree list
-
-	# --- working-tree pickers ---
-	x        = "!git status --porcelain | rg '^( |\\?\\?)'"
-	unstaged = "!git status --porcelain | rg '^( |\\?\\?)' | cut -c4-"
-	# Every changed file -- staged, not staged, untracked -- with its diff in
-	# delta, difft or git's own, hunk jumps and enter for nvim. sw is the
-	# same for the history: pick a commit, then browse its files; esc goes
-	# back. sw <commit> opens that commit's files at once. Both are
-	# git-review.sh; on Windows it runs in Git for Windows' sh. af is df's
-	# list to stage from: whole files, or enter for the file's hunks, picked
-	# in a second fzf -- git add -p with every hunk in view.
-	df       = !git-review.sh
-	sw       = !git-review.sh show
-	af       = !git-review.sh add
-
-	# --- upstream inspection ---
-	incoming-first-pretty = !git log -1 --oneline --decorate $(git rev-list --reverse HEAD..@{u} | head -n1)
-	incoming-first-hash = !git log -1 --format=%h $(git rev-list --reverse HEAD..@{u} | head -n1)
-	check-ff = merge-base --is-ancestor HEAD 
-	zp = "!f() { b=$(git symbolic-ref --quiet --short HEAD 2>/dev/null || git rev-parse --short HEAD); b=$(printf %s \"$b\" | tr / -); s=$(git rev-parse --short HEAD); n=\"$b@$s\"; git archive --format=zip -o \"$n.zip\" HEAD && echo \"$n.zip\"; }; f"
 
 # Machine-local: user.email and the platform-specific `fh`. Kept last so it wins.
 [include]

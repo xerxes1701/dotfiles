@@ -36,8 +36,11 @@ pl = "pull"
 ph = "push"
 r = "remote"
 
-# commands of our own (shell aliases below)
+# commands of our own (below; .gitconfig hands `git <name>` to al, too)
 del = "delete"
+re = "review"
+up = "upstream"
+dt = "difft"
 
 # everything else
 st = "stash"
@@ -152,4 +155,183 @@ for b in $picked; do
     git push "${b%%/*}" --delete "${b#*/}" || status=$?
 done
 exit $status
+'''
+
+# g list branch [-r|--remote] [<pattern>...]: git brl, or with -r git brlr --
+# branches newest first, each marked (see git-brl.sh, git-brlr.sh).
+# g list unstaged [-s|--status]: the changed files not staged, and the
+# untracked ones; -s keeps git status's two-letter column.
+[list]
+description = "list branches or changed files"
+b = "branch"
+u = "unstaged"
+
+[list.branch]
+description = "branches, newest first, each marked; -r: remote ones"
+options = { "-r --remote" = "remote-tracking branches" }
+sh = '''
+list=brl
+for a do
+    shift
+    case $a in
+        -r|--remote) list=brlr ;;
+        *) set -- "$@" "$a" ;;
+    esac
+done
+exec git $list "$@"
+'''
+
+[list.unstaged]
+description = "changed files not staged, and untracked ones"
+options = { "-s --status" = "with git status's two-letter column" }
+sh = '''
+case $1 in
+    -s|--status) git status --porcelain | rg '^( |\?\?)' ;;
+    *) git status --porcelain | rg '^( |\?\?)' | cut -c4- ;;
+esac
+'''
+
+# g main: the main branch (origin/HEAD, else origin/main or origin/master).
+# Below it, git's commands against it, by the same short names: d l m rb.
+[main]
+description = "the main branch; or diff, log, merge, rebase against it"
+sh = 'exec git main-branch'
+d = "diff"
+l = "log"
+m = "merge"
+rb = "rebase"
+
+[main.diff]
+description = "the diff since the branch left main; -t: with difftastic"
+complete = "git diff"
+options = { "-t --difft" = "with difftastic" }
+sh = '''
+difft=false
+for a do
+    shift
+    case $a in
+        -t|--difft) difft=true ;;
+        *) set -- "$@" "$a" ;;
+    esac
+done
+base=$(git merge-base "$(git main-branch)" HEAD) || exit
+if $difft; then
+    exec git -c diff.external=difft diff "$base" HEAD "$@"
+fi
+exec git diff "$base" HEAD "$@"
+'''
+
+[main.log]
+description = "the branch's commits since it left main, as git lg draws them"
+complete = "git log"
+sh = '''
+base=$(git merge-base "$(git main-branch)" HEAD) || exit
+exec git lg "$base~1..HEAD" "$@"
+'''
+
+[main.merge]
+description = "fetch, then merge the main branch in"
+complete = "git merge"
+sh = '''
+main=$(git main-branch) || exit
+git fetch || exit
+exec git merge "$main" --message "Merge branch '${main#origin/}' into $(git bn)" "$@"
+'''
+
+[main.rebase]
+description = "rebase onto the main branch, interactively"
+complete = "git rebase"
+sh = 'exec git rebase "$(git main-branch)" -i "$@"'
+
+# Changes in fzf, with their diffs: git-review.sh (its comment and README.md
+# tell the keys). On Windows it runs in Git for Windows' sh.
+[review]
+description = "the working tree's changes in fzf, with their diffs"
+sh = 'exec git-review.sh "$@"'
+a = "add"
+sho = "show"
+
+[review.add]
+description = "pick changes to stage: whole files, or their hunks"
+sh = 'exec git-review.sh add "$@"'
+
+[review.show]
+description = "the history in fzf, then a commit's files; or <commit>'s files"
+complete = "git log"
+sh = 'exec git-review.sh show "$@"'
+
+[review.main]
+description = "the files changed since the branch left main, with their diffs"
+sh = '''
+base=$(git merge-base "$(git main-branch)" HEAD) || exit
+git diff --name-only "$base" HEAD |
+    fzf -m --with-shell 'sh -c' \
+        --preview "git diff $base HEAD -- {} | delta --width \$FZF_PREVIEW_COLUMNS" \
+        --preview-window 'up,80%'
+'''
+
+# g upstream: what the upstream has that this branch lacks -- as of the last
+# fetch.
+[upstream]
+description = "the upstream's commits this branch lacks"
+complete = "git log"
+sh = 'exec git ls "HEAD..@{u}" "$@"'
+m = "merge"
+
+[upstream.merge]
+description = "fast-forward to the upstream; fails if the branch has commits of its own"
+sh = 'exec git merge --ff-only "@{u}" "$@"'
+
+[upstream.first]
+description = "the first of the upstream's commits this branch lacks; --hash: its hash"
+options = { "--hash" = "only the abbreviated hash" }
+sh = '''
+first=$(git rev-list --reverse "HEAD..@{u}" | head -n1)
+[ -n "$first" ] || exit 0
+case $1 in
+    --hash) exec git log -1 --format=%h "$first" ;;
+esac
+exec git log -1 --oneline --decorate "$first"
+'''
+
+[upstream.can-ff]
+description = "whether a fast-forward to the upstream (or <commit>) works; the exit code says"
+complete = "git merge"
+sh = '''
+target=${1-}
+[ -n "$target" ] || target='@{u}'
+exec git merge-base --is-ancestor HEAD "$target"
+'''
+
+# git diff, show and log with difftastic as the diff.
+[difft]
+description = "diff, show and log with difftastic"
+d = "diff"
+sho = "show"
+l = "log"
+
+[difft.diff]
+description = "git diff, with difftastic"
+complete = "git diff"
+sh = 'exec git -c diff.external=difft diff "$@"'
+
+[difft.show]
+description = "git show, with difftastic"
+complete = "git show"
+sh = 'exec git -c diff.external=difft show --ext-diff "$@"'
+
+[difft.log]
+description = "git log, with difftastic (-p for the diffs)"
+complete = "git log"
+sh = 'exec git -c diff.external=difft log --ext-diff "$@"'
+
+# g zip: HEAD as <branch>@<hash>.zip in the current directory (a / in the
+# branch becomes -); prints the file's name.
+[zip]
+description = "HEAD as <branch>@<hash>.zip here"
+sh = '''
+b=$(git symbolic-ref --quiet --short HEAD 2>/dev/null || git rev-parse --short HEAD) || exit
+b=$(printf %s "$b" | tr / -)
+n="$b@$(git rev-parse --short HEAD).zip"
+git archive --format=zip -o "$n" HEAD && echo "$n"
 '''

@@ -1,26 +1,28 @@
 #!/bin/sh
 # Changes in fzf, with the diff of the current line in the preview. Behind
-# two aliases in .gitconfig:
+# al's `git review` (al/.config/al/aliases/git.toml; g re, g re sho, g re a):
 #
-#   git df   the working tree: one line per changed file -- staged, not
-#            staged and untracked, not the ignored ones.
-#   git sw   the history, drawn as git lg draws it. Enter on a commit lists
-#            its files in a second fzf; esc there goes back to the history,
-#            where it was, and ctrl-c ends both. Given one commit and
-#            nothing else -- a hash, HEAD, a branch, HEAD~2 -- git sw lists
-#            that commit's files straight away, and esc quits.
-#   git af   the list of git df, to stage from: alt-a stages the marked
-#            files, alt-u unstages them. Enter lists the file's hunks in a
-#            second fzf, where enter stages the marked hunks, alt-s turns
-#            to the staged ones to unstage them, and alt-e stages a hunk
-#            edited in nvim first, like e in git add -p. esc goes back to
-#            the files. An untracked file is added intent-to-add while its
-#            hunks are listed, and taken back out if nothing was staged.
+#   git review       the working tree: one line per changed file -- staged,
+#                    not staged and untracked, not the ignored ones.
+#   git review show  the history, drawn as git lg draws it. Enter on a commit
+#                    lists its files in a second fzf; esc there goes back to
+#                    the history, where it was, and ctrl-c ends both. Given
+#                    one commit and nothing else -- a hash, HEAD, a branch,
+#                    HEAD~2 -- it lists that commit's files straight away,
+#                    and esc quits.
+#   git review add   the list of git review, to stage from: alt-a stages the
+#                    marked files, alt-u unstages them. Enter lists the
+#                    file's hunks in a second fzf, where enter stages the
+#                    marked hunks, alt-s turns to the staged ones to unstage
+#                    them, and alt-e stages a hunk edited in nvim first, like
+#                    e in git add -p. esc goes back to the files. An
+#                    untracked file is added intent-to-add while its hunks
+#                    are listed, and taken back out if nothing was staged.
 #
 # Every list has the same preview: delta to begin with, difftastic or git's
 # own diff on a key, hunk jumps and scrolling. Enter on a file opens it in
-# nvim at the hunk on screen -- in git df the file itself, in git sw the
-# file as that commit has it, read-only. fzf steps aside while nvim runs and
+# nvim at the hunk on screen -- in git review the file itself, in git review
+# show the file as that commit has it, read-only. fzf steps aside while nvim runs and
 # comes back when it quits, so nothing has to be sent to the background for
 # it. ctrl-z in nvim still stops everything, and `fg` brings it back.
 #
@@ -63,22 +65,22 @@ err() { printf '%s: %s\n' "$self" "$*" >&2; }
 
 usage() {
     cat <<EOF
-usage: git df                      the working tree's changes
-       git af                      the same, to stage files and hunks
-       git sw [log options]        the history, then a commit's files
-       git sw <commit>             that commit's files
+usage: git review                    the working tree's changes
+       git review add                the same, to stage files and hunks
+       git review show [log options] the history, then a commit's files
+       git review show <commit>      that commit's files
        $self [show [<commit> | log options]]
 
-  enter               git df: open the file in nvim (or vim, where there
+  enter               git review: open the file in nvim (or vim, where there
                       is no nvim) at the hunk on screen
-                      git af: the file's hunks; there, stage the marked
+                      git review add: the file's hunks; there, stage the marked
                       hunks (unstage, on the staged side)
-  tab                 git af: mark a file or hunk
-  alt-a alt-u         git af: stage / unstage the marked files
-  alt-s               git af, in the hunks: the staged / not staged side
-  alt-e               git af, in the hunks: edit the hunk, then stage it
-  ctrl-o              git af: open the file in nvim at the hunk on screen
-                      git sw: the commit's files; there, open the file as
+  tab                 git review add: mark a file or hunk
+  alt-a alt-u         git review add: stage / unstage the marked files
+  alt-s               git review add, in the hunks: the staged / not staged side
+  alt-e               git review add, in the hunks: edit the hunk, then stage it
+  ctrl-o              git review add: open the file in nvim at the hunk on screen
+                      git review show: the commit's files; there, open the file as
                       the commit has it, read-only
   alt-d alt-t alt-g   the preview in delta, difftastic, git diff
   alt-n alt-p         next / previous hunk
@@ -88,9 +90,10 @@ usage: git df                      the working tree's changes
   esc                 quit; in a commit's files, back to the history
   ctrl-c              quit, from the files as well
 
-git sw hands its options to git log: \`git sw -- src/\`, \`git sw main..\`.
-one commit alone -- \`git sw HEAD\`, a hash, a branch, HEAD~2 -- opens its
-files, where esc quits; \`git sw main --\` is the history from it.
+git review show hands its options to git log: \`git review show -- src/\`,
+\`git review show main..\`. one commit alone -- \`git review show HEAD\`, a hash,
+a branch, HEAD~2 -- opens its files, where esc quits; \`git review show main --\`
+is the history from it.
 the mouse wheel scrolls too, but hunk jumps do not see where it went.
 EOF
 }
@@ -98,7 +101,7 @@ EOF
 # --- state -----------------------------------------------------------------
 # Every fzf has a directory of its own, $DF_STATE, which everything it starts
 # inherits, together with:
-#   DF_KIND    worktree (git df), commits or files (git sw)
+#   DF_KIND    worktree (git review), commits or files (git review show)
 #   DF_COMMIT  for files: the commit
 #   DF_PARENT  for files: the history's directory
 #   DF_PATH, DF_ORIG, DF_SIDE  for hunks: the file, the path it was
@@ -242,8 +245,8 @@ list_hunks() {
     '
 }
 
-# git df and git af reload their list after nvim, which may have changed a
-# file, and git af after staging; the hunks after every change too.
+# git review and git review add reload their list after nvim, which may have changed a
+# file, and git review add after staging; the hunks after every change too.
 cmd_list() {
     if [ "$DF_KIND" = hunks ]; then list_hunks; else list_worktree; fi
 }
@@ -560,7 +563,7 @@ ctrl-d/u half page · ctrl-f/b page · shift-down/up line · $1" \
 }
 
 # --- staging ---------------------------------------------------------------
-# git af. Every command here answers fzf's transform: the list again, and
+# git review add. Every command here answers fzf's transform: the list again, and
 # git's complaint in the footer when there is one.
 
 # What to do after a change: $1 is git's exit status, $2 the file with its
@@ -834,7 +837,7 @@ $keys" \
 main_show() {
     setup commits
     # Options are read where the alias was run from -- GIT_PREFIX, below
-    # the top -- so `git sw -- file` means the file in that directory. The
+    # the top -- so `git review show -- file` means the file in that directory. The
     # check up front is for an unknown revision or a history without
     # commits, whose message fzf would cover.
     cd "${GIT_PREFIX:-.}" || exit 1
@@ -859,7 +862,7 @@ is_commit() {
     git rev-parse --verify --quiet "$1^{commit}" >/dev/null
 }
 
-# git sw <commit>: the commit's files, with no history before them. ctrl-c
+# git review show <commit>: the commit's files, with no history before them. ctrl-c
 # leaves its note for the history in this list's own directory, where
 # nothing reads it.
 main_commit() {
@@ -884,7 +887,7 @@ case ${1-} in
     -h|--help) usage ;;
     list|preview|scroll|hunk|focus|mode|edit|files|back|stage|hunks|apply|hunkedit|applied|side|header)
         if [ -z "${DF_STATE-}" ]; then
-            err "$1 is called by fzf -- run git df or git sw"
+            err "$1 is called by fzf -- run git review or git review show"
             exit 2
         fi
         cmd=$1

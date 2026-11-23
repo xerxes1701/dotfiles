@@ -1,14 +1,34 @@
 # Noctalia reads every *.toml in this directory. config.toml next to this one
 # comes from the cachyos skel and is not tracked here.
 #
-# Scrolling over the workspaces widget (top left) focuses the column to the
-# left or right, like Mod+H/L and Mod+wheel in niri's cfg/local.kdl. The bar
-# never has keyboard focus, so it cannot tell which modifiers are held; with
-# Mod down niri takes the wheel before the bar sees it, and the modifier
+# Scrolling over the left end of the bar -- the launcher, wallpaper and
+# workspaces widgets -- or over its empty stretches focuses the column to the
+# left or right, like Mod+H/L and Mod+wheel in niri's cfg/local.kdl. The other
+# widgets keep their own wheel (volume, brightness, media). Set per widget, not
+# in [bar.default.actions], because that one replaces those widgets' wheel too.
+#
+# The bar never has keyboard focus, so it cannot tell which modifiers are held;
+# with Mod down niri takes the wheel before the bar sees it, and the modifier
 # variants in local.kdl apply instead.
 #
 # "steps" runs the action once per wheel detent, as niri's Mod+wheel does.
 # Noctalia's own default runs an exec action an undocumented number of times.
+[widget.launcher]
+type = "launcher"
+scroll_repeat = "steps"
+
+    [widget.launcher.actions]
+    scroll_up = "exec niri msg action focus-column-left"
+    scroll_down = "exec niri msg action focus-column-right"
+
+[widget.wallpaper]
+type = "wallpaper"
+scroll_repeat = "steps"
+
+    [widget.wallpaper.actions]
+    scroll_up = "exec niri msg action focus-column-left"
+    scroll_down = "exec niri msg action focus-column-right"
+
 [widget.workspaces]
 type = "workspaces"
 scroll_repeat = "steps"
@@ -16,3 +36,7 @@ scroll_repeat = "steps"
     [widget.workspaces.actions]
     scroll_up = "exec niri msg action focus-column-left"
     scroll_down = "exec niri msg action focus-column-right"
+
+[bar.default.dead_zone.actions]
+scroll_up = "exec niri msg action focus-column-left"
+scroll_down = "exec niri msg action focus-column-right"

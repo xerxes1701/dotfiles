@@ -28,7 +28,31 @@ binds {
     Mod+Shift+CTRL+H                    { move-column-to-monitor-left; }
     Mod+Shift+CTRL+L                    { move-column-to-monitor-right; }
 
-    Mod+M                              { maximize-column; }
+    // The wheel follows the keys: up is H, down is L, and the modifiers mean
+    // what they mean there -- CTRL moves, Shift is the monitor level. These
+    // replace the shipped wheel binds; scrolling over noctalia's workspaces
+    // widget without Mod is Mod+H/L too, see ~/.config/noctalia/bar.toml
+    Mod+WheelScrollUp                   { focus-column-left; }
+    Mod+WheelScrollDown                 { focus-column-right; }
+    Mod+CTRL+WheelScrollUp              { move-column-left; }
+    Mod+CTRL+WheelScrollDown            { move-column-right; }
+    Mod+Shift+WheelScrollUp             cooldown-ms=150 { focus-monitor-left; }
+    Mod+Shift+WheelScrollDown           cooldown-ms=150 { focus-monitor-right; }
+    Mod+Shift+CTRL+WheelScrollUp        cooldown-ms=150 { move-column-to-monitor-left; }
+    Mod+Shift+CTRL+WheelScrollDown      cooldown-ms=150 { move-column-to-monitor-right; }
+
+    // ALT is the workspace level, whose axis is vertical: K and the wheel up go
+    // up, J and the wheel down go down. Mod+ALT+L stays the lock screen.
+    Mod+ALT+K                           { focus-workspace-up; }
+    Mod+ALT+J                           { focus-workspace-down; }
+    Mod+ALT+CTRL+K                      { move-column-to-workspace-up; }
+    Mod+ALT+CTRL+J                      { move-column-to-workspace-down; }
+    Mod+ALT+WheelScrollUp               cooldown-ms=150 { focus-workspace-up; }
+    Mod+ALT+WheelScrollDown             cooldown-ms=150 { focus-workspace-down; }
+    Mod+ALT+CTRL+WheelScrollUp          cooldown-ms=150 { move-column-to-workspace-up; }
+    Mod+ALT+CTRL+WheelScrollDown        cooldown-ms=150 { move-column-to-workspace-down; }
+
+    Mod+M                             { maximize-column; }
     Mod+Shift+M                         { set-column-width "50%"; }
 
     Mod+F                               { maximize-window-to-edges; } // Fills the screen but stays in the layout, so window opacity still shows the wallpaper

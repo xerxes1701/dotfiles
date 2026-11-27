@@ -1,0 +1,25 @@
+# Niri has two layouts, plain US and US international with dead keys, and
+# Mod+D switches between them; see ~/.config/niri/cfg/local.kdl. Both have the
+# short code "us", so the bar names them here. The keys are xkb's full layout
+# names, as `niri msg keyboard-layouts` prints them.
+[shell.keyboard_layout.custom_labels]
+"English (US)" = "US"
+"English (US, intl., with dead keys)" = "DEAD"
+
+# The bar's end section is noctalia's default with keyboard_layout added in
+# front of the network widget. Setting it replaces the whole default list.
+[bar.default]
+end = [
+    'media',
+    'tray',
+    'notifications',
+    'clipboard',
+    'keyboard_layout',
+    'network',
+    'bluetooth',
+    'volume',
+    'brightness',
+    'battery',
+    'control-center',
+    'session',
+]

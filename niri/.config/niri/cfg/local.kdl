@@ -12,6 +12,12 @@ spawn-at-startup "wl-clip-persist" "--clipboard" "regular"
 input {
     keyboard {
         xkb {
+            // Two layouts that differ only in dead keys: plain US, and US
+            // international, where ' " ` ~ ^ wait for the next key (" a is ä).
+            // Mod+D switches between them; noctalia's keyboard_layout widget
+            // shows which one is on, see ~/.config/noctalia/keyboard.toml
+            layout "us,us"
+            variant ",intl"
             options "corne:f13" // F13-F24 on the corne, see ~/.config/xkb
         }
     }
@@ -21,6 +27,7 @@ binds {
     Mod+Return                          hotkey-overlay-title="Open Terminal: Ghostty" { spawn "ghostty"; }
     Mod+Space                           hotkey-overlay-title="Open App Launcher: noctalia launcher" { spawn-sh "noctalia msg panel-toggle launcher"; }
     Mod+V                               hotkey-overlay-title="Clipboard History: noctalia" { spawn-sh "noctalia msg panel-toggle clipboard"; }
+    Mod+D                               hotkey-overlay-title="Dead Keys On/Off: switch keyboard layout" { switch-layout "next"; }
 
     // The h/l twins of the monitor arrow binds, like Mod+H and Mod+CTRL+H for columns
     Mod+Shift+H                         { focus-monitor-left; }

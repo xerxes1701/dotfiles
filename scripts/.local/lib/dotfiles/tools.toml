@@ -362,6 +362,14 @@ os = ["linux", "windows"]
 pacman = "vale"
 winget = "errata-ai.Vale"
 
+[typst]
+desc = "typesetting compiler, for the typst files nvim's tinymist edits"
+os = ["linux", "windows"]
+pacman = "typst"
+winget = "Typst.Typst"
+cargo = "typst-cli"
+check = "command -v typst"
+
 # --- terminals and multiplexers -----------------------------------------------
 
 [ghostty]

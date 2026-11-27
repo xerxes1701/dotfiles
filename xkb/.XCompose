@@ -1,0 +1,9 @@
+# Read by GTK's input method (GTK_IM_MODULE=simple, see niri's cfg/local.kdl)
+# and by libxkbcommon apps. Keeps the locale's sequences and changes two.
+include "%L"
+
+# In niri's dead-key layout, us(intl), pressing ' or " twice types the plain
+# character. The locale gives the spacing accents ´ and ¨ instead; ` ~ ^ twice
+# already give themselves.
+<dead_acute> <dead_acute>           : "'"   apostrophe
+<dead_diaeresis> <dead_diaeresis>   : "\""  quotedbl

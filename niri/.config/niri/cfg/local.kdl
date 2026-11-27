@@ -9,6 +9,14 @@
 
 spawn-at-startup "wl-clip-persist" "--clipboard" "regular"
 
+// Since GTK 4.20, GTK apps on Wayland leave dead keys and compose sequences
+// to an input method (IBus, fcitx) and type nothing when none runs, as here.
+// "simple" is GTK's own handling, which reads ~/.XCompose. Replace it with
+// "ibus" or "fcitx" if one of those is ever installed.
+environment {
+    GTK_IM_MODULE "simple"
+}
+
 input {
     keyboard {
         xkb {

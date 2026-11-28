@@ -308,6 +308,32 @@ pacman = "github-cli"
 apt = "gh"
 winget = "GitHub.cli"
 
+# xerxes1701/al: private and without releases, so it is built from a clone.
+# gh clones it with its own login; git's credential helper is windows' one,
+# for WSL. global.json pins sdk 10 and rolls forward within 10 only, but a
+# newer sdk builds its net10.0 as well, so the throwaway clone drops the pin.
+# PublishAot links with clang. setup is al's own completion install: a block
+# in ~/.bashrc and ~/.config/fish/conf.d/al.fish, which al-git.fish needs.
+[al]
+desc = "aliases for sub-commands: git's own commands (git/.gitconfig) and the al package's shortcuts"
+os = ["linux"]
+needs = ["dotnet", "gh", "clang"]
+check = "command -v al"
+script = '''
+src=$(mktemp -d)
+trap 'rm -rf "$src"' EXIT
+gh repo clone xerxes1701/al "$src" -- --depth 1
+rm -f "$src/global.json"
+dotnet publish "$src/src/Al" -c Release --use-current-runtime -o "$src/out"
+mkdir -p ~/.local/bin
+install -m 755 "$src/out/al" ~/.local/bin/al
+'''
+setup = '''
+al completion install bash
+al completion install fish
+'''
+setup_check = "grep -qF '# >>> al completion >>>' ~/.bashrc && [ -f ~/.config/fish/conf.d/al.fish ]"
+
 # nvim-treesitter builds every parser with this CLI, 0.26.1 or later; ubuntu
 # 24.04's is 0.20.8 and too old. npm's package brings a prebuilt binary.
 [tree-sitter]

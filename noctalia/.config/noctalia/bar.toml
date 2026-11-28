@@ -40,3 +40,8 @@ scroll_repeat = "steps"
 [bar.default.dead_zone.actions]
 scroll_up = "exec niri msg action focus-column-left"
 scroll_down = "exec niri msg action focus-column-right"
+
+# The Wi-Fi glyph alone; no SSID or interface name beside it.
+[widget.network]
+type = "network"
+show_label = false

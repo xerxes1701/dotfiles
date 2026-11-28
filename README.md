@@ -824,7 +824,9 @@ in the picture, slurp draws a selection over the still image, grim captures
 the region, and satty opens it to mark up (`screenshot-region.sh`). the capture lands on the clipboard before satty opens; in satty, ctrl+c
 replaces it with the marked-up image and ctrl+s saves it.
 esc during the selection cancels without opening satty. a window rule opens
-satty floating, not tiled.
+satty floating, not tiled. without wayfreeze, an aur package, the selection
+runs over the live screen and a notification says so;
+`install-tools.sh wayfreeze` installs it.
 
     mod+shift+s     region, through satty
     ctrl+shift+2    whole screen, niri's own, straight to the clipboard
